@@ -8,9 +8,11 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+
 
 function NotFoundComponent() {
   return (
@@ -77,15 +79,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Hudson Cliffs Quest — P.S./I.S. 187 Grade 5 Prep" },
+      {
+        name: "description",
+        content:
+          "Gamified 5th-grade prep and AI-graded book reports for P.S./I.S. 187 Hudson Cliffs students and parents.",
+      },
+      { name: "author", content: "Hudson Cliffs Quest" },
+      { property: "og:title", content: "Hudson Cliffs Quest — P.S./I.S. 187 Grade 5 Prep" },
+      {
+        property: "og:description",
+        content: "Earn XP, keep your streak, and get instant AI feedback on RACECE writing.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
+
     links: [
       {
         rel: "stylesheet",
