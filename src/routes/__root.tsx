@@ -10,6 +10,7 @@ import {
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { AnalyticsPageTracker } from "@/components/AnalyticsPageTracker";
+import { SiteFooter } from "@/components/SiteFooter";
 
 import appCss from "../styles.css?url";
 
@@ -134,11 +135,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AnalyticsPageTracker />
-      <Outlet />
+      <div className="flex min-h-screen flex-col">
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <AnalyticsPageTracker />
+        <div className="flex-1">
+          <Outlet />
+        </div>
+        <SiteFooter />
+      </div>
       <Toaster theme="dark" position="top-center" richColors />
     </QueryClientProvider>
   );
-
 }

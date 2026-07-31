@@ -10,6 +10,17 @@ Auth supports email/password (with confirmation) and Google OAuth. Parent access
 
 **Production:** [https://shiadiaz.netlify.app](https://shiadiaz.netlify.app)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE.md)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](./CODE_OF_CONDUCT.md)
+
+## Open source
+
+- **License:** [MIT](./LICENSE.md)
+- **Code of Conduct:** [Contributor Covenant 2.1](./CODE_OF_CONDUCT.md)
+- **Hosting:** This project site is powered by [Netlify](https://www.netlify.com)
+
+PRs and issues that help students and parents at P.S./I.S. 187 are welcome. This is a non-commercial educational community project.
+
 ## Tech stack
 
 | Layer | Choice |
