@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { BookOpen, CheckCircle2, Loader2, Sparkles, Trash2, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { PdfReader } from "@/components/PdfReader";
 import { supabase } from "@/integrations/supabase/client";
 import { celebrate } from "@/lib/confetti";
 import { gradeBookReport } from "@/lib/grading.functions";
@@ -207,11 +208,7 @@ export function BookStudio({ userId }: { userId: string }) {
             )}
           </div>
           {signedUrl ? (
-            <iframe
-              title={selected?.title ?? "Assigned book"}
-              src={signedUrl}
-              className="h-[30rem] w-full flex-1 bg-background"
-            />
+            <PdfReader url={signedUrl} title={selected?.title ?? "Assigned book"} />
           ) : (
             <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
               {selected

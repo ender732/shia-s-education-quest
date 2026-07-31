@@ -29,6 +29,8 @@ export default defineConfig({
       "react/jsx-runtime",
       "react/jsx-dev-runtime",
     ],
+    // Avoid Vite rewriting the PDF.js worker into a broken "fake worker" in dev.
+    exclude: ["pdfjs-dist"],
   },
   plugins: [
     tailwindcss(),
