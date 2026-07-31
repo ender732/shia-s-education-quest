@@ -26,6 +26,10 @@ export type Lesson = {
   tip: string;
   passPercent: number;
   questions: Question[];
+  /** Crash Course Kids (or related) YouTube video id when a strong match exists. */
+  youtubeVideoId?: string;
+  /** Accessible label for the embed. */
+  youtubeTitle?: string;
 };
 
 function normalizeAnswer(value: string) {
@@ -767,6 +771,8 @@ export const LESSONS: Record<string, Lesson> = {
       "We classify materials by comparing these properties.",
     ],
     tip: "Ask: Can I see it? Feel it? Measure it with a tool?",
+    youtubeVideoId: "ZZYnERZe3Cg",
+    youtubeTitle: "Hunting for Properties: Crash Course Kids #9.1",
     passPercent: 70,
     questions: [
       {
@@ -821,6 +827,8 @@ export const LESSONS: Record<string, Lesson> = {
       "If a gas escapes into the air, the container can seem lighter — but the mass moved, it didn’t vanish.",
     ],
     tip: "Think: mass is rearranged, not erased.",
+    youtubeVideoId: "3lHHOiTdmK4",
+    youtubeTitle: "Vacation or Conservation (Of Mass): Crash Course Kids #23.1",
     passPercent: 70,
     questions: [
       {
@@ -891,6 +899,8 @@ export const LESSONS: Record<string, Lesson> = {
       "The spheres interact constantly (rain weathers rock; plants use air and water).",
     ],
     tip: "Geo = Earth/rock, Hydro = water, Atmo = air, Bio = life.",
+    youtubeVideoId: "VMxjzWHbyFM",
+    youtubeTitle: "Four Spheres Part 1 (Geo and Bio): Crash Course Kids #6.1",
     passPercent: 70,
     questions: [
       {
