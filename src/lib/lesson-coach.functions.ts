@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const HistoryMessage = z.object({
   role: z.enum(["user", "assistant"]),
-  content: z.string().min(1).max(800),
+  content: z.string().min(1).max(2000),
 });
 
 const CoachInput = z.object({

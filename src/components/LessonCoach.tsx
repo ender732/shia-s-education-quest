@@ -53,7 +53,7 @@ export function LessonCoach({
     mutationFn: async (text: string) => {
       const history = messages.slice(-6).map((m) => ({
         role: m.role,
-        content: m.content.slice(0, 800),
+        content: m.content.slice(0, 2000),
       }));
       return askCoach({
         data: {
@@ -126,7 +126,7 @@ export function LessonCoach({
 
           <div
             ref={listRef}
-            className="max-h-56 space-y-2 overflow-y-auto rounded-lg border border-border bg-background/60 p-2"
+            className="max-h-80 space-y-2 overflow-y-auto rounded-lg border border-border bg-background/60 p-2"
             aria-live="polite"
           >
             {messages.length === 0 && (

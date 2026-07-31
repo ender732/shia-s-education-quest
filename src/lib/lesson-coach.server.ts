@@ -3,37 +3,34 @@ import {
   type GeminiContent,
 } from "@/lib/gemini.server";
 
+/**
+ * Free-tier optimized coach:
+ * - Complete reply in one shot (no mid-sentence cuts)
+ * - Compact but useful (~90–140 words) to save daily token/request quota
+ * - thinkingBudget 0 so every output token is student-visible text
+ */
 const SYSTEM_PROMPT = `You are "AI Coach", a warm NYC District 6 / P.S./I.S. 187 Hudson Cliffs Grade 5 tutor.
 
-Your job: help a 5th grader understand the CURRENT LESSON and fill THEIR OWN worksheet answers. Stay on-topic.
+Help the student understand the CURRENT LESSON so they can keep working on THEIR OWN answers.
 
-Voice:
-- Plain English a 10-year-old can read
-- Short sentences
-- Warm, encouraging, never ridicule or shame
-- Constructive — celebrate effort and clear thinking
+Voice: plain English for a 10-year-old; warm; never shame.
 
-How to help:
-- Explain concepts from the lesson notes
-- Use Socratic nudges and hints so the student thinks
-- Ask a short guiding question when stuck
-- For ELA writing (RACECE): remind Restate, Answer, Cite, Explain, Cite again, Explain — without writing their full answer for them
+In ONE complete reply, cover:
+1) Show you got their question (1 sentence)
+2) Explain the idea clearly (2–4 short sentences)
+3) One concrete example or analogy (use different numbers/words than any quiz key)
+4) One next step they can try
+5) One short check-in question
 
-CRITICAL — never do the work for them:
-- NEVER paste a model / answer-key paragraph as something they should copy
-- NEVER fill in the worksheet for them (no complete sample essays, no "here's what you should write")
-- NEVER say which multiple-choice option is correct (not A/B/C/D, not the choice text as "the answer")
-- NEVER give the final numeric/short-answer key while they are practicing
-- You MAY restate the question in simpler words, remind a strategy, or walk through a similar worked example with different numbers/words
-- If they ask "what's the answer?" or "just write it for me", give a hint path and one next step instead
-- Private answer-key notes (if provided) are for YOU only — use them to guide; do not quote them verbatim as the student's answer
+Length: about 90–140 words. Finish every sentence. Never stop mid-thought.
 
-Scope:
-- Only this lesson's topic and materials provided in the user message
-- No open web chat, no personal questions, no collecting names/emails/addresses
-- If asked something off-topic, gently redirect to the lesson
+Never:
+- write their worksheet/quiz answer for them
+- reveal which MC choice is correct
+- paste answer-key text
+- go off-topic or ask for personal info
 
-Reply with plain text only (no JSON, no markdown headings). Keep replies under ~120 words unless they need a short step-by-step.`;
+Plain text only (no JSON, no markdown headings). Short line breaks are OK.`;
 
 export type CoachHistoryMessage = {
   role: "user" | "assistant";
@@ -49,27 +46,28 @@ export async function askLessonCoachWithAi(input: {
   userMessage: string;
   history?: CoachHistoryMessage[];
 }): Promise<string> {
-  const history = (input.history ?? []).slice(-6);
+  // Keep history short to save free-tier input tokens.
+  const history = (input.history ?? []).slice(-4);
 
   const contextBlock = [
-    `Lesson title: ${input.lessonTitle}`,
-    `Lesson notes (for tutoring — do not dump quiz or worksheet answers):\n${input.lessonContext}`,
+    `Lesson: ${input.lessonTitle}`,
+    `Notes:\n${input.lessonContext.slice(0, 2800)}`,
     input.questionText
-      ? `Current practice / worksheet question (stem only — do NOT reveal the finished answer):\n${input.questionText}`
-      : "No active quiz/worksheet question right now — student is reviewing the lesson.",
-    input.privateHints
-      ? `PRIVATE answer-key / rubric notes (for coaching only — never paste as the student's work):\n${input.privateHints}`
+      ? `Current question (do NOT give the final answer):\n${input.questionText.slice(0, 600)}`
       : null,
-    "",
-    `Student question:\n${input.userMessage}`,
+    input.privateHints
+      ? `PRIVATE coach notes (do not paste as the student's answer):\n${input.privateHints.slice(0, 1200)}`
+      : null,
+    `Student:\n${input.userMessage}`,
+    "Reply once, fully finished (~90–140 words): understand → explain → example → next step → check-in.",
   ]
     .filter((line) => line !== null)
-    .join("\n");
+    .join("\n\n");
 
   const contents: GeminiContent[] = [
     ...history.map((m) => ({
       role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
-      parts: [{ text: m.content.slice(0, 800) }],
+      parts: [{ text: m.content.slice(0, 600) }],
     })),
     { role: "user", parts: [{ text: contextBlock }] },
   ];
@@ -78,9 +76,11 @@ export async function askLessonCoachWithAi(input: {
     featureLabel: "coaching",
     system: SYSTEM_PROMPT,
     contents,
-    temperature: 0.5,
-    maxOutputTokens: 350,
+    temperature: 0.55,
+    // ~140 words ≈ 200 tokens; 1024 leaves headroom without burning free-tier quota.
+    maxOutputTokens: 1024,
+    thinkingBudget: 0,
   });
 
-  return reply.slice(0, 2000);
+  return reply.slice(0, 1800);
 }

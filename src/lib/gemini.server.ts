@@ -1,14 +1,22 @@
 /**
  * Google Gemini (Generative Language API) helpers — server-only.
  * Env: GEMINI_API_KEY (preferred) or GOOGLE_GENERATIVE_AI_API_KEY.
- * Model: GEMINI_MODEL or AI_MODEL (default gemini-2.5-flash).
+ * Model: GEMINI_MODEL or AI_MODEL (default gemini-2.5-flash-lite — best free-tier fit).
  * Avoid gemini-2.0-flash on free tier — Google often sets its quota to 0 (HTTP 429).
  */
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
-/** Used if the configured model is missing / retired. */
-const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"];
+/** Flash-Lite: higher free-tier RPM, no default thinking, cheapest good quality. */
+const DEFAULT_MODEL = "gemini-2.5-flash-lite";
+/** Only one fallback so we do not burn free-tier quota on a long model chain. */
+const FALLBACK_MODELS = ["gemini-2.5-flash"];
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+
+/** Models that waste free-tier quota or often return empty/truncated coach replies. */
+const FREE_TIER_AVOID = new Set([
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-001",
+  "gemini-flash-latest",
+]);
 
 export type GeminiPart =
   | { text: string }
@@ -47,7 +55,14 @@ export function getGeminiModel(): string {
   const configured =
     normalizeGeminiModel(process.env.GEMINI_MODEL) ||
     normalizeGeminiModel(process.env.AI_MODEL);
-  return configured || DEFAULT_MODEL;
+  if (!configured) return DEFAULT_MODEL;
+  if (FREE_TIER_AVOID.has(configured)) {
+    console.warn(
+      `[gemini] Replacing free-tier-unfriendly model “${configured}” with ${DEFAULT_MODEL}`,
+    );
+    return DEFAULT_MODEL;
+  }
+  return configured;
 }
 
 function missingKeyMessage(feature: string): string {
@@ -97,17 +112,36 @@ type GenerateOptions = {
   json?: boolean;
   temperature?: number;
   maxOutputTokens?: number;
+  /**
+   * Gemini 2.5+ thinking budget. Thinking tokens count against maxOutputTokens.
+   * Default 0 (off) so short replies are not emptied by MAX_TOKENS.
+   */
+  thinkingBudget?: number;
   /** Used in user-facing error strings (e.g. "grading", "coaching"). */
   featureLabel: string;
 };
 
+type GeminiPartResponse = {
+  text?: string;
+  /** Thought / reasoning parts — not shown to students. */
+  thought?: boolean;
+};
+
 type GeminiGenerateResponse = {
   candidates?: Array<{
-    content?: { parts?: Array<{ text?: string }> };
+    content?: { parts?: GeminiPartResponse[] };
     finishReason?: string;
   }>;
   error?: { message?: string; status?: string; code?: number };
 };
+
+function extractVisibleText(payload: GeminiGenerateResponse): string {
+  return (payload.candidates?.[0]?.content?.parts ?? [])
+    .filter((p) => !p.thought)
+    .map((p) => p.text ?? "")
+    .join("")
+    .trim();
+}
 
 function extractGeminiErrorMessage(detail: string): string {
   try {
@@ -125,11 +159,24 @@ function isModelMissingError(status: number, detail: string): boolean {
   return /not found|is not supported|NOT_FOUND|invalid model/i.test(detail);
 }
 
+function buildGenerationConfig(options: GenerateOptions): Record<string, unknown> {
+  const thinkingBudget = options.thinkingBudget ?? 0;
+  return {
+    temperature: options.temperature ?? 0.4,
+    maxOutputTokens: options.maxOutputTokens ?? 1024,
+    ...(options.json ? { responseMimeType: "application/json" } : {}),
+    thinkingConfig: { thinkingBudget },
+  };
+}
+
 async function callGeminiOnce(
   apiKey: string,
   model: string,
   body: Record<string, unknown>,
-): Promise<{ ok: true; text: string } | { ok: false; status: number; detail: string }> {
+): Promise<
+  | { ok: true; text: string; finishReason: string }
+  | { ok: false; status: number; detail: string; truncatedText?: string }
+> {
   const url = `${API_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const response = await fetch(url, {
     method: "POST",
@@ -150,21 +197,28 @@ async function callGeminiOnce(
     return { ok: false, status: 502, detail: "Invalid JSON from Gemini." };
   }
 
-  const text = (payload.candidates?.[0]?.content?.parts ?? [])
-    .map((p) => p.text ?? "")
-    .join("")
-    .trim();
+  const finishReason = payload.candidates?.[0]?.finishReason ?? "STOP";
+  const text = extractVisibleText(payload);
 
   if (!text) {
-    const reason = payload.candidates?.[0]?.finishReason ?? "empty";
     return {
       ok: false,
       status: 502,
-      detail: `Empty model reply (finishReason=${reason}).`,
+      detail: `Empty model reply (finishReason=${finishReason}).`,
     };
   }
 
-  return { ok: true, text };
+  // Partial reply cut off by the token ceiling — do not treat as success.
+  if (finishReason === "MAX_TOKENS") {
+    return {
+      ok: false,
+      status: 502,
+      detail: `Truncated model reply (finishReason=MAX_TOKENS).`,
+      truncatedText: text,
+    };
+  }
+
+  return { ok: true, text, finishReason };
 }
 
 function modelsToTry(primary: string): string[] {
@@ -172,43 +226,111 @@ function modelsToTry(primary: string): string[] {
   return [...new Set(list)];
 }
 
+function isTruncationError(detail: string): boolean {
+  return /Truncated model reply|Empty model reply \(finishReason=MAX_TOKENS\)/i.test(
+    detail,
+  );
+}
+
 export async function generateGeminiText(options: GenerateOptions): Promise<string> {
   const apiKey = requireGeminiApiKey(options.featureLabel);
   const primaryModel = getGeminiModel();
+  const baseMax = options.maxOutputTokens ?? 1024;
 
-  const body: Record<string, unknown> = {
-    systemInstruction: {
-      parts: [{ text: options.system }],
+  // Free tier: one primary attempt, one modest retry on truncation (no huge 8k burns).
+  const attempts: Array<{ maxOutputTokens: number; thinkingBudget: number }> = [
+    {
+      maxOutputTokens: baseMax,
+      thinkingBudget: options.thinkingBudget ?? 0,
     },
-    contents: options.contents,
-    generationConfig: {
-      temperature: options.temperature ?? 0.4,
-      maxOutputTokens: options.maxOutputTokens ?? 2048,
-      ...(options.json ? { responseMimeType: "application/json" } : {}),
+    {
+      maxOutputTokens: Math.min(Math.max(baseMax * 2, 1536), 2048),
+      thinkingBudget: 0,
     },
-  };
+  ];
 
   let lastStatus = 0;
   let lastDetail = "";
   let lastModel = primaryModel;
+  let partialText = "";
+  let stopAll = false;
 
-  for (const model of modelsToTry(primaryModel)) {
-    lastModel = model;
-    const result = await callGeminiOnce(apiKey, model, body);
-    if (result.ok) return result.text;
+  for (let attemptIndex = 0; attemptIndex < attempts.length && !stopAll; attemptIndex++) {
+    const attempt = attempts[attemptIndex];
+    const body: Record<string, unknown> = {
+      systemInstruction: {
+        parts: [{ text: options.system }],
+      },
+      contents: options.contents,
+      generationConfig: buildGenerationConfig({
+        ...options,
+        maxOutputTokens: attempt.maxOutputTokens,
+        thinkingBudget: attempt.thinkingBudget,
+      }),
+    };
 
-    lastStatus = result.status;
-    lastDetail = result.detail;
-    console.error(
-      `Gemini API error (${options.featureLabel})`,
-      model,
-      result.status,
-      result.detail.slice(0, 500),
-    );
+    for (const model of modelsToTry(primaryModel)) {
+      lastModel = model;
+      const result = await callGeminiOnce(apiKey, model, body);
+      if (result.ok) return result.text;
 
-    // Retry next fallback only when this model is missing / unsupported.
-    if (!isModelMissingError(result.status, result.detail)) {
+      lastStatus = result.status;
+      lastDetail = result.detail;
+      if (result.truncatedText) partialText = result.truncatedText;
+      console.error(
+        `Gemini API error (${options.featureLabel})`,
+        model,
+        result.status,
+        result.detail.slice(0, 500),
+      );
+
+      if (isModelMissingError(result.status, result.detail)) {
+        continue;
+      }
+      if (isTruncationError(result.detail) && attemptIndex < attempts.length - 1) {
+        break;
+      }
+      stopAll = true;
       break;
+    }
+  }
+
+  // Last resort: ask the model to finish a truncated draft in one more call.
+  if (partialText && isTruncationError(lastDetail)) {
+    const continuation = await callGeminiOnce(apiKey, lastModel, {
+      systemInstruction: {
+        parts: [
+          {
+            text: `${options.system}\n\nIMPORTANT: Continue the draft below and finish the FULL reply in one message. Do not restart. Do not stop mid-sentence.`,
+          },
+        ],
+      },
+      contents: [
+        ...options.contents,
+        { role: "model", parts: [{ text: partialText }] },
+        {
+          role: "user",
+          parts: [
+            {
+              text: "Continue exactly from where you stopped and finish your complete reply now.",
+            },
+          ],
+        },
+      ],
+      generationConfig: buildGenerationConfig({
+        ...options,
+        maxOutputTokens: Math.min(Math.max(baseMax * 2, 1536), 2048),
+        thinkingBudget: 0,
+      }),
+    });
+    if (continuation.ok) {
+      const draft = partialText.trimEnd();
+      const more = continuation.text.trim();
+      if (more.toLowerCase().startsWith(draft.slice(0, 24).toLowerCase())) {
+        return more.slice(0, 4000);
+      }
+      const joiner = /[\s([{/-]$/.test(draft) ? "" : " ";
+      return `${draft}${joiner}${more}`.slice(0, 4000);
     }
   }
 
@@ -218,7 +340,7 @@ export async function generateGeminiText(options: GenerateOptions): Promise<stri
       /gemini-2\.0-flash/i.test(lastDetail) || /gemini-2\.0-flash/i.test(lastModel);
     if (mentionsZeroQuota || mentionsOldFlash) {
       throw new Error(
-        `AI ${options.featureLabel} hit a Gemini quota limit for model “${lastModel}”. In Netlify, set GEMINI_MODEL to gemini-2.5-flash (not gemini-2.0-flash), confirm GEMINI_API_KEY in Google AI Studio, then try again.`,
+        `AI ${options.featureLabel} hit a Gemini quota limit for model “${lastModel}”. In Netlify, set GEMINI_MODEL to gemini-2.5-flash-lite, confirm GEMINI_API_KEY in Google AI Studio, then try again.`,
       );
     }
     throw new Error(
@@ -235,7 +357,17 @@ export async function generateGeminiText(options: GenerateOptions): Promise<stri
   const geminiMsg = extractGeminiErrorMessage(lastDetail);
   if (isModelMissingError(lastStatus, lastDetail)) {
     throw new Error(
-      `AI ${options.featureLabel} could not use model “${getGeminiModel()}”. Set GEMINI_MODEL=gemini-2.5-flash in Netlify (no quotes). ${geminiMsg}`,
+      `AI ${options.featureLabel} could not use model “${getGeminiModel()}”. Set GEMINI_MODEL=gemini-2.5-flash-lite in Netlify (no quotes). ${geminiMsg}`,
+    );
+  }
+
+  if (isTruncationError(lastDetail)) {
+    // Better to return a stitched partial than fail hard if we have usable text.
+    if (partialText.trim().length > 40) {
+      return `${partialText.trim()}…`;
+    }
+    throw new Error(
+      `The AI ${options.featureLabel} ran out of reply space before finishing. Try a shorter question, or set GEMINI_MODEL=gemini-2.5-flash-lite in Netlify.`,
     );
   }
 
