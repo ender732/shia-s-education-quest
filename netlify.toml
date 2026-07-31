@@ -9,10 +9,12 @@
   publish = "dist/client"
 
 # Publishable Supabase client keys (VITE_*) are safe in browser bundles.
-# Netlify secrets scanning still flags their literal values in build output —
-# omit them so deploys succeed without disabling scanning entirely.
+# EMAIL_FROM / RESEND_FROM and GEMINI_MODEL / AI_MODEL are not secrets but are
+# often marked secret in the UI; their values also appear in source/build
+# (e.g. default model "gemini-2.0-flash"), which trips secrets scanning.
+# Omit them so deploys succeed. Do NOT omit GEMINI_API_KEY or RESEND_API_KEY.
 [build.environment]
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_PROJECT_ID,SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,SUPABASE_PROJECT_ID,EMAIL_FROM,RESEND_FROM"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_PROJECT_ID,SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,SUPABASE_PROJECT_ID,EMAIL_FROM,RESEND_FROM,GEMINI_MODEL,AI_MODEL"
 
 # Force clients/CDNs to revalidate the favicon (old Lovable icon was sticky).
 [[headers]]
