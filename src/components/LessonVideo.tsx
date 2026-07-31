@@ -11,6 +11,9 @@ export function LessonVideo({
 }) {
   if (!youtubeVideoId) return null;
 
+  const embedSrc = youtubeEmbedUrl(youtubeVideoId);
+  if (!embedSrc) return null;
+
   const label = youtubeTitle ?? "Lesson explainer video";
   const channel = youtubeChannel ?? "Crash Course Kids";
 
@@ -19,10 +22,12 @@ export function LessonVideo({
       <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-background/80">
         <iframe
           className="absolute inset-0 size-full"
-          src={youtubeEmbedUrl(youtubeVideoId)}
+          src={embedSrc}
           title={label}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
         />
       </div>
       <figcaption className="text-center text-xs text-muted-foreground">

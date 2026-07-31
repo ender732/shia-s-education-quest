@@ -152,6 +152,7 @@ export type Database = {
           last_active_date: string | null
           level: number
           link_code: string
+          link_email_sent_at: string | null
           parent_contact_email: string | null
           role: string
           streak_days: number
@@ -166,6 +167,7 @@ export type Database = {
           last_active_date?: string | null
           level?: number
           link_code?: string
+          link_email_sent_at?: string | null
           parent_contact_email?: string | null
           role?: string
           streak_days?: number
@@ -180,6 +182,7 @@ export type Database = {
           last_active_date?: string | null
           level?: number
           link_code?: string
+          link_email_sent_at?: string | null
           parent_contact_email?: string | null
           role?: string
           streak_days?: number

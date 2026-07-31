@@ -12,6 +12,8 @@ const WelcomeInput = z.object({
   parentEmail: z.string().email().max(320),
 });
 
+const LINK_EMAIL_COOLDOWN_MS = 60_000;
+
 export const sendParentLinkCodeEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => LinkCodeEmailInput.parse(input))
@@ -21,17 +23,24 @@ export const sendParentLinkCodeEmail = createServerFn({ method: "POST" })
     // Only the student who owns this link_code may trigger the email.
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("id, link_code, role, parent_contact_email, display_name")
+      .select("id, link_code, role, parent_contact_email, display_name, link_email_sent_at")
       .eq("id", userId)
       .maybeSingle();
 
-    if (error) throw new Error(error.message);
+    if (error) throw new Error("Could not load profile.");
     if (!profile) throw new Error("Profile not found");
     if (profile.role === "parent") {
       throw new Error("Parent accounts do not share a student link code.");
     }
     if (profile.link_code !== data.linkCode) {
       throw new Error("Link code does not match your profile.");
+    }
+
+    const lastSent = profile.link_email_sent_at
+      ? new Date(profile.link_email_sent_at as string).getTime()
+      : 0;
+    if (lastSent && Date.now() - lastSent < LINK_EMAIL_COOLDOWN_MS) {
+      throw new Error("Please wait a minute before sending another link-code email.");
     }
 
     const parentEmail = data.parentEmail.trim().toLowerCase();
@@ -55,9 +64,16 @@ export const sendParentLinkCodeEmail = createServerFn({ method: "POST" })
       ...content,
     });
 
+    if (result.status === "sent") {
+      await supabase
+        .from("profiles")
+        .update({ link_email_sent_at: new Date().toISOString() })
+        .eq("id", userId);
+    }
+
     return {
       status: result.status as "sent" | "not_configured" | "failed",
-      message: result.status === "failed" ? result.message : undefined,
+      message: result.status === "failed" ? "Email could not be sent. Try again later." : undefined,
     };
   });
 

@@ -37,7 +37,10 @@ export const gradeBookReport = createServerFn({ method: "POST" })
       .select()
       .single();
 
-    if (reportError) throw new Error(reportError.message);
+    if (reportError) {
+      console.error("[gradeBookReport] insert failed", reportError.message);
+      throw new Error("Could not save your report. Please try again.");
+    }
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -46,10 +49,14 @@ export const gradeBookReport = createServerFn({ method: "POST" })
       .maybeSingle();
 
     const newXp = (profile?.xp_points ?? 0) + xpAwarded;
-    await supabase
+    const { error: xpError } = await supabase
       .from("profiles")
       .update({ xp_points: newXp, level: Math.floor(newXp / 500) + 1 })
       .eq("id", userId);
+
+    if (xpError) {
+      console.error("[gradeBookReport] xp update failed", xpError.message);
+    }
 
     return { report, feedback, xpAwarded, newXp };
   });
