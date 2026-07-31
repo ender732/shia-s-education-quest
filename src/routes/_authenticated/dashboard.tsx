@@ -8,6 +8,7 @@ import { BookStudio } from "@/components/BookStudio";
 import { GamificationHeader } from "@/components/GamificationHeader";
 import { ParentLinkCodeCard } from "@/components/ParentLinkCodeCard";
 import { ParentPortal } from "@/components/ParentPortal";
+import { SubjectTabs } from "@/components/SubjectTabs";
 import { TaskBoard, useTasks } from "@/components/TaskBoard";
 import { useProfile, useSession, useStreakTouch } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -137,24 +138,11 @@ function Dashboard() {
             />
           )}
 
-          <nav className="flex flex-wrap gap-2">
-            {(subjects ?? []).map((s) => {
-              const active = current?.id === s.id;
-              const accent = accentFor(s.title);
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSubject(s.id)}
-                  style={active ? { borderColor: `var(--${accent})`, color: `var(--${accent})` } : undefined}
-                  className={`rounded-xl border px-3.5 py-2 text-xs font-bold transition sm:text-sm ${
-                    active ? "bg-surface" : "border-border bg-surface/50 text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {s.title}
-                </button>
-              );
-            })}
-          </nav>
+          <SubjectTabs
+            subjects={subjects ?? []}
+            activeId={current?.id}
+            onSelect={setActiveSubject}
+          />
 
           {current?.description && (
             <p className="text-sm text-muted-foreground">{current.description}</p>
