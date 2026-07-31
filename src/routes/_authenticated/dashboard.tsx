@@ -37,7 +37,6 @@ function Dashboard() {
   const navigate = useNavigate();
   const { session } = useSession();
   const userId = session?.user.id;
-  const userEmail = session?.user.email;
   const { data: profile, isLoading: profileLoading } = useProfile(userId);
   useStreakTouch(profile);
 
@@ -74,11 +73,13 @@ function Dashboard() {
   }
 
   function requestParentMode() {
-    if (canAccessParentPortal(userEmail)) {
+    if (canAccessParentPortal(profile?.role)) {
       setParentMode(true);
       return;
     }
-    toast.error("Parent Portal access is restricted to authorized parent emails.");
+    toast.error(
+      "Parent Portal is only available on parent accounts. Create a parent/guardian account with adult verification (18+) at signup — students share a link code to connect.",
+    );
   }
 
   if (profileLoading || subjectsLoading || !userId) {
@@ -129,7 +130,11 @@ function Dashboard() {
           />
 
           {(profile?.role ?? "student") === "student" && (
-            <ParentLinkCodeCard linkCode={profile?.link_code} />
+            <ParentLinkCodeCard
+              linkCode={profile?.link_code}
+              parentContactEmail={profile?.parent_contact_email}
+              studentName={profile?.display_name}
+            />
           )}
 
           <nav className="flex flex-wrap gap-2">

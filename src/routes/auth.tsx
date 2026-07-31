@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { clearAuthIntent, saveAuthIntent, type AuthSignupIntent } from "@/lib/auth-intent";
+import { ensureProfileRole } from "@/lib/ensure-role";
+import { ageFromDob, isAdultDob } from "@/lib/parent-access";
 import { useSession } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -28,33 +31,122 @@ function AuthPage() {
   const navigate = useNavigate();
   const { session } = useSession();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [role, setRole] = useState<"student" | "parent">("student");
+  const [path, setPath] = useState<"student" | "parent">("student");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [parentContactEmail, setParentContactEmail] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [confirmAdult, setConfirmAdult] = useState(false);
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const roleApplied = useRef(false);
 
   useEffect(() => {
-    if (session) navigate({ to: "/dashboard", replace: true });
+    if (!session?.user || roleApplied.current) return;
+    roleApplied.current = true;
+
+    (async () => {
+      try {
+        const result = await ensureProfileRole(session.user);
+        if (result.forcedStudentReason === "under_18") {
+          toast.message("Parents must be 18+. Your account was set up as a student.");
+        }
+        if (result.emailStatus === "sent") {
+          toast.success("We emailed your parent/guardian the link code.");
+        } else if (result.emailStatus === "not_configured" && result.parentContactEmail) {
+          toast.message("Email not configured — copy your link code from the dashboard to share.");
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        navigate({ to: "/dashboard", replace: true });
+      }
+    })();
   }, [session, navigate]);
+
+  function buildIntent(): AuthSignupIntent {
+    return {
+      path,
+      displayName: displayName.trim() || undefined,
+      ...(path === "student"
+        ? { parentContactEmail: parentContactEmail.trim() }
+        : {
+            dateOfBirth,
+            confirmedParentGuardian: confirmAdult,
+          }),
+    };
+  }
+
+  function validateSignup(): string | null {
+    if (path === "student") {
+      if (!parentContactEmail.trim()) return "Parent/guardian email is required for student accounts.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentContactEmail.trim())) {
+        return "Enter a valid parent/guardian email.";
+      }
+      return null;
+    }
+    if (!dateOfBirth) return "Date of birth is required for parent accounts.";
+    const age = ageFromDob(dateOfBirth);
+    if (age === null) return "Enter a valid date of birth.";
+    if (!isAdultDob(dateOfBirth)) {
+      return "Parents must be 18 or older. Choose the student path if you are under 18.";
+    }
+    if (!confirmAdult) return "Confirm that you are a parent/guardian 18+.";
+    return null;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signup") {
+        const validationError = validateSignup();
+        if (validationError) {
+          toast.error(validationError);
+          return;
+        }
+
+        const intent = buildIntent();
+        saveAuthIntent(intent);
+
+        const role =
+          path === "parent" && isAdultDob(dateOfBirth) && confirmAdult ? "parent" : "student";
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
-            data: { display_name: displayName || email.split("@")[0], role },
+            emailRedirectTo: `${window.location.origin}/auth`,
+            data: {
+              display_name: displayName || email.split("@")[0],
+              role,
+              ...(path === "student"
+                ? { parent_contact_email: parentContactEmail.trim().toLowerCase() }
+                : {}),
+            },
           },
         });
         if (error) throw error;
-        if (!data.session) setCheckEmail(true);
+
+        if (!data.session) {
+          setCheckEmail(true);
+          toast.message("Confirm your email, then sign in to finish setup.");
+        } else if (data.user) {
+          roleApplied.current = true;
+          const result = await ensureProfileRole(data.user, intent);
+          if (result.forcedStudentReason === "under_18") {
+            toast.message("Parents must be 18+. Your account was set up as a student.");
+          }
+          if (result.emailStatus === "sent") {
+            toast.success("We emailed your parent/guardian the link code.");
+          } else if (result.emailStatus === "not_configured") {
+            toast.message("Email not configured — copy your link code from the dashboard.");
+          }
+          navigate({ to: "/dashboard", replace: true });
+        }
       } else {
+        clearAuthIntent();
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
@@ -66,9 +158,20 @@ function AuthPage() {
   }
 
   async function handleGoogle() {
+    if (mode === "signup") {
+      const validationError = validateSignup();
+      if (validationError) {
+        toast.error(validationError);
+        return;
+      }
+      saveAuthIntent(buildIntent());
+    } else {
+      clearAuthIntent();
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/auth` },
     });
     if (error) toast.error("Google sign-in failed. Please try again.");
   }
@@ -88,7 +191,8 @@ function AuthPage() {
 
         {checkEmail ? (
           <div className="mt-6 rounded-xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
-            Check your email to confirm your account, then come back and sign in.
+            Check your email to confirm your account, then come back and sign in. If you signed up
+            as a student, we&apos;ll finish sending your parent the link code after you confirm.
           </div>
         ) : (
           <>
@@ -101,27 +205,77 @@ function AuthPage() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                   />
+
                   <div className="grid grid-cols-2 gap-2">
-                    {(["student", "parent"] as const).map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        onClick={() => setRole(r)}
-                        className={`rounded-lg border px-3 py-2 text-xs font-bold capitalize transition ${
-                          role === r
-                            ? "border-primary bg-primary/15 text-primary"
-                            : "border-border text-muted-foreground"
-                        }`}
-                      >
-                        {r}
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPath("student");
+                        setConfirmAdult(false);
+                      }}
+                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition ${
+                        path === "student"
+                          ? "border-primary bg-primary/15 text-primary"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      Student
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPath("parent")}
+                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition ${
+                        path === "parent"
+                          ? "border-primary bg-primary/15 text-primary"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      I am a parent/guardian
+                    </button>
                   </div>
-                  {role === "parent" && (
-                    <p className="text-[11px] leading-relaxed text-muted-foreground">
-                      Parent Portal access also requires your email to be on the authorized allowlist
-                      (configured by the site admin). Choosing parent here only sets your profile role.
-                    </p>
+
+                  {path === "student" ? (
+                    <>
+                      <input
+                        className="input-base"
+                        type="email"
+                        placeholder="Parent/guardian email"
+                        value={parentContactEmail}
+                        onChange={(e) => setParentContactEmail(e.target.value)}
+                        required
+                      />
+                      <p className="text-[11px] leading-relaxed text-muted-foreground">
+                        We&apos;ll email them your parent link code so they can connect in Parent
+                        Portal. Under-13 learners should use a parent-managed setup when possible.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Date of birth
+                        <input
+                          className="input-base mt-1"
+                          type="date"
+                          value={dateOfBirth}
+                          onChange={(e) => setDateOfBirth(e.target.value)}
+                          required
+                          max={new Date().toISOString().slice(0, 10)}
+                        />
+                      </label>
+                      <label className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          className="mt-0.5"
+                          checked={confirmAdult}
+                          onChange={(e) => setConfirmAdult(e.target.checked)}
+                        />
+                        <span>I confirm I am a parent/guardian 18 years of age or older.</span>
+                      </label>
+                      <p className="text-[11px] leading-relaxed text-muted-foreground">
+                        Parent accounts require adult verification. You&apos;ll link a child with
+                        their shareable link code after signup.
+                      </p>
+                    </>
                   )}
                 </>
               )}
@@ -157,14 +311,20 @@ function AuthPage() {
             </div>
 
             <button
+              type="button"
               onClick={handleGoogle}
-              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold transition hover:bg-secondary"
+              disabled={busy}
+              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold transition hover:bg-secondary disabled:opacity-60"
             >
               Continue with Google
             </button>
 
             <button
-              onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+              type="button"
+              onClick={() => {
+                setMode(mode === "signin" ? "signup" : "signin");
+                setCheckEmail(false);
+              }}
               className="mt-5 w-full text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
             >
               {mode === "signin"

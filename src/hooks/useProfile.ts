@@ -12,6 +12,9 @@ export type Profile = {
   streak_days: number;
   last_active_date: string | null;
   link_code?: string | null;
+  date_of_birth?: string | null;
+  age_verified_at?: string | null;
+  parent_contact_email?: string | null;
 };
 
 export function useSession() {

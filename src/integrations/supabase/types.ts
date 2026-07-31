@@ -141,34 +141,43 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age_verified_at: string | null
           created_at: string
+          date_of_birth: string | null
           display_name: string | null
           id: string
           last_active_date: string | null
           level: number
           link_code: string
+          parent_contact_email: string | null
           role: string
           streak_days: number
           xp_points: number
         }
         Insert: {
+          age_verified_at?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           id: string
           last_active_date?: string | null
           level?: number
           link_code?: string
+          parent_contact_email?: string | null
           role?: string
           streak_days?: number
           xp_points?: number
         }
         Update: {
+          age_verified_at?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           id?: string
           last_active_date?: string | null
           level?: number
           link_code?: string
+          parent_contact_email?: string | null
           role?: string
           streak_days?: number
           xp_points?: number
