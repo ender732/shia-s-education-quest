@@ -22,6 +22,7 @@ export type Database = {
           id: string
           pdf_url: string | null
           prompt: string | null
+          student_may_delete: boolean
           title: string
         }
         Insert: {
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           pdf_url?: string | null
           prompt?: string | null
+          student_may_delete?: boolean
           title: string
         }
         Update: {
@@ -40,6 +42,7 @@ export type Database = {
           id?: string
           pdf_url?: string | null
           prompt?: string | null
+          student_may_delete?: boolean
           title?: string
         }
         Relationships: [

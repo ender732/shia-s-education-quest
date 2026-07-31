@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
-import { BookOpen, CheckCircle2, Loader2, Sparkles, XCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, Loader2, Sparkles, Trash2, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { celebrate } from "@/lib/confetti";
 import { gradeBookReport } from "@/lib/grading.functions";
+
+export const BOOKS_BUCKET = "assigned-books";
 
 export type AssignedBook = {
   id: string;
@@ -14,6 +16,8 @@ export type AssignedBook = {
   author: string | null;
   pdf_url: string | null;
   prompt: string | null;
+  assigned_by: string | null;
+  student_may_delete: boolean;
 };
 
 type Feedback = {
@@ -32,6 +36,18 @@ const RACECE_LABELS: Array<[string, string]> = [
   ["cite_2", "Cited evidence #2"],
   ["explain_2", "Explained evidence #2"],
 ];
+
+export async function removeAssignedBook(book: AssignedBook) {
+  const path = book.pdf_url;
+  if (path && !path.startsWith("http")) {
+    const { error: storageError } = await supabase.storage
+      .from(BOOKS_BUCKET)
+      .remove([path]);
+    if (storageError) throw storageError;
+  }
+  const { error } = await supabase.from("assigned_books").delete().eq("id", book.id);
+  if (error) throw error;
+}
 
 export function useBooks() {
   return useQuery({
@@ -67,7 +83,7 @@ export function BookStudio({ userId }: { userId: string }) {
       const path = selected!.pdf_url!;
       if (path.startsWith("http")) return path;
       const { data, error } = await supabase.storage
-        .from("assigned-books")
+        .from(BOOKS_BUCKET)
         .createSignedUrl(path, 60 * 60);
       if (error) throw error;
       return data.signedUrl;
@@ -94,6 +110,32 @@ export function BookStudio({ userId }: { userId: string }) {
       queryClient.invalidateQueries({ queryKey: ["book_reports"] });
     },
     onError: (err: Error) => toast.error(err.message || "Grading failed. Try again."),
+  });
+
+  const removeBook = useMutation({
+    mutationFn: async (book: AssignedBook) => {
+      if (!book.student_may_delete) {
+        throw new Error("Your parent has not allowed you to remove this book.");
+      }
+      if (
+        !window.confirm(
+          `Remove “${book.title}”? Ask a parent if you are unsure — this deletes the PDF.`,
+        )
+      ) {
+        throw new Error("cancelled");
+      }
+      await removeAssignedBook(book);
+    },
+    onSuccess: () => {
+      toast.success("Book removed.");
+      setSelectedId(null);
+      setFeedback(null);
+      queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
+    },
+    onError: (err: Error) => {
+      if (err.message === "cancelled") return;
+      toast.error(err.message || "Could not remove book.");
+    },
   });
 
   return (
@@ -132,12 +174,24 @@ export function BookStudio({ userId }: { userId: string }) {
         <div className="surface-card flex min-h-[26rem] flex-col overflow-hidden">
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <BookOpen className="size-4 text-reading" />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold">{selected?.title ?? "No book selected"}</p>
               {selected?.author && (
                 <p className="truncate text-xs text-muted-foreground">by {selected.author}</p>
               )}
             </div>
+            {selected?.student_may_delete && (
+              <button
+                type="button"
+                onClick={() => removeBook.mutate(selected)}
+                disabled={removeBook.isPending}
+                className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
+                aria-label={`Remove ${selected.title}`}
+                title="Remove book"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            )}
           </div>
           {signedUrl ? (
             <iframe

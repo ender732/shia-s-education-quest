@@ -4,8 +4,20 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CURRICULUM_UNIT_TAGS } from "@/lib/curriculum";
-import { FeedbackCard } from "./BookStudio";
+import { FeedbackCard, removeAssignedBook, useBooks, type AssignedBook } from "./BookStudio";
 import { useTasks, type Task } from "./TaskBoard";
+
+const BOOKS_BUCKET = "assigned-books";
+const MAX_PDF_BYTES = 15 * 1024 * 1024; // 15 MB — matches storage.buckets.file_size_limit
+
+function isPdfFile(file: File) {
+  const nameOk = file.name.toLowerCase().endsWith(".pdf");
+  const typeOk =
+    !file.type ||
+    file.type === "application/pdf" ||
+    file.type === "application/x-pdf";
+  return nameOk && typeOk;
+}
 
 type Subject = { id: string; title: string };
 
@@ -160,20 +172,45 @@ function TaskCreator({ userId, subjects }: { userId: string; subjects: Subject[]
 
 function BookUploader({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
+  const { data: books } = useBooks();
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [allowStudentDelete, setAllowStudentDelete] = useState(false);
+
+  const myBooks = useMemo(
+    () => (books ?? []).filter((b) => b.assigned_by === userId),
+    [books, userId],
+  );
 
   const upload = useMutation({
     mutationFn: async () => {
       let path: string | null = null;
       if (file) {
-        const key = `${userId}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
+        if (!isPdfFile(file)) {
+          throw new Error("Only PDF files are allowed.");
+        }
+        if (file.size > MAX_PDF_BYTES) {
+          throw new Error("PDF must be 15 MB or smaller.");
+        }
+        // Path: {uploader_user_id}/{uuid}.pdf — RLS scopes by folder prefix
+        const key = `${userId}/${crypto.randomUUID()}.pdf`;
         const { error: uploadError } = await supabase.storage
-          .from("assigned-books")
-          .upload(key, file, { contentType: file.type || "application/pdf" });
-        if (uploadError) throw uploadError;
+          .from(BOOKS_BUCKET)
+          .upload(key, file, {
+            contentType: "application/pdf",
+            upsert: false,
+          });
+        if (uploadError) {
+          const msg = uploadError.message || "Upload failed.";
+          if (/bucket not found/i.test(msg)) {
+            throw new Error(
+              "Storage bucket “assigned-books” is missing. Ask an admin to run the secure_assigned_books_storage migration.",
+            );
+          }
+          throw new Error(msg);
+        }
         path = key;
       }
       const { error } = await supabase.from("assigned_books").insert({
@@ -182,6 +219,7 @@ function BookUploader({ userId }: { userId: string }) {
         pdf_url: path,
         prompt: prompt || null,
         assigned_by: userId,
+        student_may_delete: allowStudentDelete,
       });
       if (error) throw error;
     },
@@ -191,57 +229,166 @@ function BookUploader({ userId }: { userId: string }) {
       setAuthor("");
       setPrompt("");
       setFile(null);
+      setAllowStudentDelete(false);
       queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
     },
     onError: (err: Error) => toast.error(err.message || "Upload failed."),
   });
 
+  const toggleStudentDelete = useMutation({
+    mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
+      const { error } = await supabase
+        .from("assigned_books")
+        .update({ student_may_delete: value })
+        .eq("id", id)
+        .eq("assigned_by", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
+    },
+    onError: (err: Error) => toast.error(err.message || "Could not update permission."),
+  });
+
+  const removeBook = useMutation({
+    mutationFn: async (book: AssignedBook) => {
+      if (
+        !window.confirm(
+          `Remove “${book.title}” permanently? The PDF will be deleted from storage.`,
+        )
+      ) {
+        throw new Error("cancelled");
+      }
+      await removeAssignedBook(book);
+    },
+    onSuccess: () => {
+      toast.success("Book removed.");
+      queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
+    },
+    onError: (err: Error) => {
+      if (err.message === "cancelled") return;
+      toast.error(err.message || "Could not remove book.");
+    },
+  });
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        upload.mutate();
-      }}
-      className="surface-card space-y-3 p-5"
-    >
-      <h3 className="flex items-center gap-2 text-sm font-bold">
-        <BookUp className="size-4 text-reading" /> Book Upload Manager
-      </h3>
-      <Field label="Book title">
-        <input
-          className="input-base"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </Field>
-      <Field label="Author">
-        <input className="input-base" value={author} onChange={(e) => setAuthor(e.target.value)} />
-      </Field>
-      <Field label="Reading prompt">
-        <textarea
-          className="input-base min-h-20"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="How does the narrator change after the storm? Use RACECE."
-        />
-      </Field>
-      <Field label="PDF file">
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="input-base file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-secondary-foreground"
-        />
-      </Field>
-      <button
-        type="submit"
-        disabled={upload.isPending}
-        className="w-full rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-accent-foreground transition hover:brightness-110 disabled:opacity-60"
+    <div className="space-y-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          upload.mutate();
+        }}
+        className="surface-card space-y-3 p-5"
       >
-        {upload.isPending ? "Uploading…" : "Assign book"}
-      </button>
-    </form>
+        <h3 className="flex items-center gap-2 text-sm font-bold">
+          <BookUp className="size-4 text-reading" /> Book Upload Manager
+        </h3>
+        <Field label="Book title">
+          <input
+            className="input-base"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </Field>
+        <Field label="Author">
+          <input className="input-base" value={author} onChange={(e) => setAuthor(e.target.value)} />
+        </Field>
+        <Field label="Reading prompt">
+          <textarea
+            className="input-base min-h-20"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="How does the narrator change after the storm? Use RACECE."
+          />
+        </Field>
+        <Field label="PDF file (required · max 15 MB)">
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={(e) => {
+              const next = e.target.files?.[0] ?? null;
+              if (next && !isPdfFile(next)) {
+                toast.error("Only PDF files are allowed.");
+                e.target.value = "";
+                setFile(null);
+                return;
+              }
+              if (next && next.size > MAX_PDF_BYTES) {
+                toast.error("PDF must be 15 MB or smaller.");
+                e.target.value = "";
+                setFile(null);
+                return;
+              }
+              setFile(next);
+            }}
+            className="input-base file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-secondary-foreground"
+            required
+          />
+        </Field>
+        <label className="flex items-start gap-2 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={allowStudentDelete}
+            onChange={(e) => setAllowStudentDelete(e.target.checked)}
+          />
+          <span>Allow student to remove this book once they are done</span>
+        </label>
+        <button
+          type="submit"
+          disabled={upload.isPending || !file}
+          className="w-full rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-accent-foreground transition hover:brightness-110 disabled:opacity-60"
+        >
+          {upload.isPending ? "Uploading…" : "Assign book"}
+        </button>
+      </form>
+
+      {myBooks.length > 0 && (
+        <div className="surface-card space-y-3 p-5">
+          <h3 className="text-sm font-bold">Assigned books</h3>
+          <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+            {myBooks.map((book) => (
+              <div
+                key={book.id}
+                className="flex items-start justify-between gap-3 rounded-lg border border-border bg-background/50 px-3 py-2"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold">{book.title}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {book.author ?? "Unknown author"}
+                    {book.pdf_url ? " · PDF attached" : " · no PDF"}
+                  </p>
+                  <label className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={book.student_may_delete}
+                      disabled={toggleStudentDelete.isPending}
+                      onChange={(e) =>
+                        toggleStudentDelete.mutate({
+                          id: book.id,
+                          value: e.target.checked,
+                        })
+                      }
+                    />
+                    Allow student to remove
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeBook.mutate(book)}
+                  disabled={removeBook.isPending}
+                  className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
+                  aria-label={`Delete ${book.title}`}
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
