@@ -1,234 +1,129 @@
-# Shia's Education Quest 
+# Shia's 5th Grade Quest
 
-# App Requirement Spec: P.S./I.S. 187 5th-Grade Gamified Prep & AI Grading Platform
+Gamified learning app for 5th graders at P.S./I.S. 187 Hudson Cliffs (NYC District 6), with a student portal and a parent portal.
 
-Build a full-stack, responsive web application designed as an educational bridge for a student entering 5th Grade at P.S./I.S. 187 Hudson Cliffs (NYC District 6). The application must feature two distinct portals: a gamified Student Portal and a Parent/Admin Dashboard, backed by Supabase for authentication, real-time data, state persistence, and file storage.
+## What it is
 
----
+Students practice Math, ELA, Science, and Social Studies through lessons and quizzes, earn XP/levels/streaks, climb a daily leaderboard, and submit book reports for AI feedback (RACECE writing). Parents link to a child via a shareable link code, upload assigned PDF books, create tasks, and review progress.
 
-## 1. Core Architecture & Supabase Setup
+Auth supports email/password (with confirmation) and Google OAuth. Parent access requires adult age verification at signup or upgrade.
 
-### Database Tables (SQL Schema)
+**Production:** [https://shiadiaz.netlify.app](https://shiadiaz.netlify.app)
 
-Configure Supabase with the following relational tables and Row Level Security (RLS) policies:
+## Tech stack
 
-1. **`profiles`**
+| Layer | Choice |
+| --- | --- |
+| App | [TanStack Start](https://tanstack.com/start) + React 19 + Vite 8 |
+| UI | Tailwind CSS 4, Radix/shadcn-style components, Framer Motion, Lucide |
+| Data / Auth | Supabase (Auth, Postgres, Storage, RLS) |
+| Hosting | Netlify (`@netlify/vite-plugin-tanstack-start`) |
+| Optional | Resend (parent link emails), OpenAI (book-report grading) |
 
-   - `id`: UUID (Primary Key, matches `auth.users.id`)
+## Features
 
-   - `role`: TEXT ('student' | 'parent')
+- **Student dashboard** — subjects, lessons/quizzes, XP bar, streaks, daily leaderboard
+- **Parent portal** — link students by code, create tasks, upload PDFs, monitor progress
+- **Book studio** — assigned reading + AI-graded reports (when `OPENAI_API_KEY` is set)
+- **Auth** — email confirm → `/auth/confirm`; Google sign-in; parent vs student roles
+- **Parent link codes** — students share a UUID; optional email via Resend
 
-   - `xp_points`: INTEGER (Default: 0)
+## Prerequisites
 
-   - `level`: INTEGER (Default: 1)
+- **Node.js** 20+ (repo developed on Node 26; use a current LTS if unsure)
+- A **Supabase** project
+- **Netlify** account (for deploy)
+- Optional: Resend + OpenAI API keys
 
-   - `streak_days`: INTEGER (Default: 0)
-
-   - `created_at`: TIMESTAMP
-
-2. **`subjects`**
-
-   - `id`: UUID (Primary Key)
-
-   - `title`: TEXT (e.g., 'Math', 'ELA / Reading', 'Science (NYSSLS)', 'Social Studies (Western Hemisphere)', 'Assigned Reading')
-
-   - `description`: TEXT
-
-3. **`tasks`**
-
-   - `id`: UUID (Primary Key)
-
-   - `subject_id`: UUID (Foreign Key -> `subjects.id`)
-
-   - `title`: TEXT
-
-   - `description`: TEXT
-
-   - `unit_tag`: TEXT (e.g., '187_ELA_UNIT1', '187_MATH_DECIMALS', '187_RACECE_FORMAT')
-
-   - `xp_reward`: INTEGER (Default: 100)
-
-   - `is_completed`: BOOLEAN (Default: false)
-
-   - `created_by`: UUID (Foreign Key -> `profiles.id`)
-
-4. **`assigned_books`**
-
-   - `id`: UUID (Primary Key)
-
-   - `title`: TEXT
-
-   - `author`: TEXT
-
-   - `pdf_url`: TEXT (Supabase Storage bucket link)
-
-   - `assigned_by`: UUID (Foreign Key -> `profiles.id`)
-
-   - `created_at`: TIMESTAMP
-
-5. **`book_reports`**
-
-   - `id`: UUID (Primary Key)
-
-   - `book_id`: UUID (Foreign Key -> `assigned_books.id`)
-
-   - `student_id`: UUID (Foreign Key -> `profiles.id`)
-
-   - `chapter_or_topic`: TEXT
-
-   - `report_text`: TEXT
-
-   - `ai_score`: TEXT (e.g., "92/100")
-
-   - `ai_feedback`: JSONB ({ "strengths": "", "improvements": "", "racece_checklist": {} })
-
-   - `xp_awarded`: INTEGER
-
-   - `submitted_at`: TIMESTAMP
-
----
-
-## 2. Student Portal Specification (Gamified UI)
-
-### Design & Theme
-
-- **Vibe:** Sleek dark mode with vibrant neon accents (Sky Blue, Amber Gold, Emerald Green, Indigo).
-
-- **Gamification Header:**
-
-  - Dynamic XP Bar, Current Level counter (calculates `Level = Math.floor(XP / 500) + 1`), and a Daily Streak badge with fire icons.
-
-  - Confetti explosion animation whenever a task or report is successfully submitted and XP is awarded.
-
-### Category Navigation & Task Runner
-
-- Allow the student to seamlessly switch between subject tabs:
-
-  1. **Math:** Multi-digit whole numbers, decimals, fractions (unlike denominators), 3D volume ($V = l \times w \times h$).
-
-  2. **ELA:** Narrative analysis, root words, and RACECE-structured writing tasks (Restate, Answer, Cite, Explain, Cite, Explain).
-
-  3. **Science:** NYSSLS 5th-grade topics (Properties of Matter, Conservation of Mass, Earth’s 4 Spheres).
-
-  4. **Social Studies:** Western Hemisphere geography, history, and map reading.
-
-  5. **Book Reader & AI Grader:** Embedded Ebook reader side-by-side with report submission.
-
-### Ebook Reader & AI Agent Evaluation Component
-
-- Split-screen interface:
-
-  - **Left Panel:** PDF Viewer using an HTML iframe or PDF renderer connected to Supabase Storage.
-
-  - **Right Panel:** Interactive Report Submission Form. Fields: "Book Title / Chapter", "Summary & Analysis".
-
-- **AI Grading Pipeline:**
-
-  - Button: "Submit to AI Teacher for Grading".
-
-  - Integrate an Edge Function / API call using OpenAI (`gpt-4o-mini`).
-
-  - **System Prompt Calibration:** Evaluate the student's submission strictly using NYC District 6 / PS 187 5th-grade ELA standards. Assess whether the student used the **RACECE framework** (Restate question, Answer directly, Cite text evidence twice, Explain evidence twice), maintained proper paragraphing, and showed comprehension.
-
-  - Render the AI output in a styled card showing: Overall Grade/100, Strengths, Specific Improvements for Next Time, and an auto-credited XP bonus added directly to the student's profile.
-
----
-
-## 3. Parent Administration Portal
-
-### Dual Access & Toggle
-
-- Top-right control to switch between Student View and Parent Portal (available when `profiles.role` is `parent` after adult verification at signup).
-
-### Parent Features
-
-1. **Curriculum Task Creator:** Form to publish new custom tasks tied to specific P.S./I.S. 187 units with custom XP values.
-
-2. **Book Upload Manager:** Upload PDF files directly to the `assigned_books` Supabase Storage bucket and assign reading prompts.
-
-3. **Student Progress Monitor:**
-
-   - Real-time dashboard summarizing total XP earned, completion rate per subject, and recent AI-graded book reports.
-
-   - Ability to review full AI feedback and student submissions.
-
----
-
-## 4. UI/UX & Quality Requirements
-
-- Build using Tailwind CSS, Lucide Icons, and Framer Motion for animations.
-
-- Ensure all components handle loading, empty, and error states gracefully (e.g., loading spinners during AI grading).
-
-- Mobile-responsive and tablet-friendly layout suitable for learning on an iPad or laptop.
-
-## Auth email confirmation (Supabase Dashboard)
-
-After signup, confirmation emails redirect to `/auth/confirm`. Configure these in
-[Authentication → URL Configuration](https://supabase.com/dashboard/project/_/auth/url-configuration):
-
-**Site URL** (production):
-
-```
-https://shiadiaz.netlify.app
-```
-
-**Redirect URLs** (allow list — add each environment you use):
-
-```
-http://localhost:8080/auth/confirm
-https://shiadiaz.netlify.app/auth/confirm
-https://shiadiaz.netlify.app/**
-```
-
-Optional wildcard for preview deploys: `https://*--*.netlify.app/auth/confirm` (or your Netlify pattern).
-
-The app sets `emailRedirectTo` / OAuth `redirectTo` from `window.location.origin`, so localhost and Netlify both work once the allow list matches.
-
-## Google OAuth branding (consent screen)
-
-Google’s “Sign in to …” screen is **not** controlled by this repo’s React UI. It comes from the **Google Cloud OAuth consent / branding** settings for the Client ID stored in Supabase → Authentication → Providers → Google. Because Auth callbacks go through `https://<project-ref>.supabase.co/auth/v1/callback`, Google often shows that host next to “Sign in to …” unless you add a Supabase custom auth domain.
-
-### What you can fix today (free): show **Shia's 5th Grade Quest**
-
-1. Open [Google Cloud Console](https://console.cloud.google.com/) → select the project that owns the OAuth Client ID used in Supabase.
-2. Go to **APIs & Services** → **OAuth consent screen** (or **Google Auth Platform** → **Branding**).
-3. Set:
-   - **App name:** `Shia's 5th Grade Quest`
-   - **User support email:** your contact email
-   - **App logo:** optional (e.g. the soccer favicon)
-   - **Application home page:** `https://shiadiaz.netlify.app`
-   - **Privacy policy:** `https://shiadiaz.netlify.app/privacy` (stub route in this app)
-   - **Authorized domains:** include `shiadiaz.netlify.app` (and `supabase.co` if Google requires it for the redirect URI)
-4. Publishing status: **External** apps in Testing only show branding to test users; publish (and complete brand verification if Google asks) so the app name/logo appear for everyone. Verification can take a few business days.
-5. Confirm Supabase → **Authentication** → **Providers** → **Google** uses the **Client ID / secret from this same Google project**.
-6. Confirm Supabase → **Authentication** → **URL Configuration** Site URL / Redirect URLs match the section above (Netlify, not the Supabase project URL as Site URL).
-
-**Honest limit:** App name + logo brand the consent experience. They do **not** by themselves replace `wpzvinjoyelbnfcbdrfn.supabase.co` in the “Sign in to …” domain line.
-
-### Optional: replace the `*.supabase.co` domain line (paid)
-
-Per [Supabase Custom Domains](https://supabase.com/docs/guides/platform/custom-domains) and [Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google):
-
-1. Project must be on a **paid** Supabase plan; enable the **Custom Domain** add-on (~$10/mo), or use experimental **vanity subdomains** (still paid org; still `*.supabase.co`).
-2. Point a subdomain you control (e.g. `api.yourdomain.com`) with a **CNAME** to `wpzvinjoyelbnfcbdrfn.supabase.co`, verify DNS, activate the domain in Dashboard/CLI.
-3. In Google Cloud → OAuth client → **Authorized redirect URIs**, add  
-   `https://api.yourdomain.com/auth/v1/callback`  
-   **in addition to**  
-   `https://wpzvinjoyelbnfcbdrfn.supabase.co/auth/v1/callback`.
-4. After activation, Auth advertises the custom domain on OAuth; optionally set `VITE_SUPABASE_URL` to the custom domain.
-
-A Netlify-only host (`shiadiaz.netlify.app`) is for the **frontend**. Custom Auth domain needs a DNS name **you** can CNAME to Supabase (usually not the Netlify site hostname itself).
-
-Do not commit Google Client secrets or service-role keys.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Local setup
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+git clone https://github.com/ender732/shia-s-education-quest.git
+cd shia-s-education-quest
+cp .env.example .env   # fill in values — never commit secrets
+npm install
+npm run dev            # http://localhost:8080
 ```
+
+Install and link the [Supabase CLI](https://supabase.com/docs/guides/cli), then push migrations to your project (see Database below).
+
+## Environment variables
+
+Copy `.env.example`. Client vars need the `VITE_` prefix for the browser; server code also reads non-`VITE_` names.
+
+| Variable | Required | Where | Purpose |
+| --- | --- | --- | --- |
+| `VITE_SUPABASE_URL` | Yes | Client | Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Yes | Client | Anon / publishable key |
+| `VITE_SUPABASE_PROJECT_ID` | Recommended | Client | Project ref (tooling / Netlify) |
+| `SUPABASE_URL` | Yes (server) | Server | Same URL for SSR / middleware |
+| `SUPABASE_PUBLISHABLE_KEY` | Yes (server) | Server | Same publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | No | Server | Privileged admin ops only |
+| `RESEND_API_KEY` | No | Server | Email parent link codes |
+| `EMAIL_FROM` / `RESEND_FROM` | No | Server | From address for Resend |
+| `OPENAI_API_KEY` | No | Server | AI book-report grading |
+| `AI_MODEL` | No | Server | Defaults to `gpt-4o-mini` |
+| `AI_GATEWAY_URL` | No | Server | Defaults to OpenAI chat completions URL |
+
+On Netlify, set the same keys in **Site settings → Environment variables**. Do not put service-role keys in `VITE_*` vars.
+
+## Database
+
+SQL migrations live in `supabase/migrations/`. Apply them with the CLI:
+
+```sh
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
+
+If the remote migration history was empty or out of sync with files already applied by hand, use `supabase migration repair` once, then `db push` again. See [Supabase CLI migrations](https://supabase.com/docs/guides/cli/local-development#database-migrations).
+
+Schema highlights: profiles (roles, XP, link codes), subjects/tasks, parent–student links, daily leaderboard RPC, assigned books + reports.
+
+## Auth notes
+
+Keep this short — details live in vendor docs.
+
+1. **Email confirm** redirects to `/auth/confirm`. In Supabase → [URL Configuration](https://supabase.com/dashboard/project/_/auth/url-configuration):
+   - **Site URL:** `https://shiadiaz.netlify.app` (production)
+   - **Redirect URLs:** `http://localhost:8080/auth/confirm`, `https://shiadiaz.netlify.app/auth/confirm` (plus Netlify preview patterns if needed)
+2. **Google OAuth:** enable the Google provider in Supabase Auth. Set the consent screen **App name** (e.g. `Shia's 5th Grade Quest`) in [Google Cloud](https://console.cloud.google.com/) → OAuth consent / Branding. Authorized redirect URI is Supabase’s callback (`https://<project-ref>.supabase.co/auth/v1/callback`). Guide: [Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google).
+3. The app builds `redirectTo` from `window.location.origin`, so localhost and production both work once allow-listed.
+
+## Storage
+
+- Private bucket: **`assigned-books`**
+- PDF uploads only; parents upload, linked students read via signed access (see `secure_assigned_books_storage` migration)
+- Bucket is created/secured by migrations — run `supabase db push` before testing uploads
+
+## Deploy (Netlify)
+
+- Build command: `npm run build`
+- Publish directory: **`dist/client`**
+- Adapter: `@netlify/vite-plugin-tanstack-start` (configured in `vite.config.ts`)
+
+`netlify.toml` already sets build/publish. If the Netlify UI has a conflicting Publish directory, clear it or set it to `dist/client`. Secrets scanning omits the public Supabase keys listed there so deploys are not blocked by expected client env inlining.
+
+## Project structure
+
+```
+src/
+  routes/          # TanStack Router file routes (auth, dashboard, privacy)
+  components/      # Student/parent UI, lessons, books, leaderboard
+  lib/             # Server functions, grading, email, gamification
+  hooks/           # Profile/session helpers
+  integrations/    # Supabase clients + types
+supabase/
+  migrations/      # Postgres schema, RLS, storage policies
+```
+
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Dev server on port **8080** |
+| `npm run build` | Production build |
+| `npm run build:dev` | Build in development mode |
+| `npm run preview` | Preview production build |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier write |
