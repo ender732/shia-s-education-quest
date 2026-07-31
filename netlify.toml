@@ -1,0 +1,5 @@
+# Publishable Supabase client keys (VITE_*) are safe in browser bundles.
+# Netlify secrets scanning still flags their literal values in build output —
+# omit them so deploys succeed without disabling scanning entirely.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_PROJECT_ID,SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,SUPABASE_PROJECT_ID"
