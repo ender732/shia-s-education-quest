@@ -63,7 +63,7 @@ Copy `.env.example`. Client vars need the `VITE_` prefix for the browser; server
 | `EMAIL_FROM` / `RESEND_FROM` | No | Server | From address for Resend |
 | `GEMINI_API_KEY` | No | Server | AI grading, coach, lesson drafts (Google AI Studio) |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | No | Server | Alias for `GEMINI_API_KEY` |
-| `GEMINI_MODEL` / `AI_MODEL` | No | Server | Defaults to `gemini-2.0-flash` |
+| `GEMINI_MODEL` / `AI_MODEL` | No | Server | Defaults to `gemini-2.5-flash` (avoid `gemini-2.0-flash` — free-tier quota is often 0) |
 
 On Netlify, set the same keys in **Site settings → Environment variables**. Do not put service-role keys in `VITE_*` vars.
 

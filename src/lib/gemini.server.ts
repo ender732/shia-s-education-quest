@@ -1,10 +1,11 @@
 /**
  * Google Gemini (Generative Language API) helpers — server-only.
  * Env: GEMINI_API_KEY (preferred) or GOOGLE_GENERATIVE_AI_API_KEY.
- * Model: GEMINI_MODEL or AI_MODEL (default gemini-2.0-flash).
+ * Model: GEMINI_MODEL or AI_MODEL (default gemini-2.5-flash).
+ * Avoid gemini-2.0-flash on free tier — Google often sets its quota to 0 (HTTP 429).
  */
 
-const DEFAULT_MODEL = "gemini-2.0-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash";
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export type GeminiPart =
@@ -118,8 +119,17 @@ export async function generateGeminiText(options: GenerateOptions): Promise<stri
   });
 
   if (response.status === 429) {
+    const detail = await response.text().catch(() => "");
+    console.error(`Gemini API rate limit (${options.featureLabel})`, model, detail.slice(0, 500));
+    const mentionsZeroQuota = /limit:\s*0/i.test(detail);
+    const mentionsOldFlash = /gemini-2\.0-flash/i.test(detail) || /gemini-2\.0-flash/i.test(model);
+    if (mentionsZeroQuota || mentionsOldFlash) {
+      throw new Error(
+        `AI ${options.featureLabel} hit a Gemini quota limit for model “${model}”. In Netlify, set GEMINI_MODEL to gemini-2.5-flash (not gemini-2.0-flash), confirm GEMINI_API_KEY in Google AI Studio, then try again.`,
+      );
+    }
     throw new Error(
-      `The AI ${options.featureLabel} is busy right now. Please try again in a minute.`,
+      `The AI ${options.featureLabel} is rate-limited right now. Wait a minute, or check your Gemini quota in Google AI Studio.`,
     );
   }
   if (response.status === 401 || response.status === 403) {
