@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
-import { CURRICULUM_UNIT_TAGS } from "@/lib/curriculum";
+import { CURRICULUM_UNIT_TAGS, lessonForUnit } from "@/lib/curriculum";
 import { FeedbackCard, removeAssignedBook, useBooks, type AssignedBook } from "./BookStudio";
 import { useTasks, type Task } from "./TaskBoard";
+
+const MASTERY_SCORE_MIN = 70;
 
 const BOOKS_BUCKET = "assigned-books";
 const MAX_PDF_BYTES = 15 * 1024 * 1024; // 15 MB — matches storage.buckets.file_size_limit
@@ -451,12 +453,29 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
     return [selectedId];
   }, [students, selectedId]);
 
-  const { data: progress } = useQuery({
+  const {
+    data: progress,
+    isLoading: progressLoading,
+    error: progressError,
+  } = useQuery({
     queryKey: ["task_progress_linked", focusIds],
     enabled: focusIds.length > 0,
     queryFn: async () => {
       const { fetchTaskProgressForStudents } = await import("@/lib/task-progress");
       return fetchTaskProgressForStudents(focusIds);
+    },
+  });
+
+  const { data: studyActivity } = useQuery({
+    queryKey: ["daily_activity_linked", focusIds],
+    enabled: focusIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("daily_activity")
+        .select("user_id, task_id, seconds_spent, best_score, activity_date")
+        .in("user_id", focusIds);
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
@@ -529,13 +548,36 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const completedIds = new Set((progress ?? []).map((p) => p.task_id));
+  const masteredIds = new Set(
+    (progress ?? [])
+      .filter((p) => p.score >= MASTERY_SCORE_MIN)
+      .map((p) => p.task_id),
+  );
 
   const bySubject = subjects.map((s) => {
-    const list = (tasks ?? []).filter((t: Task) => t.subject_id === s.id);
-    const done = list.filter((t) => completedIds.has(t.id)).length;
-    return { ...s, total: list.length, done, pct: list.length ? Math.round((done / list.length) * 100) : 0 };
+    // Only quizzable curriculum lessons count toward mastery %
+    const list = (tasks ?? []).filter(
+      (t: Task) => t.subject_id === s.id && Boolean(lessonForUnit(t.unit_tag)),
+    );
+    const done = list.filter((t) => masteredIds.has(t.id)).length;
+    return {
+      ...s,
+      total: list.length,
+      done,
+      pct: list.length ? Math.round((done / list.length) * 100) : 0,
+    };
   });
+
+  const totalStudySeconds = (studyActivity ?? []).reduce(
+    (sum, row) => sum + (row.seconds_spent ?? 0),
+    0,
+  );
+  const studyMinutes = Math.round(totalStudySeconds / 60);
+  const quizAttempts = (studyActivity ?? []).filter(
+    (row) => row.best_score != null,
+  ).length;
+  const masteredCount = masteredIds.size;
+  const hasMasteryData = masteredCount > 0;
 
   const hasLinks = (students?.length ?? 0) > 0;
   const loadError =
@@ -543,6 +585,12 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
       ? studentsError.message
       : studentsError
         ? String(studentsError)
+        : null;
+  const progressLoadError =
+    progressError instanceof Error
+      ? progressError.message
+      : progressError
+        ? String(progressError)
         : null;
 
   return (
@@ -656,9 +704,34 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
           <div className="surface-card p-5">
             <h3 className="text-sm font-bold">Lesson mastery by subject</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Based on practice quizzes scored at 70% or higher
+              Based on practice quizzes scored at {MASTERY_SCORE_MIN}% or higher
               {selectedId === "all" ? " (all linked students)." : "."}
             </p>
+            {(studyMinutes > 0 || quizAttempts > 0) && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Study time: <span className="font-semibold text-foreground">{studyMinutes} min</span>
+                {quizAttempts > 0
+                  ? ` · ${quizAttempts} quiz attempt${quizAttempts === 1 ? "" : "s"} recorded`
+                  : " · no quiz submitted yet"}
+              </p>
+            )}
+            {progressLoading && (
+              <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" /> Loading mastery…
+              </p>
+            )}
+            {progressLoadError && (
+              <p className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                Could not load lesson progress: {progressLoadError}
+              </p>
+            )}
+            {!progressLoading && !progressLoadError && !hasMasteryData && (
+              <p className="mt-3 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs text-muted-foreground">
+                {studyMinutes > 0
+                  ? "This student has opened lessons, but has not completed a practice quiz at 70% or higher yet. XP and mastery update when a quiz is passed."
+                  : "No completed practice quizzes yet. When your student finishes a lesson quiz at 70% or higher, XP and mastery will show up here."}
+              </p>
+            )}
             <div className="mt-3 space-y-3">
               {bySubject.map((s) => (
                 <div key={s.id}>
@@ -680,7 +753,19 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
             <h3 className="text-sm font-bold">Manage published lessons</h3>
             <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
               {(tasks ?? []).map((t: Task) => {
-                const row = progress?.find((p) => p.task_id === t.id);
+                const row = progress?.find(
+                  (p) => p.task_id === t.id && p.score >= MASTERY_SCORE_MIN,
+                );
+                const attempt = (studyActivity ?? [])
+                  .filter((a) => a.task_id === t.id)
+                  .sort((a, b) => (b.best_score ?? -1) - (a.best_score ?? -1))[0];
+                const status = row
+                  ? `mastered at ${row.score}%`
+                  : attempt?.best_score != null
+                    ? `best attempt ${attempt.best_score}% (needs ${MASTERY_SCORE_MIN}%+)`
+                    : attempt && attempt.seconds_spent > 0
+                      ? "opened — quiz not finished"
+                      : "not mastered yet";
                 return (
                   <div
                     key={t.id}
@@ -689,8 +774,7 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
                     <div className="min-w-0">
                       <p className="truncate text-xs font-semibold">{t.title}</p>
                       <p className="text-[11px] text-muted-foreground">
-                        {t.unit_tag ?? "—"} · {t.xp_reward} XP ·{" "}
-                        {row ? `mastered at ${row.score}%` : "not mastered yet"}
+                        {t.unit_tag ?? "—"} · {t.xp_reward} XP · {status}
                       </p>
                     </div>
                     <button

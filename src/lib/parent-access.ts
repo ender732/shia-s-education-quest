@@ -50,9 +50,10 @@ export function resolveAuthoritativeRole(input: {
   return "parent";
 }
 
-/** Parent Portal UI gate: verified parent profile role only. */
+/** Parent Portal UI gate: verified parent (or admin acting as guardian). */
 export function canAccessParentPortal(role: string | null | undefined): boolean {
-  return (role ?? "").trim().toLowerCase() === "parent";
+  const r = (role ?? "").trim().toLowerCase();
+  return r === "parent" || r === "admin";
 }
 
 /** Admin analytics UI gate: profiles.role = admin only (set via SQL, not client). */
