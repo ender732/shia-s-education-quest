@@ -11,6 +11,8 @@ const CoachInput = z.object({
   lessonTitle: z.string().min(1).max(200),
   lessonContext: z.string().min(1).max(6000),
   questionText: z.string().max(1000).optional(),
+  /** Answer-key / rubric notes for coaching only — never shown in the student UI. */
+  privateHints: z.string().max(4000).optional(),
   userMessage: z
     .string()
     .min(2, "Type a short question for the coach.")
@@ -49,6 +51,7 @@ export const askLessonCoach = createServerFn({ method: "POST" })
       lessonTitle: data.lessonTitle,
       lessonContext: data.lessonContext,
       questionText: data.questionText,
+      privateHints: data.privateHints,
       userMessage: data.userMessage,
       history: data.history,
     });

@@ -14,11 +14,20 @@ const SYSTEM_PROMPT = `You are an expert NYC Grade 5 (P.S./I.S. 187 Hudson Cliff
 
 A parent uploaded a worksheet/lesson PDF they are allowed to use. From the extracted text, draft a structured practice lesson for a 10-year-old.
 
-Rules:
+CRITICAL — answer keys vs student work:
+- PDFs often include an "Answers:" / answer-key page (sample responses, "Answers will vary", model paragraphs).
+- Students must FILL the worksheet themselves. Never pre-write their answers.
+- Put answer-key / sample responses ONLY in each field's gradingHint (hidden from students; used by the AI grader and coach).
+- Student-facing prompt, placeholder, teach, tip, and transcript must NEVER contain answer-key text, sample essays, or "Answers will vary" keys.
+- worksheet.fields[].prompt = the QUESTION only (what the student should answer). Leave the response blank for the student.
+- placeholder = a short blank cue like "Write your answer here" — not a model answer.
+
+Other rules:
 - Do NOT invent copyrighted passages beyond what the extract supports; stay faithful to the worksheet.
 - Produce exactly 5 multiple-choice questions (type "choice") with 4 choices each and one correctIndex (0-3).
 - Also produce a fillable worksheet section with 3–6 in-app fields the student will write/draw into on the website (finger, Apple Pencil, or typed notes — NOT PDF annotation). Use types: "short", "numeric", or "multipart".
-- Include gradingHint on each worksheet field with expected answers / rubric notes for an AI grader (students will not see gradingHint).
+- Include gradingHint on every worksheet field: expected answers, acceptable alternatives, or rubric notes from the PDF answer key when present.
+- teach / transcript: story, passage, and instructions only — strip any Answers section.
 - Keep language warm, clear, and grade-appropriate.
 - passPercent must be 70.
 
@@ -26,9 +35,9 @@ Return ONLY valid JSON matching this shape:
 {
   "unitTag": "<short slug like CUSTOM_MATH_FRACTIONS>",
   "title": "<lesson title>",
-  "teach": ["<2-5 short teaching bullet paragraphs>"],
-  "tip": "<one coach tip>",
-  "transcript": "<optional longer reading/summary of the worksheet content>",
+  "teach": ["<2-5 short teaching bullet paragraphs — no answer key>"],
+  "tip": "<one coach tip — strategy, not the answer>",
+  "transcript": "<optional reading/passage text only — never the Answers page>",
   "passPercent": 70,
   "questions": [
     {
@@ -42,31 +51,31 @@ Return ONLY valid JSON matching this shape:
   ],
   "worksheet": {
     "title": "<worksheet title>",
-    "instructions": "<what to do>",
+    "instructions": "<what the student should do — not the answers>",
     "fields": [
       {
         "id": "w1",
         "type": "short",
-        "prompt": "...",
-        "placeholder": "...",
-        "gradingHint": "Expected: ..."
+        "prompt": "<question only>",
+        "placeholder": "Write your answer here",
+        "gradingHint": "<from answer key / rubric — students never see this>"
       },
       {
         "id": "w2",
         "type": "numeric",
-        "prompt": "...",
-        "placeholder": "e.g.",
-        "gradingHint": "Expected number: ..."
+        "prompt": "<question only>",
+        "placeholder": "e.g. a number",
+        "gradingHint": "<expected number or method>"
       },
       {
         "id": "w3",
         "type": "multipart",
-        "prompt": "...",
+        "prompt": "<question only>",
         "parts": [
-          { "id": "a", "prompt": "Part A", "placeholder": "..." },
-          { "id": "b", "prompt": "Part B", "placeholder": "..." }
+          { "id": "a", "prompt": "Part A", "placeholder": "Your answer" },
+          { "id": "b", "prompt": "Part B", "placeholder": "Your answer" }
         ],
-        "gradingHint": "..."
+        "gradingHint": "<answer-key notes for parts>"
       }
     ]
   }
@@ -161,6 +170,65 @@ export async function draftLessonFromPdfText(input: {
     payload.sourceCredit = input.sourceCredit;
   }
 
+  // Safety net: never leave answer-key pages in student-facing text.
+  payload.teach = payload.teach.map(stripAnswerKeySection).filter(Boolean);
+  if (payload.transcript) {
+    payload.transcript = stripAnswerKeySection(payload.transcript) || undefined;
+  }
+  payload.tip = stripAnswerKeySection(payload.tip);
+  if (payload.worksheet) {
+    payload.worksheet.instructions = payload.worksheet.instructions
+      ? stripAnswerKeySection(payload.worksheet.instructions) || undefined
+      : undefined;
+    payload.worksheet.fields = payload.worksheet.fields.map((field) => ({
+      ...field,
+      prompt: stripEmbeddedAnswerFromPrompt(field.prompt),
+      placeholder: sanitizePlaceholder(field.placeholder, field.type),
+      parts: field.parts?.map((part) => ({
+        ...part,
+        prompt: stripEmbeddedAnswerFromPrompt(part.prompt),
+        placeholder: sanitizePlaceholder(part.placeholder, "short"),
+      })),
+    }));
+  }
+
   payload.passPercent = 70;
   return payload;
+}
+
+/** Drop everything from a common "Answers:" heading onward. */
+function stripAnswerKeySection(text: string): string {
+  const cut = text.search(/\n\s*answers?\s*:/i);
+  if (cut >= 0) return text.slice(0, cut).trim();
+  if (/^\s*answers?\s*:/i.test(text)) return "";
+  return text.trim();
+}
+
+/**
+ * If a prompt looks like "Question… Answer: …", keep the question only.
+ * Full answer keys belong in gradingHint, not the student prompt.
+ */
+function stripEmbeddedAnswerFromPrompt(prompt: string): string {
+  const cut = prompt.search(/\n\s*(answer|answers|sample response|expected)\s*:/i);
+  if (cut >= 0) return prompt.slice(0, cut).trim();
+  return prompt.trim();
+}
+
+function sanitizePlaceholder(
+  placeholder: string | undefined,
+  type: "short" | "numeric" | "multipart",
+): string | undefined {
+  const raw = (placeholder ?? "").trim();
+  if (!raw) {
+    return type === "numeric" ? "Write the number here" : "Write your answer here";
+  }
+  // Reject placeholders that look like completed answers / answer keys.
+  if (
+    /answers?\s+will\s+vary/i.test(raw) ||
+    /^(expected|answer|sample)\b/i.test(raw) ||
+    raw.length > 80
+  ) {
+    return type === "numeric" ? "Write the number here" : "Write your answer here";
+  }
+  return raw;
 }

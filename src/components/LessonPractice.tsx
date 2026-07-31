@@ -321,20 +321,41 @@ export function LessonPractice({
       ...lesson.teach,
       lesson.tip ? `Coach tip: ${lesson.tip}` : "",
       lesson.transcript ? `Reading / transcript excerpt:\n${lesson.transcript.slice(0, 2500)}` : "",
+      phase === "worksheet" && payload?.worksheet?.instructions
+        ? `Worksheet instructions: ${payload.worksheet.instructions}`
+        : "",
     ].filter(Boolean);
     return parts.join("\n").slice(0, 5500);
-  }, [lesson]);
+  }, [lesson, phase, payload?.worksheet?.instructions]);
 
   const coachQuestionText = useMemo(() => {
-    if (phase !== "quiz" || !question) return undefined;
-    if (question.type === "choice") {
-      const opts = question.choices
-        .map((c, i) => `${String.fromCharCode(65 + i)}. ${c}`)
-        .join("\n");
-      return `${question.prompt}\n${opts}`;
+    if (phase === "quiz" && question) {
+      if (question.type === "choice") {
+        const opts = question.choices
+          .map((c, i) => `${String.fromCharCode(65 + i)}. ${c}`)
+          .join("\n");
+        return `${question.prompt}\n${opts}`;
+      }
+      return question.prompt;
     }
-    return question.prompt;
-  }, [phase, question]);
+    if (phase === "worksheet" && worksheetFields.length) {
+      return worksheetFields
+        .map((f, i) => `${i + 1}. ${f.prompt}`)
+        .join("\n")
+        .slice(0, 1000);
+    }
+    return undefined;
+  }, [phase, question, worksheetFields]);
+
+  /** Answer-key notes for the coach only — never rendered in the student UI. */
+  const coachPrivateHints = useMemo(() => {
+    if (phase !== "worksheet" || !worksheetFields.length) return undefined;
+    const lines = worksheetFields
+      .map((f) => (f.gradingHint ? `${f.prompt}: ${f.gradingHint}` : null))
+      .filter(Boolean);
+    if (!lines.length) return undefined;
+    return lines.join("\n").slice(0, 4000);
+  }, [phase, worksheetFields]);
 
   if (!lesson) {
     return (
@@ -706,6 +727,7 @@ export function LessonPractice({
           lessonTitle={lesson.title}
           lessonContext={coachContext}
           questionText={coachQuestionText}
+          privateHints={coachPrivateHints}
         />
       )}
     </div>

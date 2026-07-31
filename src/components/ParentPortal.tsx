@@ -209,7 +209,7 @@ function WorksheetLessonUploader({
         </h3>
         <p className="text-xs text-muted-foreground">
           Upload a PDF you are allowed to use. The AI drafts a lesson with 5 quiz questions and
-          fillable on-site worksheet fields (students can write with finger or Pencil). Students never see drafts until you publish. No
+          fillable on-site worksheet fields (students write their own answers; answer keys stay hidden for grading/coaching). Students never see drafts until you publish. No
           scraping — upload only.
         </p>
         <Field label="Subject">
@@ -341,11 +341,17 @@ function WorksheetLessonUploader({
               </ul>
               {reviewPayload.worksheet?.fields?.length ? (
                 <>
-                  <p className="mt-3 font-semibold">Fillable worksheet</p>
+                  <p className="mt-3 font-semibold">Fillable worksheet (student blanks)</p>
                   <ul className="mt-1 list-inside list-disc space-y-1 text-muted-foreground">
                     {reviewPayload.worksheet.fields.map((f) => (
                       <li key={f.id}>
                         [{f.type}] {f.prompt}
+                        {f.gradingHint ? (
+                          <span className="block pl-4 text-[11px] text-muted-foreground/80">
+                            Answer key (hidden from students): {f.gradingHint.slice(0, 160)}
+                            {f.gradingHint.length > 160 ? "…" : ""}
+                          </span>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

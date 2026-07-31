@@ -14,8 +14,10 @@ type LessonCoachProps = {
   lessonTitle: string;
   /** Teach notes + tip — no answer keys. */
   lessonContext: string;
-  /** Current quiz stem only (optional). */
+  /** Current quiz / worksheet stem only (optional). */
   questionText?: string;
+  /** Hidden answer-key notes for the coach only (never shown in the UI). */
+  privateHints?: string;
 };
 
 const MAX_INPUT = 500;
@@ -24,6 +26,7 @@ export function LessonCoach({
   lessonTitle,
   lessonContext,
   questionText,
+  privateHints,
 }: LessonCoachProps) {
   const panelId = useId();
   const askCoach = useServerFn(askLessonCoach);
@@ -57,6 +60,7 @@ export function LessonCoach({
           lessonTitle,
           lessonContext,
           questionText: questionText || undefined,
+          privateHints: privateHints || undefined,
           userMessage: text,
           history,
         },
@@ -116,7 +120,8 @@ export function LessonCoach({
           aria-label="AI Coach chat"
         >
           <p className="text-xs text-muted-foreground">
-            Ask about this lesson. The coach gives hints — not quiz spoilers.
+            Ask for help while you fill the worksheet yourself. The coach gives hints — not
+            finished answers.
           </p>
 
           <div
