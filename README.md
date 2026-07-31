@@ -185,6 +185,43 @@ Optional wildcard for preview deploys: `https://*--*.netlify.app/auth/confirm` (
 
 The app sets `emailRedirectTo` / OAuth `redirectTo` from `window.location.origin`, so localhost and Netlify both work once the allow list matches.
 
+## Google OAuth branding (consent screen)
+
+Google’s “Sign in to …” screen is **not** controlled by this repo’s React UI. It comes from the **Google Cloud OAuth consent / branding** settings for the Client ID stored in Supabase → Authentication → Providers → Google. Because Auth callbacks go through `https://<project-ref>.supabase.co/auth/v1/callback`, Google often shows that host next to “Sign in to …” unless you add a Supabase custom auth domain.
+
+### What you can fix today (free): show **Shia's 5th Grade Quest**
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/) → select the project that owns the OAuth Client ID used in Supabase.
+2. Go to **APIs & Services** → **OAuth consent screen** (or **Google Auth Platform** → **Branding**).
+3. Set:
+   - **App name:** `Shia's 5th Grade Quest`
+   - **User support email:** your contact email
+   - **App logo:** optional (e.g. the soccer favicon)
+   - **Application home page:** `https://shiadiaz.netlify.app`
+   - **Privacy policy:** `https://shiadiaz.netlify.app/privacy` (stub route in this app)
+   - **Authorized domains:** include `shiadiaz.netlify.app` (and `supabase.co` if Google requires it for the redirect URI)
+4. Publishing status: **External** apps in Testing only show branding to test users; publish (and complete brand verification if Google asks) so the app name/logo appear for everyone. Verification can take a few business days.
+5. Confirm Supabase → **Authentication** → **Providers** → **Google** uses the **Client ID / secret from this same Google project**.
+6. Confirm Supabase → **Authentication** → **URL Configuration** Site URL / Redirect URLs match the section above (Netlify, not the Supabase project URL as Site URL).
+
+**Honest limit:** App name + logo brand the consent experience. They do **not** by themselves replace `wpzvinjoyelbnfcbdrfn.supabase.co` in the “Sign in to …” domain line.
+
+### Optional: replace the `*.supabase.co` domain line (paid)
+
+Per [Supabase Custom Domains](https://supabase.com/docs/guides/platform/custom-domains) and [Login with Google](https://supabase.com/docs/guides/auth/social-login/auth-google):
+
+1. Project must be on a **paid** Supabase plan; enable the **Custom Domain** add-on (~$10/mo), or use experimental **vanity subdomains** (still paid org; still `*.supabase.co`).
+2. Point a subdomain you control (e.g. `api.yourdomain.com`) with a **CNAME** to `wpzvinjoyelbnfcbdrfn.supabase.co`, verify DNS, activate the domain in Dashboard/CLI.
+3. In Google Cloud → OAuth client → **Authorized redirect URIs**, add  
+   `https://api.yourdomain.com/auth/v1/callback`  
+   **in addition to**  
+   `https://wpzvinjoyelbnfcbdrfn.supabase.co/auth/v1/callback`.
+4. After activation, Auth advertises the custom domain on OAuth; optionally set `VITE_SUPABASE_URL` to the custom domain.
+
+A Netlify-only host (`shiadiaz.netlify.app`) is for the **frontend**. Custom Auth domain needs a DNS name **you** can CNAME to Supabase (usually not the Netlify site hostname itself).
+
+Do not commit Google Client secrets or service-role keys.
+
 ## Development
 
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).

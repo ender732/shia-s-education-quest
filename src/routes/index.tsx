@@ -62,6 +62,12 @@ function Landing() {
           Submit a book report and get a score, strengths, and a RACECE checklist.
         </Card>
       </div>
+
+      <p className="mt-12 text-xs text-muted-foreground">
+        <Link to="/privacy" className="underline-offset-2 hover:underline">
+          Privacy Policy
+        </Link>
+      </p>
     </main>
   );
 }
