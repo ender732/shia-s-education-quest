@@ -2,9 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
+  fieldAnswerHasContent,
   hasFillableWorksheet,
+  normalizeFieldAnswer,
   parseLessonPayload,
-  type WorksheetAnswers,
+  type WorksheetFieldAnswer,
 } from "@/lib/lesson-payload";
 import { levelForXp } from "@/lib/gamification";
 
@@ -15,9 +17,28 @@ const GradeInput = z.object({
   reportText: z.string().min(40, "Write at least a few sentences before submitting.").max(20000),
 });
 
+const FieldAnswerSchema = z
+  .object({
+    text: z.string().max(4000).optional(),
+    parts: z.record(z.string().max(2000)).optional(),
+    /** JPEG/PNG data URL from scribble pad — capped to keep payloads reasonable. */
+    scribble: z
+      .string()
+      .max(900_000)
+      .refine((v) => !v || v.startsWith("data:image/"), "Scribble must be an image data URL")
+      .optional(),
+  })
+  .strict();
+
 const WorksheetGradeInput = z.object({
   taskId: z.string().uuid(),
-  answers: z.record(z.union([z.string().max(4000), z.record(z.string().max(2000))])),
+  answers: z.record(
+    z.union([
+      z.string().max(4000),
+      FieldAnswerSchema,
+      z.record(z.string().max(2000)),
+    ]),
+  ),
   /** Quiz score from the 5 MCQs (0–100). Required when the lesson has a worksheet. */
   quizScore: z.number().int().min(0).max(100),
 });
@@ -106,21 +127,28 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
     }
 
     const fields = payload.worksheet!.fields;
+    const normalizedAnswers: Record<string, WorksheetFieldAnswer> = {};
+
     for (const field of fields) {
-      const answer = data.answers[field.id];
-      if (field.type === "multipart") {
-        const parts = field.parts ?? [];
-        if (!answer || typeof answer !== "object") {
-          throw new Error(`Please complete: ${field.prompt}`);
-        }
-        for (const part of parts) {
-          const partVal = (answer as Record<string, string>)[part.id];
+      const normalized = normalizeFieldAnswer(data.answers[field.id]);
+      normalizedAnswers[field.id] = normalized;
+
+      if (!fieldAnswerHasContent(normalized, field.type === "multipart")) {
+        throw new Error(`Please write or draw an answer for: ${field.prompt}`);
+      }
+
+      // Multipart without scribble still needs each blank filled when only typing.
+      if (
+        field.type === "multipart" &&
+        !normalized.scribble &&
+        (field.parts?.length ?? 0) > 0
+      ) {
+        for (const part of field.parts ?? []) {
+          const partVal = normalized.parts?.[part.id];
           if (!String(partVal ?? "").trim()) {
             throw new Error(`Please complete: ${field.prompt} — ${part.prompt}`);
           }
         }
-      } else if (!String(answer ?? "").trim()) {
-        throw new Error(`Please complete: ${field.prompt}`);
       }
     }
 
@@ -141,7 +169,7 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
         gradingHint: f.gradingHint,
         parts: f.parts?.map((p) => ({ id: p.id, prompt: p.prompt })),
       })),
-      answers: data.answers as WorksheetAnswers,
+      answers: normalizedAnswers,
     });
 
     const worksheetPassed = feedback.score >= MASTERY_MIN;
@@ -174,7 +202,7 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
           answers: {
             quizScore: data.quizScore,
             worksheetScore: feedback.score,
-            worksheetAnswers: data.answers,
+            worksheetAnswers: normalizedAnswers,
           } as never,
         });
         if (progressError) {
@@ -203,7 +231,7 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
       .insert({
         task_id: data.taskId,
         student_id: userId,
-        answers: data.answers as never,
+        answers: normalizedAnswers as never,
         ai_score: feedback.score,
         ai_feedback: feedback as never,
         xp_awarded: xpAwarded,

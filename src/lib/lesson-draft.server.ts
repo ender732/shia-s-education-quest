@@ -11,7 +11,7 @@ A parent uploaded a worksheet/lesson PDF they are allowed to use. From the extra
 Rules:
 - Do NOT invent copyrighted passages beyond what the extract supports; stay faithful to the worksheet.
 - Produce exactly 5 multiple-choice questions (type "choice") with 4 choices each and one correctIndex (0-3).
-- Also produce a fillable worksheet section with 3–6 in-app fields the student will type into on the website (NOT PDF annotation). Use types: "short", "numeric", or "multipart".
+- Also produce a fillable worksheet section with 3–6 in-app fields the student will write/draw into on the website (finger, Apple Pencil, or typed notes — NOT PDF annotation). Use types: "short", "numeric", or "multipart".
 - Include gradingHint on each worksheet field with expected answers / rubric notes for an AI grader (students will not see gradingHint).
 - Keep language warm, clear, and grade-appropriate.
 - passPercent must be 70.

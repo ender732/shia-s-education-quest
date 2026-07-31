@@ -12,9 +12,11 @@ import {
   Sparkles,
   XCircle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { LessonCoach } from "@/components/LessonCoach";
 import { LessonVideo } from "@/components/LessonVideo";
+import { ScribblePad, type ScribblePadHandle } from "@/components/ScribblePad";
 import { resolveTaskLesson, type Task } from "@/components/TaskBoard";
 import { useDailyActivityTracker } from "@/hooks/useDailyActivityTracker";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,11 +27,13 @@ import { DAILY_LEADERBOARD_QUERY_KEY, upsertDailyScore } from "@/lib/daily-activ
 import { levelForXp } from "@/lib/gamification";
 import { gradeWorksheet } from "@/lib/grading.functions";
 import {
+  fieldAnswerHasContent,
   hasFillableWorksheet,
+  normalizeFieldAnswer,
   type LessonPayload,
   type WorksheetAiFeedback,
-  type WorksheetAnswers,
   type WorksheetField,
+  type WorksheetFieldAnswer,
 } from "@/lib/lesson-payload";
 
 type Phase = "teach" | "quiz" | "worksheet" | "results";
@@ -67,7 +71,11 @@ export function LessonPractice({
   const [revealed, setRevealed] = useState(false);
   const [records, setRecords] = useState<AnswerRecord[]>([]);
   const [quizScore, setQuizScore] = useState<number | null>(null);
-  const [worksheetAnswers, setWorksheetAnswers] = useState<WorksheetAnswers>({});
+  const [worksheetAnswers, setWorksheetAnswers] = useState<
+    Record<string, WorksheetFieldAnswer>
+  >({});
+  const [worksheetInk, setWorksheetInk] = useState<Record<string, boolean>>({});
+  const scribbleRefs = useRef<Record<string, ScribblePadHandle | null>>({});
   const [worksheetFeedback, setWorksheetFeedback] = useState<WorksheetAiFeedback | null>(null);
   const [worksheetScore, setWorksheetScore] = useState<number | null>(null);
   const [masteryXp, setMasteryXp] = useState(0);
@@ -166,10 +174,27 @@ export function LessonPractice({
       if (quizScore == null || quizScore < (lesson?.passPercent ?? 70)) {
         throw new Error("Pass the practice quiz first, then submit the worksheet.");
       }
+
+      const fields = payload?.worksheet?.fields ?? [];
+      const answers: Record<string, WorksheetFieldAnswer> = {};
+
+      for (const field of fields) {
+        const base = normalizeFieldAnswer(worksheetAnswers[field.id]);
+        const scribble = scribbleRefs.current[field.id]?.exportImage() ?? undefined;
+        const answer: WorksheetFieldAnswer = {
+          ...base,
+          scribble: scribble ?? undefined,
+        };
+        if (!fieldAnswerHasContent(answer, field.type === "multipart")) {
+          throw new Error(`Please write or draw an answer for: ${field.prompt}`);
+        }
+        answers[field.id] = answer;
+      }
+
       return gradeWorksheetFn({
         data: {
           taskId: task.id,
-          answers: worksheetAnswers,
+          answers,
           quizScore,
         },
       });
@@ -219,6 +244,11 @@ export function LessonPractice({
     setWorksheetFeedback(null);
     setWorksheetScore(null);
     setMasteryXp(0);
+    // Keep typed notes; clear ink so retry is intentional.
+    for (const id of Object.keys(scribbleRefs.current)) {
+      scribbleRefs.current[id]?.clear();
+    }
+    setWorksheetInk({});
   }
 
   function submitCurrent() {
@@ -284,6 +314,27 @@ export function LessonPractice({
     () => payload?.worksheet?.fields ?? [],
     [payload?.worksheet?.fields],
   );
+
+  const coachContext = useMemo(() => {
+    if (!lesson) return "";
+    const parts = [
+      ...lesson.teach,
+      lesson.tip ? `Coach tip: ${lesson.tip}` : "",
+      lesson.transcript ? `Reading / transcript excerpt:\n${lesson.transcript.slice(0, 2500)}` : "",
+    ].filter(Boolean);
+    return parts.join("\n").slice(0, 5500);
+  }, [lesson]);
+
+  const coachQuestionText = useMemo(() => {
+    if (phase !== "quiz" || !question) return undefined;
+    if (question.type === "choice") {
+      const opts = question.choices
+        .map((c, i) => `${String.fromCharCode(65 + i)}. ${c}`)
+        .join("\n");
+      return `${question.prompt}\n${opts}`;
+    }
+    return question.prompt;
+  }, [phase, question]);
 
   if (!lesson) {
     return (
@@ -400,8 +451,8 @@ export function LessonPractice({
                 </button>
                 {needsWorksheet && (
                   <p className="text-center text-xs text-muted-foreground">
-                    After the quiz, you&apos;ll fill in the worksheet on this site and get AI feedback.
-                    You need {lesson.passPercent}%+ on both to earn XP.
+                    After the quiz, you&apos;ll write on the worksheet (finger or Pencil) and get AI
+                    feedback. You need {lesson.passPercent}%+ on both to earn XP.
                   </p>
                 )}
                 {alreadyCompleted && (
@@ -503,50 +554,69 @@ export function LessonPractice({
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="space-y-4"
+                className="space-y-5"
               >
-                <div className="rounded-xl border border-border bg-background/50 p-3 text-sm">
-                  <p className="font-bold">
-                    {payload.worksheet.title ?? "Fillable worksheet"}
-                  </p>
+                <header className="space-y-2 text-left">
+                  <h3 className="font-display text-lg font-extrabold leading-snug sm:text-xl">
+                    {payload.worksheet.title ?? "Worksheet"}
+                  </h3>
                   {payload.worksheet.instructions && (
-                    <p className="mt-1 text-muted-foreground">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
                       {payload.worksheet.instructions}
                     </p>
                   )}
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Quiz score: {quizScore}% · Need {lesson.passPercent}%+ on this worksheet for mastery.
+                  <p className="text-xs text-muted-foreground">
+                    Quiz {quizScore}% · Write with finger or Pencil · Need{" "}
+                    {lesson.passPercent}%+ for mastery
+                  </p>
+                </header>
+
+                <ol className="space-y-6">
+                  {worksheetFields.map((field, i) => (
+                    <li key={field.id}>
+                      <WorksheetFieldInput
+                        index={i + 1}
+                        field={field}
+                        value={worksheetAnswers[field.id]}
+                        disabled={submitWorksheet.isPending}
+                        scribbleRef={(handle) => {
+                          scribbleRefs.current[field.id] = handle;
+                        }}
+                        onInkChange={(hasInk) =>
+                          setWorksheetInk((prev) =>
+                            prev[field.id] === hasInk ? prev : { ...prev, [field.id]: hasInk },
+                          )
+                        }
+                        onChange={(next) =>
+                          setWorksheetAnswers((prev) => ({ ...prev, [field.id]: next }))
+                        }
+                      />
+                    </li>
+                  ))}
+                </ol>
+
+                <div className="sticky bottom-2 z-10 pt-2">
+                  <button
+                    type="button"
+                    disabled={submitWorksheet.isPending}
+                    onClick={() => submitWorksheet.mutate()}
+                    className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground shadow-lg disabled:opacity-60"
+                  >
+                    {submitWorksheet.isPending ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" /> AI Teacher is grading…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="size-4" /> Submit worksheet to AI Teacher
+                      </>
+                    )}
+                  </button>
+                  <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                    {Object.values(worksheetInk).filter(Boolean).length} of{" "}
+                    {worksheetFields.length} fields have drawing
                   </p>
                 </div>
-
-                {worksheetFields.map((field) => (
-                  <WorksheetFieldInput
-                    key={field.id}
-                    field={field}
-                    value={worksheetAnswers[field.id]}
-                    disabled={submitWorksheet.isPending}
-                    onChange={(next) =>
-                      setWorksheetAnswers((prev) => ({ ...prev, [field.id]: next }))
-                    }
-                  />
-                ))}
-
-                <button
-                  type="button"
-                  disabled={submitWorksheet.isPending}
-                  onClick={() => submitWorksheet.mutate()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
-                >
-                  {submitWorksheet.isPending ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" /> AI Teacher is grading…
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="size-4" /> Submit worksheet to AI Teacher
-                    </>
-                  )}
-                </button>
               </motion.div>
             )}
 
@@ -630,6 +700,14 @@ export function LessonPractice({
           </AnimatePresence>
         </div>
       </div>
+
+      {phase !== "results" && (
+        <LessonCoach
+          lessonTitle={lesson.title}
+          lessonContext={coachContext}
+          questionText={coachQuestionText}
+        />
+      )}
     </div>
   );
 }
@@ -696,60 +774,97 @@ function QuestionPrompt({
 }
 
 function WorksheetFieldInput({
+  index,
   field,
   value,
   disabled,
   onChange,
+  scribbleRef,
+  onInkChange,
 }: {
+  index: number;
   field: WorksheetField;
-  value: string | Record<string, string> | undefined;
+  value: WorksheetFieldAnswer | undefined;
   disabled?: boolean;
-  onChange: (next: string | Record<string, string>) => void;
+  onChange: (next: WorksheetFieldAnswer) => void;
+  scribbleRef: (handle: ScribblePadHandle | null) => void;
+  onInkChange: (hasInk: boolean) => void;
 }) {
-  if (field.type === "multipart") {
-    const parts = field.parts ?? [];
-    const map = (value && typeof value === "object" ? value : {}) as Record<string, string>;
-    return (
-      <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3 text-left">
-        <p className="text-sm font-bold">{field.prompt}</p>
-        {parts.map((part) => (
-          <label key={part.id} className="block">
-            <span className="text-xs font-semibold text-muted-foreground">{part.prompt}</span>
-            <input
-              className="input-base mt-1"
-              disabled={disabled}
-              value={map[part.id] ?? ""}
-              placeholder={part.placeholder ?? "Type your answer"}
-              onChange={(e) => onChange({ ...map, [part.id]: e.target.value })}
-            />
-          </label>
-        ))}
-      </div>
-    );
-  }
+  const answer = normalizeFieldAnswer(value);
 
   return (
-    <label className="block space-y-1 text-left">
-      <span className="text-sm font-bold">{field.prompt}</span>
-      {field.type === "numeric" ? (
-        <input
-          className="input-base"
-          inputMode="decimal"
-          disabled={disabled}
-          value={typeof value === "string" ? value : ""}
-          placeholder={field.placeholder ?? "Enter a number"}
-          onChange={(e) => onChange(e.target.value)}
-        />
+    <section className="space-y-3 text-left">
+      <div className="flex items-start gap-3">
+        <span
+          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold"
+          aria-hidden
+        >
+          {index}
+        </span>
+        <h4 className="min-w-0 flex-1 text-base font-bold leading-snug sm:text-lg">
+          {field.prompt}
+        </h4>
+      </div>
+
+      <ScribblePad
+        ref={(handle) => {
+          scribbleRef(handle);
+        }}
+        disabled={disabled}
+        heightPx={field.type === "numeric" ? 160 : 220}
+        onInkChange={onInkChange}
+        label="Write your work here"
+      />
+
+      {field.type === "multipart" ? (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground">
+            Optional typed blanks (or draw everything above)
+          </p>
+          {(field.parts ?? []).map((part) => (
+            <label key={part.id} className="block">
+              <span className="text-xs font-semibold text-muted-foreground">{part.prompt}</span>
+              <input
+                className="input-base mt-1 min-h-11 text-base"
+                disabled={disabled}
+                value={answer.parts?.[part.id] ?? ""}
+                placeholder={part.placeholder ?? "Type if you want"}
+                onChange={(e) =>
+                  onChange({
+                    ...answer,
+                    parts: { ...(answer.parts ?? {}), [part.id]: e.target.value },
+                  })
+                }
+              />
+            </label>
+          ))}
+        </div>
       ) : (
-        <textarea
-          className="input-base min-h-20"
-          disabled={disabled}
-          value={typeof value === "string" ? value : ""}
-          placeholder={field.placeholder ?? "Type your answer"}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <label className="block space-y-1">
+          <span className="text-xs font-semibold text-muted-foreground">
+            Optional typed notes
+          </span>
+          {field.type === "numeric" ? (
+            <input
+              className="input-base min-h-11 text-base"
+              inputMode="decimal"
+              disabled={disabled}
+              value={answer.text ?? ""}
+              placeholder={field.placeholder ?? "Or type the number"}
+              onChange={(e) => onChange({ ...answer, text: e.target.value })}
+            />
+          ) : (
+            <textarea
+              className="input-base min-h-14 text-base"
+              disabled={disabled}
+              value={answer.text ?? ""}
+              placeholder={field.placeholder ?? "Or type your answer"}
+              onChange={(e) => onChange({ ...answer, text: e.target.value })}
+            />
+          )}
+        </label>
       )}
-    </label>
+    </section>
   );
 }
 

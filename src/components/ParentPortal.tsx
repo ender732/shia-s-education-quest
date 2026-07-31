@@ -209,7 +209,7 @@ function WorksheetLessonUploader({
         </h3>
         <p className="text-xs text-muted-foreground">
           Upload a PDF you are allowed to use. The AI drafts a lesson with 5 quiz questions and
-          fillable on-site worksheet fields. Students never see drafts until you publish. No
+          fillable on-site worksheet fields (students can write with finger or Pencil). Students never see drafts until you publish. No
           scraping — upload only.
         </p>
         <Field label="Subject">

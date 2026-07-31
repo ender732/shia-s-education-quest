@@ -126,7 +126,10 @@ export function xpForScore(score: number) {
 
 const WORKSHEET_SYSTEM_PROMPT = `You are "AI Teacher", an experienced NYC District 6 / P.S./I.S. 187 Hudson Cliffs 5th-grade teacher.
 
-Grade the student's fillable worksheet answers against the prompts and grading hints provided.
+Grade the student's worksheet answers against the prompts and grading hints provided.
+Students may submit handwritten / drawn work as images (finger or stylus scribble) and/or typed notes.
+Read any attached images carefully — treat handwriting and drawings as the student's work.
+
 Be warm and encouraging but honest — this is a 10-year-old. Keep every sentence short and readable.
 
 Scoring:
@@ -152,23 +155,76 @@ export type WorksheetGradeFeedback = {
   teacher_note: string;
 };
 
+type WorksheetFieldForGrade = {
+  id: string;
+  type: string;
+  prompt: string;
+  gradingHint?: string;
+  parts?: Array<{ id: string; prompt: string }>;
+};
+
+type NormalizedStudentAnswer = {
+  text?: string;
+  parts?: Record<string, string>;
+  hasScribble: boolean;
+};
+
+type ChatContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string; detail?: "low" | "high" | "auto" } };
+
+function stripHeavyScribblesForJson(
+  answers: Record<string, { text?: string; parts?: Record<string, string>; scribble?: string }>,
+): Record<string, NormalizedStudentAnswer> {
+  const out: Record<string, NormalizedStudentAnswer> = {};
+  for (const [id, ans] of Object.entries(answers)) {
+    out[id] = {
+      text: ans.text,
+      parts: ans.parts,
+      hasScribble: Boolean(ans.scribble?.startsWith("data:image/")),
+    };
+  }
+  return out;
+}
+
 export async function gradeWorksheetWithAi(input: {
   lessonTitle: string;
   worksheetTitle?: string;
-  fields: Array<{
-    id: string;
-    type: string;
-    prompt: string;
-    gradingHint?: string;
-    parts?: Array<{ id: string; prompt: string }>;
-  }>;
-  answers: Record<string, unknown>;
+  fields: WorksheetFieldForGrade[];
+  answers: Record<string, { text?: string; parts?: Record<string, string>; scribble?: string }>;
 }): Promise<WorksheetGradeFeedback> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
     throw new Error(
       "AI grading is not configured. Add OPENAI_API_KEY to your server environment (.env locally, or Netlify env vars), then restart the app.",
     );
+  }
+
+  const textPayload = {
+    lessonTitle: input.lessonTitle,
+    worksheetTitle: input.worksheetTitle ?? null,
+    fields: input.fields,
+    studentAnswers: stripHeavyScribblesForJson(input.answers),
+    note: "Images attached below are the student's handwritten/drawn work for fields marked hasScribble=true.",
+  };
+
+  const content: ChatContentPart[] = [
+    { type: "text", text: JSON.stringify(textPayload, null, 2) },
+  ];
+
+  for (const field of input.fields) {
+    const scribble = input.answers[field.id]?.scribble;
+    if (!scribble?.startsWith("data:image/")) continue;
+    // Cap very large payloads — vision models accept data URLs.
+    if (scribble.length > 900_000) continue;
+    content.push({
+      type: "text",
+      text: `Handwriting / drawing for field "${field.id}" (${field.prompt}):`,
+    });
+    content.push({
+      type: "image_url",
+      image_url: { url: scribble, detail: "high" },
+    });
   }
 
   const response = await fetch(GATEWAY_URL, {
@@ -178,23 +234,12 @@ export async function gradeWorksheetWithAi(input: {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
+      // gpt-4o-mini supports vision; override with AI_MODEL if needed.
       model: process.env.AI_MODEL ?? "gpt-4o-mini",
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: WORKSHEET_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: JSON.stringify(
-            {
-              lessonTitle: input.lessonTitle,
-              worksheetTitle: input.worksheetTitle ?? null,
-              fields: input.fields,
-              studentAnswers: input.answers,
-            },
-            null,
-            2,
-          ),
-        },
+        { role: "user", content },
       ],
     }),
   });

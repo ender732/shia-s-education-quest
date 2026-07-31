@@ -31,7 +31,20 @@ export type LessonPayload = {
   worksheet?: LessonWorksheet;
 };
 
-export type WorksheetAnswers = Record<string, string | Record<string, string>>;
+/** Per-field student response: scribble image and/or typed notes. */
+export type WorksheetFieldAnswer = {
+  /** Optional typed answer / notes. */
+  text?: string;
+  /** Multipart typed blanks. */
+  parts?: Record<string, string>;
+  /** JPEG/PNG data URL from the scribble pad (finger / Apple Pencil). */
+  scribble?: string;
+};
+
+export type WorksheetAnswers = Record<
+  string,
+  string | Record<string, string> | WorksheetFieldAnswer
+>;
 
 export type WorksheetAiFeedback = {
   score: number;
@@ -40,6 +53,37 @@ export type WorksheetAiFeedback = {
   field_notes: Record<string, string>;
   teacher_note: string;
 };
+
+/** Normalize legacy string/parts answers into WorksheetFieldAnswer. */
+export function normalizeFieldAnswer(
+  value: string | Record<string, string> | WorksheetFieldAnswer | undefined,
+): WorksheetFieldAnswer {
+  if (value == null) return {};
+  if (typeof value === "string") return { text: value };
+  if (typeof value !== "object" || Array.isArray(value)) return {};
+  const obj = value as Record<string, unknown>;
+  if ("scribble" in obj || "text" in obj || "parts" in obj) {
+    return {
+      text: typeof obj.text === "string" ? obj.text : undefined,
+      parts:
+        obj.parts && typeof obj.parts === "object" && !Array.isArray(obj.parts)
+          ? (obj.parts as Record<string, string>)
+          : undefined,
+      scribble: typeof obj.scribble === "string" ? obj.scribble : undefined,
+    };
+  }
+  // Legacy multipart map: { partId: "..." }
+  return { parts: value as Record<string, string> };
+}
+
+export function fieldAnswerHasContent(answer: WorksheetFieldAnswer, multipart = false): boolean {
+  if (answer.scribble && answer.scribble.startsWith("data:image/")) return true;
+  if (multipart) {
+    const parts = answer.parts ?? {};
+    return Object.values(parts).some((v) => String(v ?? "").trim().length > 0);
+  }
+  return Boolean(String(answer.text ?? "").trim());
+}
 
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value.trim() : fallback;
