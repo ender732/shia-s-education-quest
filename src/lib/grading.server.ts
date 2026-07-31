@@ -44,8 +44,12 @@ export async function gradeWithAi(input: {
   chapter: string;
   reportText: string;
 }): Promise<AiFeedback> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("AI grading is not configured yet.");
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error(
+      "AI grading is not configured. Add OPENAI_API_KEY to your server environment (.env locally, or Netlify env vars), then restart the app.",
+    );
+  }
 
   const response = await fetch(GATEWAY_URL, {
     method: "POST",
@@ -74,10 +78,17 @@ export async function gradeWithAi(input: {
   if (response.status === 402) {
     throw new Error("AI credits are used up. Please add credits to keep grading.");
   }
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "AI grading rejected the API key. Check OPENAI_API_KEY in your server environment.",
+    );
+  }
   if (!response.ok) {
     const detail = await response.text();
     console.error("AI gateway error", response.status, detail);
-    throw new Error("The AI teacher could not grade this report. Please try again.");
+    throw new Error(
+      "The AI teacher could not grade this report. Check OPENAI_API_KEY / AI_MODEL and try again.",
+    );
   }
 
   const payload = (await response.json()) as {

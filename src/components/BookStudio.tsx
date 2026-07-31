@@ -38,15 +38,28 @@ const RACECE_LABELS: Array<[string, string]> = [
 ];
 
 export async function removeAssignedBook(book: AssignedBook) {
-  const path = book.pdf_url;
+  // Permission-checked RPC: deletes the row or raises a real error.
+  // Direct .delete() returned HTTP 204 with 0 rows when RLS denied — which
+  // previously showed a false "Book removed" toast while the book stayed.
+  const { data, error } = await supabase.rpc("delete_assigned_book", {
+    _book_id: book.id,
+  });
+  if (error) throw error;
+  const removed = data as { id?: string; pdf_url?: string | null } | null;
+  if (!removed?.id) {
+    throw new Error("Could not remove book. You may not have permission.");
+  }
+
+  const path = removed.pdf_url ?? book.pdf_url;
   if (path && !path.startsWith("http")) {
+    // Best-effort: row is already gone. Storage RLS can no-op without error.
     const { error: storageError } = await supabase.storage
       .from(BOOKS_BUCKET)
       .remove([path]);
-    if (storageError) throw storageError;
+    if (storageError) {
+      console.warn("[assigned-books] PDF cleanup failed:", storageError.message);
+    }
   }
-  const { error } = await supabase.from("assigned_books").delete().eq("id", book.id);
-  if (error) throw error;
 }
 
 export function useBooks() {

@@ -22,6 +22,7 @@ export type Task = {
   unit_tag: string | null;
   xp_reward: number;
   is_completed: boolean;
+  created_by: string | null;
 };
 
 export type TaskProgress = {

@@ -241,12 +241,16 @@ function BookUploader({ userId }: { userId: string }) {
 
   const toggleStudentDelete = useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("assigned_books")
         .update({ student_may_delete: value })
         .eq("id", id)
-        .eq("assigned_by", userId);
+        .eq("assigned_by", userId)
+        .select("id");
       if (error) throw error;
+      if (!data?.length) {
+        throw new Error("Could not update permission. You may not own this book.");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
@@ -538,14 +542,18 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      const { data, error } = await supabase.rpc("delete_task", { _task_id: id });
       if (error) throw error;
+      const removed = data as { id?: string } | null;
+      if (!removed?.id) {
+        throw new Error("Could not remove task. Curriculum lessons stay in the library.");
+      }
     },
     onSuccess: () => {
       toast.success("Task removed.");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(err.message || "Could not remove task."),
   });
 
   const masteredIds = new Set(
@@ -751,6 +759,10 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
 
           <div className="surface-card p-5">
             <h3 className="text-sm font-bold">Manage published lessons</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Curriculum lessons stay in the library. You can only remove tasks you published
+              yourself.
+            </p>
             <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
               {(tasks ?? []).map((t: Task) => {
                 const row = progress?.find(
@@ -766,6 +778,7 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
                     : attempt && attempt.seconds_spent > 0
                       ? "opened — quiz not finished"
                       : "not mastered yet";
+                const canRemove = t.created_by === parentId;
                 return (
                   <div
                     key={t.id}
@@ -775,15 +788,20 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
                       <p className="truncate text-xs font-semibold">{t.title}</p>
                       <p className="text-[11px] text-muted-foreground">
                         {t.unit_tag ?? "—"} · {t.xp_reward} XP · {status}
+                        {!canRemove ? " · curriculum" : ""}
                       </p>
                     </div>
-                    <button
-                      onClick={() => remove.mutate(t.id)}
-                      className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
-                      aria-label={`Delete ${t.title}`}
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
+                    {canRemove && (
+                      <button
+                        type="button"
+                        onClick={() => remove.mutate(t.id)}
+                        disabled={remove.isPending}
+                        className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
+                        aria-label={`Delete ${t.title}`}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    )}
                   </div>
                 );
               })}

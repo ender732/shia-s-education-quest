@@ -521,6 +521,8 @@ export type Database = {
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_linked_student: { Args: { _student_id: string }; Returns: boolean }
       is_parent: { Args: { _uid: string }; Returns: boolean }
+      delete_assigned_book: { Args: { _book_id: string }; Returns: Json }
+      delete_task: { Args: { _task_id: string }; Returns: Json }
       link_student_by_code: { Args: { _code: string }; Returns: string }
       today_et: { Args: never; Returns: string }
       track_analytics: {
