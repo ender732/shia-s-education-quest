@@ -1,20 +1,23 @@
 /**
  * Google Gemini (Generative Language API) helpers — server-only.
  * Env: GEMINI_API_KEY (preferred) or GOOGLE_GENERATIVE_AI_API_KEY.
- * Model: GEMINI_MODEL or AI_MODEL (default gemini-2.5-flash-lite — best free-tier fit).
- * Avoid gemini-2.0-flash on free tier — Google often sets its quota to 0 (HTTP 429).
+ * Model: GEMINI_MODEL or AI_MODEL (default gemini-3.1-flash-lite — free-tier friendly).
+ * Gemini 2.5 Flash is blocked for many new API keys ("no longer available to new users").
  */
 
-/** Flash-Lite: higher free-tier RPM, no default thinking, cheapest good quality. */
-const DEFAULT_MODEL = "gemini-2.5-flash-lite";
-/** Only one fallback so we do not burn free-tier quota on a long model chain. */
-const FALLBACK_MODELS = ["gemini-2.5-flash"];
+/** Best free-tier default for new Google AI Studio keys (Jul 2026+). */
+const DEFAULT_MODEL = "gemini-3.1-flash-lite";
+/** Short fallback chain — prefer lite models to stretch free quota. */
+const FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
-/** Models that waste free-tier quota or often return empty/truncated coach replies. */
+/** Models that fail for new free-tier keys or burn quota poorly. */
 const FREE_TIER_AVOID = new Set([
   "gemini-2.0-flash",
   "gemini-2.0-flash-001",
+  "gemini-2.0-flash-lite",
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
   "gemini-flash-latest",
 ]);
 
@@ -58,7 +61,7 @@ export function getGeminiModel(): string {
   if (!configured) return DEFAULT_MODEL;
   if (FREE_TIER_AVOID.has(configured)) {
     console.warn(
-      `[gemini] Replacing free-tier-unfriendly model “${configured}” with ${DEFAULT_MODEL}`,
+      `[gemini] Replacing unavailable/legacy model “${configured}” with ${DEFAULT_MODEL}`,
     );
     return DEFAULT_MODEL;
   }
@@ -156,7 +159,9 @@ function extractGeminiErrorMessage(detail: string): string {
 
 function isModelMissingError(status: number, detail: string): boolean {
   if (status === 404) return true;
-  return /not found|is not supported|NOT_FOUND|invalid model/i.test(detail);
+  return /not found|is not supported|NOT_FOUND|invalid model|no longer available to new users|please update your code to use a newer model/i.test(
+    detail,
+  );
 }
 
 function buildGenerationConfig(options: GenerateOptions): Record<string, unknown> {
@@ -340,7 +345,7 @@ export async function generateGeminiText(options: GenerateOptions): Promise<stri
       /gemini-2\.0-flash/i.test(lastDetail) || /gemini-2\.0-flash/i.test(lastModel);
     if (mentionsZeroQuota || mentionsOldFlash) {
       throw new Error(
-        `AI ${options.featureLabel} hit a Gemini quota limit for model “${lastModel}”. In Netlify, set GEMINI_MODEL to gemini-2.5-flash-lite, confirm GEMINI_API_KEY in Google AI Studio, then try again.`,
+        `AI ${options.featureLabel} hit a Gemini quota limit for model “${lastModel}”. In Netlify, set GEMINI_MODEL to gemini-3.1-flash-lite, confirm GEMINI_API_KEY in Google AI Studio, then try again.`,
       );
     }
     throw new Error(
@@ -357,7 +362,7 @@ export async function generateGeminiText(options: GenerateOptions): Promise<stri
   const geminiMsg = extractGeminiErrorMessage(lastDetail);
   if (isModelMissingError(lastStatus, lastDetail)) {
     throw new Error(
-      `AI ${options.featureLabel} could not use model “${getGeminiModel()}”. Set GEMINI_MODEL=gemini-2.5-flash-lite in Netlify (no quotes). ${geminiMsg}`,
+      `AI ${options.featureLabel} could not use model “${lastModel}”. Set GEMINI_MODEL=gemini-3.1-flash-lite in Netlify (no quotes). ${geminiMsg}`,
     );
   }
 
@@ -367,7 +372,7 @@ export async function generateGeminiText(options: GenerateOptions): Promise<stri
       return `${partialText.trim()}…`;
     }
     throw new Error(
-      `The AI ${options.featureLabel} ran out of reply space before finishing. Try a shorter question, or set GEMINI_MODEL=gemini-2.5-flash-lite in Netlify.`,
+      `The AI ${options.featureLabel} ran out of reply space before finishing. Try a shorter question, or set GEMINI_MODEL=gemini-3.1-flash-lite in Netlify.`,
     );
   }
 
