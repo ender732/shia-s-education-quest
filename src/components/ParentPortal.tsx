@@ -3,6 +3,7 @@ import { BookUp, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CURRICULUM_UNIT_TAGS } from "@/lib/curriculum";
 import { FeedbackCard } from "./BookStudio";
 import { useTasks, type Task } from "./TaskBoard";
 
@@ -100,14 +101,14 @@ function TaskCreator({ userId, subjects }: { userId: string; subjects: Subject[]
             value={form.unit_tag}
             onChange={(e) => setForm({ ...form, unit_tag: e.target.value })}
             placeholder="187_MATH_FRACTIONS"
+            list="hudson-cliffs-unit-tags"
           />
+          <datalist id="hudson-cliffs-unit-tags">
+            {CURRICULUM_UNIT_TAGS.map((tag) => (
+              <option key={tag} value={tag} />
+            ))}
+          </datalist>
         </Field>
-        <p className="text-[11px] text-muted-foreground">
-          Use a known unit tag so practice questions load (examples: 187_MATH_WHOLE_NUM,
-          187_MATH_DECIMALS, 187_MATH_FRACTIONS, 187_MATH_VOLUME, 187_ELA_UNIT1,
-          187_ELA_ROOTS, 187_RACECE_FORMAT, 187_SCI_MATTER, 187_SCI_MASS, 187_SCI_SPHERES,
-          187_SS_MAPS, 187_SS_HISTORY).
-        </p>
         <Field label="XP reward">
           <input
             type="number"
@@ -119,6 +120,10 @@ function TaskCreator({ userId, subjects }: { userId: string; subjects: Subject[]
           />
         </Field>
       </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        NYC Grade 5 / Hudson Cliffs unit tags (pick from the list):{" "}
+        {CURRICULUM_UNIT_TAGS.join(", ")}.
+      </p>
       <button
         type="submit"
         disabled={create.isPending}

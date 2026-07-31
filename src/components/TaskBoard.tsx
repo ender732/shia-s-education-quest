@@ -121,7 +121,7 @@ export function TaskBoard({
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <p className="inline-flex items-center gap-1.5 font-semibold">
           <BookOpenCheck className="size-3.5 text-primary" />
-          Open a lesson to learn, then answer practice questions to earn XP.
+          Aligned to NYC Grade 5 standards (Hudson Cliffs) — learn, then quiz for XP.
         </p>
         <p>
           {doneCount}/{tasks.length} mastered
