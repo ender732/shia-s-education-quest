@@ -6,6 +6,8 @@
  */
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
+/** Used if the configured model is missing / retired. */
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"];
 const API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export type GeminiPart =
@@ -29,12 +31,23 @@ export function getGeminiApiKey(): string {
   return apiKey;
 }
 
+/** Normalize model ids from Netlify/UI (strip quotes, "models/" prefix, whitespace). */
+export function normalizeGeminiModel(raw: string | undefined | null): string {
+  let model = String(raw ?? "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .trim();
+  if (model.toLowerCase().startsWith("models/")) {
+    model = model.slice("models/".length);
+  }
+  return model;
+}
+
 export function getGeminiModel(): string {
-  return (
-    process.env.GEMINI_MODEL?.trim() ||
-    process.env.AI_MODEL?.trim() ||
-    DEFAULT_MODEL
-  );
+  const configured =
+    normalizeGeminiModel(process.env.GEMINI_MODEL) ||
+    normalizeGeminiModel(process.env.AI_MODEL);
+  return configured || DEFAULT_MODEL;
 }
 
 function missingKeyMessage(feature: string): string {
@@ -91,14 +104,77 @@ type GenerateOptions = {
 type GeminiGenerateResponse = {
   candidates?: Array<{
     content?: { parts?: Array<{ text?: string }> };
+    finishReason?: string;
   }>;
   error?: { message?: string; status?: string; code?: number };
 };
 
+function extractGeminiErrorMessage(detail: string): string {
+  try {
+    const parsed = JSON.parse(detail) as { error?: { message?: string } };
+    const msg = parsed.error?.message?.trim();
+    if (msg) return msg.slice(0, 280);
+  } catch {
+    /* plain text body */
+  }
+  return detail.replace(/\s+/g, " ").trim().slice(0, 280);
+}
+
+function isModelMissingError(status: number, detail: string): boolean {
+  if (status === 404) return true;
+  return /not found|is not supported|NOT_FOUND|invalid model/i.test(detail);
+}
+
+async function callGeminiOnce(
+  apiKey: string,
+  model: string,
+  body: Record<string, unknown>,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; detail: string }> {
+  const url = `${API_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const detail = await response.text().catch(() => "");
+
+  if (!response.ok) {
+    return { ok: false, status: response.status, detail };
+  }
+
+  let payload: GeminiGenerateResponse;
+  try {
+    payload = JSON.parse(detail) as GeminiGenerateResponse;
+  } catch {
+    return { ok: false, status: 502, detail: "Invalid JSON from Gemini." };
+  }
+
+  const text = (payload.candidates?.[0]?.content?.parts ?? [])
+    .map((p) => p.text ?? "")
+    .join("")
+    .trim();
+
+  if (!text) {
+    const reason = payload.candidates?.[0]?.finishReason ?? "empty";
+    return {
+      ok: false,
+      status: 502,
+      detail: `Empty model reply (finishReason=${reason}).`,
+    };
+  }
+
+  return { ok: true, text };
+}
+
+function modelsToTry(primary: string): string[] {
+  const list = [primary, ...FALLBACK_MODELS.filter((m) => m !== primary)];
+  return [...new Set(list)];
+}
+
 export async function generateGeminiText(options: GenerateOptions): Promise<string> {
   const apiKey = requireGeminiApiKey(options.featureLabel);
-  const model = getGeminiModel();
-  const url = `${API_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const primaryModel = getGeminiModel();
 
   const body: Record<string, unknown> = {
     systemInstruction: {
@@ -112,49 +188,60 @@ export async function generateGeminiText(options: GenerateOptions): Promise<stri
     },
   };
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  let lastStatus = 0;
+  let lastDetail = "";
+  let lastModel = primaryModel;
 
-  if (response.status === 429) {
-    const detail = await response.text().catch(() => "");
-    console.error(`Gemini API rate limit (${options.featureLabel})`, model, detail.slice(0, 500));
-    const mentionsZeroQuota = /limit:\s*0/i.test(detail);
-    const mentionsOldFlash = /gemini-2\.0-flash/i.test(detail) || /gemini-2\.0-flash/i.test(model);
+  for (const model of modelsToTry(primaryModel)) {
+    lastModel = model;
+    const result = await callGeminiOnce(apiKey, model, body);
+    if (result.ok) return result.text;
+
+    lastStatus = result.status;
+    lastDetail = result.detail;
+    console.error(
+      `Gemini API error (${options.featureLabel})`,
+      model,
+      result.status,
+      result.detail.slice(0, 500),
+    );
+
+    // Retry next fallback only when this model is missing / unsupported.
+    if (!isModelMissingError(result.status, result.detail)) {
+      break;
+    }
+  }
+
+  if (lastStatus === 429) {
+    const mentionsZeroQuota = /limit:\s*0/i.test(lastDetail);
+    const mentionsOldFlash =
+      /gemini-2\.0-flash/i.test(lastDetail) || /gemini-2\.0-flash/i.test(lastModel);
     if (mentionsZeroQuota || mentionsOldFlash) {
       throw new Error(
-        `AI ${options.featureLabel} hit a Gemini quota limit for model “${model}”. In Netlify, set GEMINI_MODEL to gemini-2.5-flash (not gemini-2.0-flash), confirm GEMINI_API_KEY in Google AI Studio, then try again.`,
+        `AI ${options.featureLabel} hit a Gemini quota limit for model “${lastModel}”. In Netlify, set GEMINI_MODEL to gemini-2.5-flash (not gemini-2.0-flash), confirm GEMINI_API_KEY in Google AI Studio, then try again.`,
       );
     }
     throw new Error(
       `The AI ${options.featureLabel} is rate-limited right now. Wait a minute, or check your Gemini quota in Google AI Studio.`,
     );
   }
-  if (response.status === 401 || response.status === 403) {
+
+  if (lastStatus === 401 || lastStatus === 403) {
     throw new Error(
-      `AI ${options.featureLabel} rejected the API key. Check GEMINI_API_KEY in your server environment.`,
-    );
-  }
-  if (!response.ok) {
-    const detail = await response.text();
-    console.error(`Gemini API error (${options.featureLabel})`, response.status, detail);
-    throw new Error(
-      `The AI could not complete ${options.featureLabel}. Check GEMINI_API_KEY / GEMINI_MODEL (or AI_MODEL) and try again.`,
+      `AI ${options.featureLabel} rejected the API key. Check GEMINI_API_KEY in your Netlify environment (and that the Generative Language API is enabled for that key).`,
     );
   }
 
-  const payload = (await response.json()) as GeminiGenerateResponse;
-  const text = (payload.candidates?.[0]?.content?.parts ?? [])
-    .map((p) => p.text ?? "")
-    .join("")
-    .trim();
-
-  if (!text) {
-    throw new Error(`The AI returned an empty reply for ${options.featureLabel}. Please try again.`);
+  const geminiMsg = extractGeminiErrorMessage(lastDetail);
+  if (isModelMissingError(lastStatus, lastDetail)) {
+    throw new Error(
+      `AI ${options.featureLabel} could not use model “${getGeminiModel()}”. Set GEMINI_MODEL=gemini-2.5-flash in Netlify (no quotes). ${geminiMsg}`,
+    );
   }
-  return text;
+
+  throw new Error(
+    `The AI could not complete ${options.featureLabel} (model “${lastModel}”, HTTP ${lastStatus}). ${geminiMsg || "Check GEMINI_API_KEY / GEMINI_MODEL in Netlify."}`,
+  );
 }
 
 export async function generateGeminiJson(
