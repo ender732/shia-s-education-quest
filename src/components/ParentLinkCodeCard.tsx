@@ -62,7 +62,7 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
       if (result.status === "sent") {
         toast.success("Link code emailed to your parent/guardian.");
       } else if (result.status === "not_configured") {
-        toast.message("Email not configured — copy the code and share it manually.");
+        toast.message(result.message || "Email not configured; copy the code instead");
       } else {
         toast.error(result.message || "Could not send email.");
       }

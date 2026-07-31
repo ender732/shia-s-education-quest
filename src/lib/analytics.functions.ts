@@ -4,6 +4,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { ANALYTICS_EVENT_NAMES } from "@/lib/analytics";
+import { getSupabasePublishableEnv } from "@/lib/server-env";
 
 const eventNameSchema = z.enum(
   ANALYTICS_EVENT_NAMES as unknown as [string, ...string[]],
@@ -30,14 +31,6 @@ const BeaconInput = z.object({
   screen_height: z.number().int().nullable().optional(),
   properties: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 });
-
-function supabaseUrlAndKey(): { url: string; key: string } | null {
-  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
-  return { url, key };
-}
 
 function clientIp(request: Request | undefined): string | null {
   if (!request?.headers) return null;
@@ -72,7 +65,7 @@ async function hashIp(ip: string): Promise<string> {
 export const trackAnalyticsBeacon = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => BeaconInput.parse(input))
   .handler(async ({ data }) => {
-    const creds = supabaseUrlAndKey();
+    const creds = getSupabasePublishableEnv();
     if (!creds) {
       throw new Error("Supabase env not configured for analytics beacon");
     }

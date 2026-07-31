@@ -73,7 +73,12 @@ export const sendParentLinkCodeEmail = createServerFn({ method: "POST" })
 
     return {
       status: result.status as "sent" | "not_configured" | "failed",
-      message: result.status === "failed" ? "Email could not be sent. Try again later." : undefined,
+      message:
+        result.status === "not_configured"
+          ? "Email not configured; copy the code instead"
+          : result.status === "failed"
+            ? "Email could not be sent. Try again later."
+            : undefined,
     };
   });
 
@@ -106,5 +111,11 @@ export const sendParentWelcomeEmail = createServerFn({ method: "POST" })
     const result = await sendTransactionalEmail({ to, ...content });
     return {
       status: result.status as "sent" | "not_configured" | "failed",
+      message:
+        result.status === "not_configured"
+          ? "Email not configured; copy the code instead"
+          : result.status === "failed"
+            ? "Email could not be sent. Try again later."
+            : undefined,
     };
   });
