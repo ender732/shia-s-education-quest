@@ -162,6 +162,29 @@ Configure Supabase with the following relational tables and Row Level Security (
 
 - Mobile-responsive and tablet-friendly layout suitable for learning on an iPad or laptop.
 
+## Auth email confirmation (Supabase Dashboard)
+
+After signup, confirmation emails redirect to `/auth/confirm`. Configure these in
+[Authentication → URL Configuration](https://supabase.com/dashboard/project/_/auth/url-configuration):
+
+**Site URL** (production):
+
+```
+https://shiadiaz.netlify.app
+```
+
+**Redirect URLs** (allow list — add each environment you use):
+
+```
+http://localhost:8080/auth/confirm
+https://shiadiaz.netlify.app/auth/confirm
+https://shiadiaz.netlify.app/**
+```
+
+Optional wildcard for preview deploys: `https://*--*.netlify.app/auth/confirm` (or your Netlify pattern).
+
+The app sets `emailRedirectTo` / OAuth `redirectTo` from `window.location.origin`, so localhost and Netlify both work once the allow list matches.
+
 ## Development
 
 Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).

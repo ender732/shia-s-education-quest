@@ -3,12 +3,13 @@ import { Loader2, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { clearAuthIntent, saveAuthIntent, type AuthSignupIntent } from "@/lib/auth-intent";
+import { getAuthRedirectUrl } from "@/lib/auth-redirect";
 import { ensureProfileRole } from "@/lib/ensure-role";
 import { ageFromDob, isAdultDob } from "@/lib/parent-access";
 import { useSession } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/auth")({
+export const Route = createFileRoute("/auth/")({
   head: () => ({
     meta: [
       { title: "Sign in — Shia's 5th Grade Quest" },
@@ -80,7 +81,8 @@ function AuthPage() {
 
   function validateSignup(): string | null {
     if (path === "student") {
-      if (!parentContactEmail.trim()) return "Parent/guardian email is required for student accounts.";
+      if (!parentContactEmail.trim())
+        return "Parent/guardian email is required for student accounts.";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentContactEmail.trim())) {
         return "Enter a valid parent/guardian email.";
       }
@@ -117,7 +119,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth`,
+            emailRedirectTo: getAuthRedirectUrl(),
             data: {
               display_name: displayName || email.split("@")[0],
               role,
@@ -171,7 +173,7 @@ function AuthPage() {
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth` },
+      options: { redirectTo: getAuthRedirectUrl() },
     });
     if (error) toast.error("Google sign-in failed. Please try again.");
   }
@@ -191,8 +193,9 @@ function AuthPage() {
 
         {checkEmail ? (
           <div className="mt-6 rounded-xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
-            Check your email to confirm your account, then come back and sign in. If you signed up
-            as a student, we&apos;ll finish sending your parent the link code after you confirm.
+            Check your email and tap the confirmation link. You&apos;ll land back here on a
+            &ldquo;Email confirmed&rdquo; page, then you can sign in. If you signed up as a student,
+            we&apos;ll finish sending your parent the link code after you confirm.
           </div>
         ) : (
           <>
@@ -307,7 +310,8 @@ function AuthPage() {
             </form>
 
             <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-              <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+              <span className="h-px flex-1 bg-border" /> or{" "}
+              <span className="h-px flex-1 bg-border" />
             </div>
 
             <button
