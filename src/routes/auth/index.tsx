@@ -166,16 +166,21 @@ function AuthPage() {
         toast.error(validationError);
         return;
       }
+      // Persist role + DOB before leaving for Google so /auth/confirm can apply them.
       saveAuthIntent(buildIntent());
     } else {
       clearAuthIntent();
     }
 
+    setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: getAuthRedirectUrl() },
     });
-    if (error) toast.error("Google sign-in failed. Please try again.");
+    if (error) {
+      setBusy(false);
+      toast.error("Google sign-in failed. Please try again.");
+    }
   }
 
   return (
@@ -320,8 +325,24 @@ function AuthPage() {
               disabled={busy}
               className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold transition hover:bg-secondary disabled:opacity-60"
             >
-              Continue with Google
+              {mode === "signup"
+                ? path === "parent"
+                  ? "Continue with Google as parent"
+                  : "Continue with Google as student"
+                : "Sign in with Google"}
             </button>
+            {mode === "signup" && path === "parent" && (
+              <p className="mt-2 text-center text-[11px] leading-relaxed text-muted-foreground">
+                Adult verification (date of birth + confirmation above) is required before Google
+                continues — same as email signup.
+              </p>
+            )}
+            {mode === "signin" && (
+              <p className="mt-2 text-center text-[11px] leading-relaxed text-muted-foreground">
+                Need a parent account? Choose &ldquo;Create an account&rdquo; and select
+                parent/guardian so we can verify you&apos;re 18+ (works with Google too).
+              </p>
+            )}
 
             <button
               type="button"

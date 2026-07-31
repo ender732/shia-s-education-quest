@@ -1,6 +1,10 @@
 import type { User } from "@supabase/supabase-js";
 import { clearAuthIntent, readAuthIntent, type AuthSignupIntent } from "@/lib/auth-intent";
-import { normalizeEmail, resolveAuthoritativeRole } from "@/lib/parent-access";
+import {
+  isAdultDob,
+  normalizeEmail,
+  resolveAuthoritativeRole,
+} from "@/lib/parent-access";
 import { sendParentLinkCodeEmail, sendParentWelcomeEmail } from "@/lib/parent-link-email.functions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +16,10 @@ export type EnsureRoleResult = {
   emailedParent?: boolean;
   emailStatus?: "sent" | "not_configured" | "failed" | "skipped";
 };
+
+export type UpgradeToParentResult =
+  | { ok: true; role: "parent" }
+  | { ok: false; reason: "not_student" | "under_18" | "missing_confirmation" | "invalid_dob" | string };
 
 /**
  * After signup or Google OAuth redirect with a stored intent: apply authoritative role
@@ -162,4 +170,66 @@ export async function ensureProfileRole(
     emailedParent,
     emailStatus,
   };
+}
+
+/**
+ * One-time student → parent upgrade after 18+ DOB + confirmation.
+ * Satisfies DB trigger guard_profile_parent_role (date_of_birth + age_verified_at).
+ */
+export async function upgradeStudentToParent(
+  user: User,
+  input: { dateOfBirth: string; confirmedParentGuardian: boolean },
+): Promise<UpgradeToParentResult> {
+  if (!input.confirmedParentGuardian) {
+    return { ok: false, reason: "missing_confirmation" };
+  }
+  if (!input.dateOfBirth.trim()) {
+    return { ok: false, reason: "invalid_dob" };
+  }
+  if (!isAdultDob(input.dateOfBirth)) {
+    return { ok: false, reason: "under_18" };
+  }
+
+  const { data: existing, error: readError } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (readError) return { ok: false, reason: readError.message };
+  if (!existing) return { ok: false, reason: "Profile not found." };
+  if ((existing.role as string) === "parent") {
+    return { ok: true, role: "parent" };
+  }
+  if ((existing.role as string) !== "student") {
+    return { ok: false, reason: "not_student" };
+  }
+
+  const ageVerifiedAt = new Date().toISOString();
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({
+      role: "parent",
+      date_of_birth: input.dateOfBirth,
+      age_verified_at: ageVerifiedAt,
+      parent_contact_email: null,
+    })
+    .eq("id", user.id);
+
+  if (updateError) return { ok: false, reason: updateError.message };
+
+  await supabase.auth.updateUser({
+    data: { role: "parent" },
+  });
+
+  if (user.email) {
+    try {
+      await sendParentWelcomeEmail({ data: { parentEmail: user.email } });
+    } catch {
+      // optional welcome
+    }
+  }
+
+  clearAuthIntent();
+  return { ok: true, role: "parent" };
 }

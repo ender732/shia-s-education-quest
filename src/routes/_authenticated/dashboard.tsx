@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { LogOut, ShieldCheck, Loader2, GraduationCap } from "lucide-react";
@@ -12,9 +12,10 @@ import { ParentPortal } from "@/components/ParentPortal";
 import { SubjectTabs } from "@/components/SubjectTabs";
 import { TaskBoard, useTasks } from "@/components/TaskBoard";
 import { useProfile, useSession, useStreakTouch } from "@/hooks/useProfile";
+import { upgradeStudentToParent } from "@/lib/ensure-role";
 import { supabase } from "@/integrations/supabase/client";
 import { accentFor } from "@/lib/gamification";
-import { canAccessParentPortal } from "@/lib/parent-access";
+import { ageFromDob, canAccessParentPortal, isAdultDob } from "@/lib/parent-access";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { session } = useSession();
   const userId = session?.user.id;
   const { data: profile, isLoading: profileLoading } = useProfile(userId);
@@ -58,6 +60,10 @@ function Dashboard() {
 
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
   const [parentMode, setParentMode] = useState(false);
+  const [showParentUpgrade, setShowParentUpgrade] = useState(false);
+  const [upgradeDob, setUpgradeDob] = useState("");
+  const [upgradeConfirm, setUpgradeConfirm] = useState(false);
+  const [upgradeBusy, setUpgradeBusy] = useState(false);
 
   const current = useMemo(
     () => subjects?.find((s) => s.id === activeSubject) ?? subjects?.[0] ?? null,
@@ -69,19 +75,56 @@ function Dashboard() {
     [tasks, current],
   );
 
+  const isParent = canAccessParentPortal(profile?.role);
+
   async function signOut() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
 
-  function requestParentMode() {
-    if (canAccessParentPortal(profile?.role)) {
-      setParentMode(true);
+  async function submitParentUpgrade(e: React.FormEvent) {
+    e.preventDefault();
+    if (!session?.user) return;
+
+    if (!upgradeDob) {
+      toast.error("Enter your date of birth.");
       return;
     }
-    toast.error(
-      "Parent Portal is only available on parent accounts. Create a parent/guardian account with adult verification (18+) at signup — students share a link code to connect.",
-    );
+    if (ageFromDob(upgradeDob) === null) {
+      toast.error("Enter a valid date of birth.");
+      return;
+    }
+    if (!isAdultDob(upgradeDob)) {
+      toast.error("Parents must be 18 or older.");
+      return;
+    }
+    if (!upgradeConfirm) {
+      toast.error("Confirm that you are a parent/guardian 18+.");
+      return;
+    }
+
+    setUpgradeBusy(true);
+    try {
+      const result = await upgradeStudentToParent(session.user, {
+        dateOfBirth: upgradeDob,
+        confirmedParentGuardian: upgradeConfirm,
+      });
+      if (!result.ok) {
+        if (result.reason === "under_18") toast.error("Parents must be 18 or older.");
+        else if (result.reason === "missing_confirmation")
+          toast.error("Confirm that you are a parent/guardian 18+.");
+        else toast.error(typeof result.reason === "string" ? result.reason : "Could not upgrade.");
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      setShowParentUpgrade(false);
+      setParentMode(true);
+      toast.success("You're verified as a parent — Parent Portal is unlocked.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not upgrade account.");
+    } finally {
+      setUpgradeBusy(false);
+    }
   }
 
   if (profileLoading || subjectsLoading || !userId) {
@@ -98,20 +141,29 @@ function Dashboard() {
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold">
-          {parentMode ? (
+          {parentMode && isParent ? (
             <ShieldCheck className="size-3.5 text-accent" />
           ) : (
             <GraduationCap className="size-3.5 text-primary" />
           )}
-          {parentMode ? "Parent Portal" : "Student Portal"}
+          {parentMode && isParent ? "Parent Portal" : "Student Portal"}
         </span>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => (parentMode ? setParentMode(false) : requestParentMode())}
-            className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
-          >
-            {parentMode ? "Switch to Student View" : "Switch to Parent Portal"}
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {isParent ? (
+            <button
+              onClick={() => setParentMode((v) => !v)}
+              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
+            >
+              {parentMode ? "Switch to Student View" : "Switch to Parent Portal"}
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowParentUpgrade((v) => !v)}
+              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
+            >
+              {showParentUpgrade ? "Hide parent upgrade" : "I meant to be a parent"}
+            </button>
+          )}
           <button
             onClick={signOut}
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-destructive"
@@ -121,7 +173,48 @@ function Dashboard() {
         </div>
       </div>
 
-      {parentMode ? (
+      {!isParent && showParentUpgrade && (
+        <form
+          onSubmit={submitParentUpgrade}
+          className="mb-5 space-y-3 rounded-xl border border-border bg-surface/80 p-4"
+        >
+          <h2 className="text-sm font-bold">Upgrade to a parent/guardian account</h2>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Parent Portal needs a separate verified adult account (18+). Confirm your date of birth
+            once — students stay on this portal and share a link code with parents instead.
+          </p>
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Date of birth
+            <input
+              className="input-base mt-1"
+              type="date"
+              value={upgradeDob}
+              onChange={(e) => setUpgradeDob(e.target.value)}
+              required
+              max={new Date().toISOString().slice(0, 10)}
+            />
+          </label>
+          <label className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={upgradeConfirm}
+              onChange={(e) => setUpgradeConfirm(e.target.checked)}
+            />
+            <span>I confirm I am a parent/guardian 18 years of age or older.</span>
+          </label>
+          <button
+            type="submit"
+            disabled={upgradeBusy}
+            className="glow-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
+          >
+            {upgradeBusy && <Loader2 className="size-3.5 animate-spin" />}
+            Verify and unlock Parent Portal
+          </button>
+        </form>
+      )}
+
+      {parentMode && isParent ? (
         <ParentPortal userId={userId} subjects={subjects ?? []} />
       ) : (
         <div className="space-y-5">

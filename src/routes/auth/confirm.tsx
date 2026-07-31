@@ -51,6 +51,13 @@ function AuthConfirmPage() {
             const roleResult = await ensureProfileRole(result.session.user);
             if (roleResult.forcedStudentReason === "under_18") {
               toast.message("Parents must be 18+. Your account was set up as a student.");
+            } else if (roleResult.forcedStudentReason === "missing_confirmation") {
+              toast.message(
+                "Parent confirmation was incomplete — account set up as student. You can verify as a parent from the dashboard.",
+              );
+            }
+            if (roleResult.role === "parent") {
+              toast.success("Parent account ready — welcome to Parent Portal.");
             }
             if (roleResult.emailStatus === "sent") {
               toast.success("We emailed your parent/guardian the link code.");
@@ -62,6 +69,11 @@ function AuthConfirmPage() {
             }
           } catch (err) {
             console.error(err);
+            toast.error(
+              err instanceof Error
+                ? err.message
+                : "Signed in, but we couldn't finish role setup. Try refreshing or verify from the dashboard.",
+            );
           }
           navigate({ to: "/dashboard", replace: true });
           return;

@@ -67,7 +67,14 @@ export async function establishSessionFromUrl(): Promise<AuthCallbackResult> {
       flowId ? { flowId } : undefined,
     );
     clearAuthParamsFromUrl();
-    if (error) return { session: null, error: error.message, hadAuthParams: true };
+    if (error) {
+      // detectSessionInUrl (or a prior attempt) may have already consumed the code.
+      const { data: existing } = await supabase.auth.getSession();
+      if (existing.session) {
+        return { session: existing.session, error: null, hadAuthParams: true };
+      }
+      return { session: null, error: error.message, hadAuthParams: true };
+    }
     return { session: data.session, error: null, hadAuthParams: true };
   }
 

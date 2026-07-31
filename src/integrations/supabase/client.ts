@@ -54,7 +54,9 @@ function createSupabaseClient() {
       storage: typeof window !== "undefined" ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      // Handled explicitly in /auth/confirm via establishSessionFromUrl to avoid
+      // racing exchangeCodeForSession and skipping ensureProfileRole after Google OAuth.
+      detectSessionInUrl: false,
       flowType: "pkce",
     },
   });
