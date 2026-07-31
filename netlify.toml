@@ -1,3 +1,13 @@
+# TanStack Start on Netlify:
+# https://docs.netlify.com/build/frameworks/framework-setup-guides/tanstack-start/
+#
+# If Site settings → Build & deploy → Continuous deployment still has a
+# Publish directory set in the UI (publishOrigin: ui), clear it or set it
+# to dist/client so these [build] values are authoritative.
+[build]
+  command = "npm run build"
+  publish = "dist/client"
+
 # Publishable Supabase client keys (VITE_*) are safe in browser bundles.
 # Netlify secrets scanning still flags their literal values in build output —
 # omit them so deploys succeed without disabling scanning entirely.
