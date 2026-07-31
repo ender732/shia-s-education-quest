@@ -6,13 +6,13 @@ import { useSession } from "@/hooks/useProfile";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Hudson Cliffs Quest — 5th Grade Prep for P.S./I.S. 187" },
+      { title: "Shia's 5th Grade Quest — 5th Grade Prep for P.S./I.S. 187" },
       {
         name: "description",
         content:
           "A gamified 5th-grade prep platform for P.S./I.S. 187 Hudson Cliffs: Math, ELA, Science, Social Studies, and AI-graded RACECE book reports.",
       },
-      { property: "og:title", content: "Hudson Cliffs Quest — 5th Grade Prep for P.S./I.S. 187" },
+      { property: "og:title", content: "Shia's 5th Grade Quest — 5th Grade Prep for P.S./I.S. 187" },
       {
         property: "og:description",
         content:
@@ -37,7 +37,7 @@ function Landing() {
         <Sparkles className="size-3.5" /> NYC District 6 · Grade 5
       </p>
       <h1 className="mt-4 text-4xl font-black leading-tight sm:text-6xl">
-        Hudson Cliffs <span className="text-primary">Quest</span>
+        Shia's 5th Grade <span className="text-primary">Quest</span>
       </h1>
       <p className="mt-4 max-w-xl text-base text-muted-foreground">
         A gamified summer bridge for P.S./I.S. 187. Master Math, ELA, Science and Social Studies,

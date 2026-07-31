@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system: "Hudson Cliffs Quest" — deep midnight slate base with
+ * Design system: "Shia's 5th Grade Quest" — deep midnight slate base with
  * neon sky / amber gold / emerald / indigo accents.
  * All colors are oklch semantic tokens. Never hardcode colors in components.
  */

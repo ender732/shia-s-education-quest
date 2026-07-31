@@ -8,13 +8,13 @@ import { useSession } from "@/hooks/useProfile";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Hudson Cliffs Quest" },
+      { title: "Sign in — Shia's 5th Grade Quest" },
       {
         name: "description",
         content:
-          "Sign in to Hudson Cliffs Quest to track XP, complete P.S./I.S. 187 assignments, and submit AI-graded book reports.",
+          "Sign in to Shia's 5th Grade Quest to track XP, complete P.S./I.S. 187 assignments, and submit AI-graded book reports.",
       },
-      { property: "og:title", content: "Sign in — Hudson Cliffs Quest" },
+      { property: "og:title", content: "Sign in — Shia's 5th Grade Quest" },
       {
         property: "og:description",
         content: "Student and parent access for the P.S./I.S. 187 5th-grade prep platform.",
@@ -77,7 +77,7 @@ function AuthPage() {
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="surface-card w-full max-w-md p-6 sm:p-8">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          <Sparkles className="size-3.5" /> Hudson Cliffs Quest
+          <Sparkles className="size-3.5" /> Shia's 5th Grade Quest
         </p>
         <h1 className="mt-2 text-2xl font-bold">
           {mode === "signin" ? "Welcome back" : "Create your account"}

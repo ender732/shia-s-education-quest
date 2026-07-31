@@ -74,14 +74,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Hudson Cliffs Quest — P.S./I.S. 187 Grade 5 Prep" },
+      { title: "Shia's 5th Grade Quest — P.S./I.S. 187 Grade 5 Prep" },
       {
         name: "description",
         content:
           "Gamified 5th-grade prep and AI-graded book reports for P.S./I.S. 187 Hudson Cliffs students and parents.",
       },
-      { name: "author", content: "Hudson Cliffs Quest" },
-      { property: "og:title", content: "Hudson Cliffs Quest — P.S./I.S. 187 Grade 5 Prep" },
+      { name: "author", content: "Shia's 5th Grade Quest" },
+      { property: "og:title", content: "Shia's 5th Grade Quest — P.S./I.S. 187 Grade 5 Prep" },
       {
         property: "og:description",
         content: "Earn XP, keep your streak, and get instant AI feedback on RACECE writing.",

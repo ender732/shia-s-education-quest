@@ -17,13 +17,13 @@ const PARENT_PIN = "1187";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "My Quest Dashboard — Hudson Cliffs Quest" },
+      { title: "My Quest Dashboard — Shia's 5th Grade Quest" },
       {
         name: "description",
         content:
           "Learn Math, ELA, Science and Social Studies with practice questions, then submit AI-graded book reports.",
       },
-      { property: "og:title", content: "My Quest Dashboard — Hudson Cliffs Quest" },
+      { property: "og:title", content: "My Quest Dashboard — Shia's 5th Grade Quest" },
       {
         property: "og:description",
         content: "Interactive 5th-grade lessons with quizzes and RACECE writing feedback.",
