@@ -5,10 +5,14 @@ import { z } from "zod";
 import type { Database, Json } from "@/integrations/supabase/types";
 import { ANALYTICS_EVENT_NAMES } from "@/lib/analytics";
 
+const eventNameSchema = z.enum(
+  ANALYTICS_EVENT_NAMES as unknown as [string, ...string[]],
+);
+
 const BeaconInput = z.object({
   visitorId: z.string().min(8).max(64),
   sessionId: z.string().uuid().nullable().optional(),
-  eventName: z.enum(ANALYTICS_EVENT_NAMES),
+  eventName: eventNameSchema,
   path: z.string().max(500).nullable().optional(),
   landingPath: z.string().max(500).nullable().optional(),
   referrer: z.string().max(500).nullable().optional(),

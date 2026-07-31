@@ -203,7 +203,7 @@ export function BookStudio({ userId }: { userId: string }) {
             <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
               {selected
                 ? "This book has no PDF attached yet."
-                : "No assigned books yet. A parent can upload one from the Parent Portal."}
+                : "No books from your linked parents yet. Ask them to upload one from the Parent Portal."}
             </div>
           )}
           {selected?.prompt && (

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { clearAuthIntent, saveAuthIntent, type AuthSignupIntent } from "@/lib/auth-intent";
 import { getAuthRedirectUrl } from "@/lib/auth-redirect";
 import { ensureProfileRole } from "@/lib/ensure-role";
+import { trackEvent } from "@/lib/analytics";
 import { ageFromDob, isAdultDob } from "@/lib/parent-access";
 import { useSession } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,6 +112,7 @@ function AuthPage() {
 
         const intent = buildIntent();
         saveAuthIntent(intent);
+        void trackEvent("signup_start", { path });
 
         const role =
           path === "parent" && isAdultDob(dateOfBirth) && confirmAdult ? "parent" : "student";
@@ -151,6 +153,7 @@ function AuthPage() {
         clearAuthIntent();
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        void trackEvent("login", { method: "password" });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
@@ -168,8 +171,10 @@ function AuthPage() {
       }
       // Persist role + DOB before leaving for Google so /auth/confirm can apply them.
       saveAuthIntent(buildIntent());
+      void trackEvent("signup_start", { path, method: "google" });
     } else {
       clearAuthIntent();
+      void trackEvent("login", { method: "google" });
     }
 
     setBusy(true);

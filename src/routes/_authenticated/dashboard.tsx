@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { LogOut, ShieldCheck, Loader2, GraduationCap } from "lucide-react";
+import { LogOut, ShieldCheck, Loader2, GraduationCap, BarChart3 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BookStudio } from "@/components/BookStudio";
@@ -15,7 +15,7 @@ import { useProfile, useSession, useStreakTouch } from "@/hooks/useProfile";
 import { upgradeStudentToParent } from "@/lib/ensure-role";
 import { supabase } from "@/integrations/supabase/client";
 import { accentFor } from "@/lib/gamification";
-import { ageFromDob, canAccessParentPortal, isAdultDob } from "@/lib/parent-access";
+import { ageFromDob, canAccessAdmin, canAccessParentPortal, isAdultDob } from "@/lib/parent-access";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -76,6 +76,7 @@ function Dashboard() {
   );
 
   const isParent = canAccessParentPortal(profile?.role);
+  const isAdmin = canAccessAdmin(profile?.role);
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -149,6 +150,14 @@ function Dashboard() {
           {parentMode && isParent ? "Parent Portal" : "Student Portal"}
         </span>
         <div className="flex flex-wrap items-center gap-2">
+          {isAdmin && (
+            <Link
+              to="/admin/analytics"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
+            >
+              <BarChart3 className="size-3.5 text-primary" /> Analytics
+            </Link>
+          )}
           {isParent ? (
             <button
               onClick={() => setParentMode((v) => !v)}
@@ -156,14 +165,14 @@ function Dashboard() {
             >
               {parentMode ? "Switch to Student View" : "Switch to Parent Portal"}
             </button>
-          ) : (
+          ) : !isAdmin ? (
             <button
               onClick={() => setShowParentUpgrade((v) => !v)}
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
             >
               {showParentUpgrade ? "Hide parent upgrade" : "I meant to be a parent"}
             </button>
-          )}
+          ) : null}
           <button
             onClick={signOut}
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-destructive"

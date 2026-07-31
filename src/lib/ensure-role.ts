@@ -9,7 +9,7 @@ import { sendParentLinkCodeEmail, sendParentWelcomeEmail } from "@/lib/parent-li
 import { supabase } from "@/integrations/supabase/client";
 
 export type EnsureRoleResult = {
-  role: "parent" | "student";
+  role: "parent" | "student" | "admin";
   linkCode: string | null;
   parentContactEmail: string | null;
   forcedStudentReason?: "under_18" | "missing_confirmation" | null;
@@ -37,10 +37,20 @@ export async function ensureProfileRole(
     .eq("id", user.id)
     .maybeSingle();
 
+  // Never overwrite an operator admin role from client signup flows.
+  if ((existing?.role as string) === "admin") {
+    return {
+      role: "admin",
+      linkCode: (existing?.link_code as string | null) ?? null,
+      parentContactEmail: normalizeEmail(existing?.parent_contact_email as string | null) || null,
+      emailStatus: "skipped",
+    };
+  }
+
   // No signup intent → do not rewrite role (returning users / Google sign-in).
   if (!intent) {
     return {
-      role: ((existing?.role as "parent" | "student") ?? "student"),
+      role: ((existing?.role as "parent" | "student" | "admin") ?? "student"),
       linkCode: (existing?.link_code as string | null) ?? null,
       parentContactEmail: normalizeEmail(existing?.parent_contact_email as string | null) || null,
       emailStatus: "skipped",
@@ -198,6 +208,9 @@ export async function upgradeStudentToParent(
 
   if (readError) return { ok: false, reason: readError.message };
   if (!existing) return { ok: false, reason: "Profile not found." };
+  if ((existing.role as string) === "admin") {
+    return { ok: false, reason: "not_student" };
+  }
   if ((existing.role as string) === "parent") {
     return { ok: true, role: "parent" };
   }

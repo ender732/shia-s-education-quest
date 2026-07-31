@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as AuthConfirmRouteImport } from './routes/auth/confirm'
 import { Route as AuthConfirmedRouteImport } from './routes/auth/confirmed'
+import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +58,12 @@ const AuthConfirmedRoute = AuthConfirmedRouteImport.update({
   path: '/confirmed',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthenticatedAdminAnalyticsRoute =
+  AuthenticatedAdminAnalyticsRouteImport.update({
+    id: '/admin/analytics',
+    path: '/admin/analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/confirmed': typeof AuthConfirmedRoute
   '/auth/': typeof AuthIndexRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/confirmed': typeof AuthConfirmedRoute
   '/auth': typeof AuthIndexRoute
+  '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -85,6 +94,7 @@ export interface FileRoutesById {
   '/auth/confirm': typeof AuthConfirmRoute
   '/auth/confirmed': typeof AuthConfirmedRoute
   '/auth/': typeof AuthIndexRoute
+  '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/confirmed'
     | '/auth/'
+    | '/admin/analytics'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/confirmed'
     | '/auth'
+    | '/admin/analytics'
   id:
     | '__root__'
     | '/'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
     | '/auth/confirm'
     | '/auth/confirmed'
     | '/auth/'
+    | '/_authenticated/admin/analytics'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -181,15 +194,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthConfirmedRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_authenticated/admin/analytics': {
+      id: '/_authenticated/admin/analytics'
+      path: '/admin/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

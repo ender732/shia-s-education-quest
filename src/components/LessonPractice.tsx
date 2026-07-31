@@ -10,12 +10,13 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { LessonVideo } from "@/components/LessonVideo";
 import type { Task } from "@/components/TaskBoard";
 import { useDailyActivityTracker } from "@/hooks/useDailyActivityTracker";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 import { celebrate } from "@/lib/confetti";
 import { checkAnswer, lessonForUnit, type Question } from "@/lib/curriculum";
 import { DAILY_LEADERBOARD_QUERY_KEY, upsertDailyScore } from "@/lib/daily-activity";
@@ -50,6 +51,14 @@ export function LessonPractice({
   const [shortValue, setShortValue] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [records, setRecords] = useState<AnswerRecord[]>([]);
+
+  useEffect(() => {
+    void trackEvent("lesson_open", {
+      task_id: task.id,
+      subject_id: task.subject_id,
+      unit_tag: task.unit_tag ?? null,
+    });
+  }, [task.id, task.subject_id, task.unit_tag]);
 
   const question = lesson?.questions[index];
   const total = lesson?.questions.length ?? 0;

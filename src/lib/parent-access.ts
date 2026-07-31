@@ -54,3 +54,8 @@ export function resolveAuthoritativeRole(input: {
 export function canAccessParentPortal(role: string | null | undefined): boolean {
   return (role ?? "").trim().toLowerCase() === "parent";
 }
+
+/** Admin analytics UI gate: profiles.role = admin only (set via SQL, not client). */
+export function canAccessAdmin(role: string | null | undefined): boolean {
+  return (role ?? "").trim().toLowerCase() === "admin";
+}

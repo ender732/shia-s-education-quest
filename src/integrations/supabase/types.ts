@@ -14,6 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          bot_name: string | null
+          created_at: string
+          event_name: string
+          id: string
+          is_bot: boolean
+          path: string | null
+          properties: Json
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+          visitor_id: string
+        }
+        Insert: {
+          bot_name?: string | null
+          created_at?: string
+          event_name: string
+          id?: string
+          is_bot?: boolean
+          path?: string | null
+          properties?: Json
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          visitor_id: string
+        }
+        Update: {
+          bot_name?: string | null
+          created_at?: string
+          event_name?: string
+          id?: string
+          is_bot?: boolean
+          path?: string | null
+          properties?: Json
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_sessions: {
+        Row: {
+          bot_name: string | null
+          id: string
+          ip_hash: string | null
+          is_bot: boolean
+          landing_path: string | null
+          language: string | null
+          last_seen_at: string
+          referrer: string | null
+          screen_height: number | null
+          screen_width: number | null
+          started_at: string
+          timezone_offset: number | null
+          user_agent: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          visitor_id: string
+        }
+        Insert: {
+          bot_name?: string | null
+          id?: string
+          ip_hash?: string | null
+          is_bot?: boolean
+          landing_path?: string | null
+          language?: string | null
+          last_seen_at?: string
+          referrer?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          started_at?: string
+          timezone_offset?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id: string
+        }
+        Update: {
+          bot_name?: string | null
+          id?: string
+          ip_hash?: string | null
+          is_bot?: boolean
+          landing_path?: string | null
+          language?: string | null
+          last_seen_at?: string
+          referrer?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          started_at?: string
+          timezone_offset?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
+      }
       assigned_books: {
         Row: {
           assigned_by: string | null
@@ -106,24 +228,79 @@ export type Database = {
           },
         ]
       }
+      daily_activity: {
+        Row: {
+          activity_date: string
+          best_score: number | null
+          id: string
+          seconds_spent: number
+          subject_id: string | null
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_date: string
+          best_score?: number | null
+          id?: string
+          seconds_spent?: number
+          subject_id?: string | null
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          best_score?: number | null
+          id?: string
+          seconds_spent?: number
+          subject_id?: string | null
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_activity_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_activity_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_student_links: {
         Row: {
+          created_at: string
           id: string
           parent_id: string
           student_id: string
-          created_at: string
         }
         Insert: {
+          created_at?: string
           id?: string
           parent_id: string
           student_id: string
-          created_at?: string
         }
         Update: {
+          created_at?: string
           id?: string
           parent_id?: string
           student_id?: string
-          created_at?: string
         }
         Relationships: [
           {
@@ -211,6 +388,57 @@ export type Database = {
         }
         Relationships: []
       }
+      task_progress: {
+        Row: {
+          answers: Json
+          completed_at: string
+          correct_count: number
+          id: string
+          score: number
+          task_id: string
+          total_count: number
+          user_id: string
+          xp_awarded: number
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string
+          correct_count?: number
+          id?: string
+          score?: number
+          task_id: string
+          total_count?: number
+          user_id: string
+          xp_awarded?: number
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string
+          correct_count?: number
+          id?: string
+          score?: number
+          task_id?: string
+          total_count?: number
+          user_id?: string
+          xp_awarded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_progress_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           created_at: string
@@ -262,148 +490,81 @@ export type Database = {
           },
         ]
       }
-      task_progress: {
-        Row: {
-          id: string
-          user_id: string
-          task_id: string
-          score: number
-          correct_count: number
-          total_count: number
-          xp_awarded: number
-          answers: Json
-          completed_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          task_id: string
-          score?: number
-          correct_count?: number
-          total_count?: number
-          xp_awarded?: number
-          answers?: Json
-          completed_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          task_id?: string
-          score?: number
-          correct_count?: number
-          total_count?: number
-          xp_awarded?: number
-          answers?: Json
-          completed_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_progress_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_progress_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      daily_activity: {
-        Row: {
-          id: string
-          user_id: string
-          activity_date: string
-          task_id: string
-          subject_id: string | null
-          seconds_spent: number
-          best_score: number | null
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          activity_date: string
-          task_id: string
-          subject_id?: string | null
-          seconds_spent?: number
-          best_score?: number | null
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          activity_date?: string
-          task_id?: string
-          subject_id?: string | null
-          seconds_spent?: number
-          best_score?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_activity_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_activity_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_activity_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      age_years_from_dob: { Args: { _dob: string }; Returns: number }
+      get_analytics_bots: { Args: { _days?: number }; Returns: Json }
+      get_analytics_daily: { Args: { _days?: number }; Returns: Json }
+      get_analytics_overview: { Args: { _days?: number }; Returns: Json }
+      get_analytics_recent_events: { Args: { _limit?: number }; Returns: Json }
+      get_analytics_referrers: {
+        Args: { _days?: number; _limit?: number }
+        Returns: Json
+      }
+      get_analytics_top_pages: {
+        Args: { _days?: number; _limit?: number }
+        Returns: Json
+      }
+      get_daily_leaderboard: {
+        Args: { _day?: string }
+        Returns: {
+          best_score: number
+          display_name: string
+          rank: number
+          total_seconds: number
+          user_id: string
+        }[]
+      }
+      is_admin: { Args: { _uid: string }; Returns: boolean }
       is_linked_student: { Args: { _student_id: string }; Returns: boolean }
       is_parent: { Args: { _uid: string }; Returns: boolean }
       link_student_by_code: { Args: { _code: string }; Returns: string }
-      today_et: { Args: Record<string, never>; Returns: string }
-      upsert_daily_seconds: {
+      today_et: { Args: never; Returns: string }
+      track_analytics: {
         Args: {
-          _task_id: string
-          _seconds: number
-          _subject_id?: string | null
-          _activity_date?: string | null
+          _bot_name?: string
+          _event_name: string
+          _ip_hash?: string
+          _is_bot?: boolean
+          _landing_path?: string
+          _language?: string
+          _path?: string
+          _properties?: Json
+          _referrer?: string
+          _screen_height?: number
+          _screen_width?: number
+          _session_id?: string
+          _timezone_offset?: number
+          _user_agent?: string
+          _utm_campaign?: string
+          _utm_content?: string
+          _utm_medium?: string
+          _utm_source?: string
+          _utm_term?: string
+          _visitor_id: string
         }
-        Returns: undefined
+        Returns: string
       }
       upsert_daily_score: {
         Args: {
-          _task_id: string
+          _activity_date?: string
           _score: number
-          _subject_id?: string | null
-          _activity_date?: string | null
+          _subject_id?: string
+          _task_id: string
         }
         Returns: undefined
       }
-      get_daily_leaderboard: {
-        Args: { _day?: string | null }
-        Returns: {
-          rank: number
-          user_id: string
-          display_name: string
-          total_seconds: number
-          best_score: number | null
-        }[]
+      upsert_daily_seconds: {
+        Args: {
+          _activity_date?: string
+          _seconds: number
+          _subject_id?: string
+          _task_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
@@ -537,3 +698,5 @@ export const Constants = {
     Enums: {},
   },
 } as const
+A new version of Supabase CLI is available: v2.110.0 (currently installed v2.102.0)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

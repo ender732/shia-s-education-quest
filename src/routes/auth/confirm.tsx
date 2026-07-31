@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { establishSessionFromUrl } from "@/lib/auth-callback";
 import { getAuthRedirectUrl } from "@/lib/auth-redirect";
 import { ensureProfileRole } from "@/lib/ensure-role";
+import { trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/confirm")({
@@ -49,6 +50,14 @@ function AuthConfirmPage() {
         if (result.session?.user) {
           try {
             const roleResult = await ensureProfileRole(result.session.user);
+            const providers = result.session.user.app_metadata?.provider;
+            const isGoogle =
+              providers === "google" ||
+              (Array.isArray(result.session.user.app_metadata?.providers) &&
+                result.session.user.app_metadata.providers.includes("google"));
+            void trackEvent(isGoogle ? "oauth_return" : "confirm_email", {
+              provider: isGoogle ? "google" : "email",
+            });
             if (roleResult.forcedStudentReason === "under_18") {
               toast.message("Parents must be 18+. Your account was set up as a student.");
             } else if (roleResult.forcedStudentReason === "missing_confirmation") {

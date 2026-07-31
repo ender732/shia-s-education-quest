@@ -2,6 +2,7 @@ import { Check, Copy, Link2, Mail, Loader2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 import { sendParentLinkCodeEmail } from "@/lib/parent-link-email.functions";
 
 type Props = {
@@ -35,6 +36,7 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
     try {
       await navigator.clipboard.writeText(linkCode!);
       setCopied(true);
+      void trackEvent("copy_link", { kind: "parent_link_code" });
       toast.success("Parent link code copied.");
       window.setTimeout(() => setCopied(false), 2000);
     } catch {

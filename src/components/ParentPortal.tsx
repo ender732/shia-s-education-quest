@@ -3,6 +3,7 @@ import { BookUp, Link2, Loader2, Plus, Trash2, Unlink } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 import { CURRICULUM_UNIT_TAGS } from "@/lib/curriculum";
 import { FeedbackCard, removeAssignedBook, useBooks, type AssignedBook } from "./BookStudio";
 import { useTasks, type Task } from "./TaskBoard";
@@ -225,6 +226,7 @@ function BookUploader({ userId }: { userId: string }) {
     },
     onSuccess: () => {
       toast.success("Book assigned.");
+      void trackEvent("book_assign");
       setTitle("");
       setAuthor("");
       setPrompt("");
