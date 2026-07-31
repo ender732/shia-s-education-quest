@@ -307,6 +307,61 @@ export type Database = {
           },
         ]
       }
+      daily_activity: {
+        Row: {
+          id: string
+          user_id: string
+          activity_date: string
+          task_id: string
+          subject_id: string | null
+          seconds_spent: number
+          best_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          activity_date: string
+          task_id: string
+          subject_id?: string | null
+          seconds_spent?: number
+          best_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          activity_date?: string
+          task_id?: string
+          subject_id?: string | null
+          seconds_spent?: number
+          best_score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_activity_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_activity_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -315,6 +370,35 @@ export type Database = {
       is_linked_student: { Args: { _student_id: string }; Returns: boolean }
       is_parent: { Args: { _uid: string }; Returns: boolean }
       link_student_by_code: { Args: { _code: string }; Returns: string }
+      today_et: { Args: Record<string, never>; Returns: string }
+      upsert_daily_seconds: {
+        Args: {
+          _task_id: string
+          _seconds: number
+          _subject_id?: string | null
+          _activity_date?: string | null
+        }
+        Returns: undefined
+      }
+      upsert_daily_score: {
+        Args: {
+          _task_id: string
+          _score: number
+          _subject_id?: string | null
+          _activity_date?: string | null
+        }
+        Returns: undefined
+      }
+      get_daily_leaderboard: {
+        Args: { _day?: string | null }
+        Returns: {
+          rank: number
+          user_id: string
+          display_name: string
+          total_seconds: number
+          best_score: number | null
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

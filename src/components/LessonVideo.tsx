@@ -3,13 +3,16 @@ import { youtubeEmbedUrl } from "@/lib/youtube";
 export function LessonVideo({
   youtubeVideoId,
   youtubeTitle,
+  youtubeChannel,
 }: {
   youtubeVideoId?: string;
   youtubeTitle?: string;
+  youtubeChannel?: string;
 }) {
   if (!youtubeVideoId) return null;
 
   const label = youtubeTitle ?? "Lesson explainer video";
+  const channel = youtubeChannel ?? "Crash Course Kids";
 
   return (
     <figure className="space-y-2">
@@ -23,7 +26,7 @@ export function LessonVideo({
         />
       </div>
       <figcaption className="text-center text-xs text-muted-foreground">
-        Crash Course Kids
+        {channel}
         {youtubeTitle ? ` · ${youtubeTitle}` : null}
       </figcaption>
     </figure>

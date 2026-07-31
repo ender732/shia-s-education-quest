@@ -9,15 +9,17 @@ import {
   Loader2,
   RotateCcw,
   XCircle,
-  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LessonVideo } from "@/components/LessonVideo";
+import type { Task } from "@/components/TaskBoard";
+import { useDailyActivityTracker } from "@/hooks/useDailyActivityTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { celebrate } from "@/lib/confetti";
 import { checkAnswer, lessonForUnit, type Question } from "@/lib/curriculum";
+import { DAILY_LEADERBOARD_QUERY_KEY, upsertDailyScore } from "@/lib/daily-activity";
 import { levelForXp } from "@/lib/gamification";
-import type { Task } from "@/components/TaskBoard";
 
 type Phase = "teach" | "quiz" | "results";
 
@@ -55,6 +57,12 @@ export function LessonPractice({
   const score = total ? Math.round((correctCount / total) * 100) : 0;
   const passed = lesson ? score >= lesson.passPercent : false;
 
+  useDailyActivityTracker({
+    enabled: Boolean(lesson) && (phase === "teach" || phase === "quiz"),
+    taskId: task.id,
+    subjectId: task.subject_id,
+  });
+
   const saveProgress = useMutation({
     mutationFn: async (payload: {
       score: number;
@@ -63,6 +71,12 @@ export function LessonPractice({
       records: AnswerRecord[];
       passed: boolean;
     }) => {
+      await upsertDailyScore({
+        taskId: task.id,
+        score: payload.score,
+        subjectId: task.subject_id,
+      });
+
       if (!lesson || alreadyCompleted || !payload.passed) return { awarded: 0 };
 
       const { saveTaskProgress } = await import("@/lib/task-progress");
@@ -96,6 +110,7 @@ export function LessonPractice({
     onSuccess: ({ awarded }) => {
       queryClient.invalidateQueries({ queryKey: ["task_progress", userId] });
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      queryClient.invalidateQueries({ queryKey: [DAILY_LEADERBOARD_QUERY_KEY] });
       if (awarded > 0) {
         void celebrate();
         toast.success(`Lesson mastered! +${awarded} XP`);
@@ -147,15 +162,14 @@ export function LessonPractice({
       const finalScore = Math.round((finalCorrect / lesson.questions.length) * 100);
       const didPass = finalScore >= lesson.passPercent;
       setPhase("results");
-      if (didPass && !alreadyCompleted) {
-        saveProgress.mutate({
-          score: finalScore,
-          correctCount: finalCorrect,
-          total: lesson.questions.length,
-          records,
-          passed: didPass,
-        });
-      }
+      // Always record today's best score; XP only on first pass.
+      saveProgress.mutate({
+        score: finalScore,
+        correctCount: finalCorrect,
+        total: lesson.questions.length,
+        records,
+        passed: didPass,
+      });
       return;
     }
     setIndex((i) => i + 1);
@@ -233,6 +247,11 @@ export function LessonPractice({
                     ))}
                   </div>
                 </div>
+                <LessonVideo
+                  youtubeVideoId={lesson.youtubeVideoId}
+                  youtubeTitle={lesson.youtubeTitle}
+                  youtubeChannel={lesson.youtubeChannel}
+                />
                 <div className="flex items-start gap-2 rounded-xl border border-xp/30 bg-xp/10 p-3 text-sm">
                   <Lightbulb className="mt-0.5 size-4 shrink-0 text-xp" />
                   <p>

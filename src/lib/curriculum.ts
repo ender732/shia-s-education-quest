@@ -26,10 +26,12 @@ export type Lesson = {
   tip: string;
   passPercent: number;
   questions: Question[];
-  /** Crash Course Kids (or related) YouTube video id when a strong match exists. */
+  /** YouTube video id when a strong grade-friendly match exists. */
   youtubeVideoId?: string;
   /** Accessible label for the embed. */
   youtubeTitle?: string;
+  /** Channel credit shown under the embed (defaults to Crash Course Kids). */
+  youtubeChannel?: string;
 };
 
 function normalizeAnswer(value: string) {
@@ -60,6 +62,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Line up place values carefully and carry when a product is 10 or more.",
     ],
     tip: "Estimate first: 250 × 30 = 7,500. Your exact answer should be near that.",
+    youtubeVideoId: "RVYwunbpMHA",
+    youtubeTitle: "Math Antics - Multi-Digit Multiplication Pt 2",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -114,6 +119,9 @@ export const LESSONS: Record<string, Lesson> = {
       "When adding/subtracting, always line up the decimal points first.",
     ],
     tip: "Write zeros as placeholders: 0.7 = 0.700. That makes comparing easier.",
+    youtubeVideoId: "KG6ILNOiMgM",
+    youtubeTitle: "Math Antics - Decimal Place Value",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -168,6 +176,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Simplify the answer when you can.",
     ],
     tip: "For 1/3 + 1/4, LCM of 3 and 4 is 12 → 4/12 + 3/12 = 7/12.",
+    youtubeVideoId: "pZEmFSP3Z0I",
+    youtubeTitle: "Math Antics - Common Denominator LCD",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -221,6 +232,9 @@ export const LESSONS: Record<string, Lesson> = {
       "For composite shapes, split into prisms, find each volume, then add.",
     ],
     tip: "If cubes are 1 cm on each side, count the cubes — that count is the volume in cm³.",
+    youtubeVideoId: "qJwecTgce6c",
+    youtubeTitle: "Math Antics - Volume",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -273,6 +287,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Example: 3.45 × 100 = 345 because the decimal point moves two places right.",
     ],
     tip: "Count the zeros in the power of 10 — that is how many places the decimal moves.",
+    youtubeVideoId: "T5Qf0qSSJFI",
+    youtubeTitle: "Math Antics - Place Value",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -326,6 +343,9 @@ export const LESSONS: Record<string, Lesson> = {
       "For division, you can rewrite as an equivalent problem with whole-number divisors when helpful.",
     ],
     tip: "Estimate first: 2.4 × 3 should be near 7, not 70.",
+    youtubeVideoId: "kwh4SD1ToFc",
+    youtubeTitle: "Math Antics - Decimal Arithmetic",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -378,6 +398,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Limited division: unit fraction ÷ whole number, or whole number ÷ unit fraction (not fraction ÷ fraction until Grade 6).",
     ],
     tip: "1/2 × 1/3 = 1/6. Of means multiply: 1/2 of 12 = 6.",
+    youtubeVideoId: "qmfXyR7Z6Lk",
+    youtubeTitle: "Math Antics - Multiplying Fractions",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -435,6 +458,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Remainders matter: sometimes you leave a remainder; sometimes you express as a fraction or decimal later.",
     ],
     tip: "Check: quotient × divisor + remainder should equal the dividend.",
+    youtubeVideoId: "HdU_rf7eMTI",
+    youtubeTitle: "Math Antics - Long Division with 2-Digit Divisors",
+    youtubeChannel: "Math Antics",
     passPercent: 70,
     questions: [
       {
@@ -492,6 +518,9 @@ export const LESSONS: Record<string, Lesson> = {
       "A strong answer names the change and proves it with two clear details.",
     ],
     tip: "Ask: What did they believe before? What do they believe now? What moment caused the shift?",
+    youtubeVideoId: "Hhk4N9A0oCA",
+    youtubeTitle: "What makes a hero? - Matthew Winkler",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -567,6 +596,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Prefixes and suffixes attach to roots to change meaning.",
     ],
     tip: "Break the word apart: tele + phone = far + sound.",
+    youtubeVideoId: "Ytr28t5VzAs",
+    youtubeTitle: "Where do new words come from? - Marcel Danesi",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -627,6 +659,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Two citations make your answer stronger and more convincing.",
     ],
     tip: "Sentence starters: “The text states…” then “This shows…”",
+    youtubeVideoId: "3klMM9BkW5o",
+    youtubeTitle: "How to use rhetoric to get what you want - Camille A. Langston",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -696,6 +731,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Quote or paraphrase evidence, then tell why it matters.",
     ],
     tip: "If a detail can be removed and the big idea still stands, it may not be central.",
+    youtubeVideoId: "eREopphW5Bw",
+    youtubeTitle: "Mining literature for deeper meanings - Amy E. Harter",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -960,6 +998,8 @@ export const LESSONS: Record<string, Lesson> = {
       "When organisms die, decomposers return matter to soil, water, and air.",
     ],
     tip: "Producers make their own food; consumers eat; decomposers recycle.",
+    youtubeVideoId: "Vtb3I8Vzlfg",
+    youtubeTitle: "Food Webs: Crash Course Kids #21.2",
     passPercent: 70,
     questions: [
       {
@@ -1014,6 +1054,8 @@ export const LESSONS: Record<string, Lesson> = {
       "Daily patterns (day/night) come from Earth’s rotation; seasonal patterns relate to Earth’s orbit and tilt.",
     ],
     tip: "Apparent brightness ≠ true size. Distance matters a lot.",
+    youtubeVideoId: "M41yLjQ2ot0",
+    youtubeTitle: "Seeing Stars: Crash Course Kids #20.1",
     passPercent: 70,
     questions: [
       {
@@ -1088,6 +1130,8 @@ export const LESSONS: Record<string, Lesson> = {
       "Protecting fresh water matters because usable fresh water is limited.",
     ],
     tip: "Ocean ≈ nearly all water; drinkable fresh water is only a tiny slice.",
+    youtubeVideoId: "oaQCiwzjnCM",
+    youtubeTitle: "The Basics of Freshwater: Crash Course Kids #14.1",
     passPercent: 70,
     questions: [
       {
@@ -1147,6 +1191,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Major features: Rocky Mountains, Andes, Amazon River, Mississippi River, Great Lakes.",
     ],
     tip: "North is up on most classroom maps — check the compass rose to be sure.",
+    youtubeVideoId: "R35URiT_fm8",
+    youtubeTitle: "South America | Destination World",
+    youtubeChannel: "Nat Geo Kids",
     passPercent: 70,
     questions: [
       {
@@ -1211,6 +1258,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Inca: Andes empire; roads, terrace farming, quipu record-keeping.",
     ],
     tip: "Maya → writing/calendar; Aztec → Tenochtitlán; Inca → Andes roads & terraces.",
+    youtubeVideoId: "UO5ktwPXsyM",
+    youtubeTitle: "The rise and fall of the Inca Empire - Gordon McEwan",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -1275,6 +1325,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Indigenous peoples already lived throughout the Americas with rich cultures and governments.",
     ],
     tip: "Ask: Who benefited? Who was harmed? What changed for people already living here?",
+    youtubeVideoId: "pFdiX8mj0Es",
+    youtubeTitle: "How Magellan circumnavigated the globe - Ewandro Magalhaes",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -1349,6 +1402,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Immigration and cultural diversity are central to U.S. history and communities today.",
     ],
     tip: "Connect physical features (Mississippi, Rockies) to how people live and work.",
+    youtubeVideoId: "HuFR5XBYLfU",
+    youtubeTitle: "How is power divided in the United States government? - Belinda Stutzman",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -1482,6 +1538,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Today Mexico is a federal republic with rich arts, food traditions, and trade links.",
     ],
     tip: "Connect Mexico’s past civilizations to its regions and modern identity.",
+    youtubeVideoId: "JZj7acYZ19w",
+    youtubeTitle: "A day in the life of an Aztec midwife - Kay Read",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {
@@ -1546,6 +1605,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Indigenous Nations, English and French heritage, and immigration shape Canadian society.",
     ],
     tip: "Think climate and latitude: much of Canada is colder than most of the U.S.",
+    youtubeVideoId: "AOUK3Oit86o",
+    youtubeTitle: "North America | Destination World",
+    youtubeChannel: "Nat Geo Kids",
     passPercent: 70,
     questions: [
       {
@@ -1689,6 +1751,9 @@ export const LESSONS: Record<string, Lesson> = {
       "Write one key event and one new word each session.",
     ],
     tip: "After reading, tell someone the main idea in two sentences.",
+    youtubeVideoId: "ctaPAm14L10",
+    youtubeTitle: "How fiction can change reality - Jessica Wise",
+    youtubeChannel: "TED-Ed",
     passPercent: 70,
     questions: [
       {

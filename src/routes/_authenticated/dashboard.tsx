@@ -5,6 +5,7 @@ import { LogOut, ShieldCheck, Loader2, GraduationCap } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BookStudio } from "@/components/BookStudio";
+import { DailyLeaderboard } from "@/components/DailyLeaderboard";
 import { GamificationHeader } from "@/components/GamificationHeader";
 import { ParentLinkCodeCard } from "@/components/ParentLinkCodeCard";
 import { ParentPortal } from "@/components/ParentPortal";
@@ -137,6 +138,8 @@ function Dashboard() {
               studentName={profile?.display_name}
             />
           )}
+
+          <DailyLeaderboard userId={userId} />
 
           <SubjectTabs
             subjects={subjects ?? []}
