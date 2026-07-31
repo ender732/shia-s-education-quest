@@ -1,16 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookUp, Link2, Loader2, Plus, Trash2, Unlink } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { BookUp, FileUp, Link2, Loader2, Plus, Trash2, Unlink } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
-import { CURRICULUM_UNIT_TAGS, lessonForUnit } from "@/lib/curriculum";
+import { CURRICULUM_UNIT_TAGS } from "@/lib/curriculum";
+import {
+  discardLessonDraft,
+  generateLessonDraftFromPdf,
+  publishLessonDraft,
+} from "@/lib/lesson-draft.functions";
+import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
 import { FeedbackCard, removeAssignedBook, useBooks, type AssignedBook } from "./BookStudio";
-import { useTasks, type Task } from "./TaskBoard";
+import { resolveTaskLesson, useTasks, type Task } from "./TaskBoard";
 
 const MASTERY_SCORE_MIN = 70;
 
 const BOOKS_BUCKET = "assigned-books";
+const LESSON_WORKSHEETS_BUCKET = "lesson-worksheets";
 const MAX_PDF_BYTES = 15 * 1024 * 1024; // 15 MB — matches storage.buckets.file_size_limit
 
 function isPdfFile(file: File) {
@@ -50,11 +58,321 @@ function isMissingLinksSchema(message: string | undefined) {
 export function ParentPortal({ userId, subjects }: { userId: string; subjects: Subject[] }) {
   return (
     <div className="space-y-4">
+      <WorksheetLessonUploader userId={userId} subjects={subjects} />
       <div className="grid gap-4 lg:grid-cols-2">
         <TaskCreator userId={userId} subjects={subjects} />
         <BookUploader userId={userId} />
       </div>
       <ProgressMonitor parentId={userId} subjects={subjects} />
+    </div>
+  );
+}
+
+function WorksheetLessonUploader({
+  userId,
+  subjects,
+}: {
+  userId: string;
+  subjects: Subject[];
+}) {
+  const queryClient = useQueryClient();
+  const generateFn = useServerFn(generateLessonDraftFromPdf);
+  const publishFn = useServerFn(publishLessonDraft);
+  const discardFn = useServerFn(discardLessonDraft);
+  const { data: tasks } = useTasks();
+
+  const [subjectId, setSubjectId] = useState("");
+  const [titleHint, setTitleHint] = useState("");
+  const [sourceCredit, setSourceCredit] = useState("Worksheet uploaded by parent");
+  const [file, setFile] = useState<File | null>(null);
+  const [reviewTaskId, setReviewTaskId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editCredit, setEditCredit] = useState("");
+
+  const drafts = useMemo(
+    () =>
+      (tasks ?? []).filter(
+        (t) => t.is_draft && t.created_by === userId && Boolean(t.lesson_payload),
+      ),
+    [tasks, userId],
+  );
+
+  const reviewTask = drafts.find((t) => t.id === reviewTaskId) ?? drafts[0] ?? null;
+  const reviewPayload: LessonPayload | null = reviewTask
+    ? parseLessonPayload(reviewTask.lesson_payload)
+    : null;
+
+  useEffect(() => {
+    if (!reviewTask) {
+      setReviewTaskId(null);
+      return;
+    }
+    setReviewTaskId(reviewTask.id);
+    setEditTitle(reviewTask.title);
+    setEditDescription(reviewTask.description ?? "");
+    const payload = parseLessonPayload(reviewTask.lesson_payload);
+    setEditCredit(reviewTask.source_credit ?? payload?.sourceCredit ?? "");
+  }, [reviewTask?.id, reviewTask?.title, reviewTask?.description, reviewTask?.source_credit, reviewTask?.lesson_payload]);
+
+  const generate = useMutation({
+    mutationFn: async () => {
+      if (!file) throw new Error("Choose a PDF first.");
+      if (!isPdfFile(file)) throw new Error("Only PDF files are allowed.");
+      if (file.size > MAX_PDF_BYTES) throw new Error("PDF must be 15 MB or smaller.");
+      const sid = subjectId || subjects[0]?.id;
+      if (!sid) throw new Error("Choose a subject.");
+
+      const key = `${userId}/${crypto.randomUUID()}.pdf`;
+      const { error: uploadError } = await supabase.storage
+        .from(LESSON_WORKSHEETS_BUCKET)
+        .upload(key, file, { contentType: "application/pdf", upsert: false });
+      if (uploadError) {
+        const msg = uploadError.message || "Upload failed.";
+        if (/bucket not found/i.test(msg)) {
+          throw new Error(
+            "Storage bucket “lesson-worksheets” is missing. Ask an admin to run the lesson_drafts_from_pdf migration.",
+          );
+        }
+        throw new Error(msg);
+      }
+
+      const subjectTitle = subjects.find((s) => s.id === sid)?.title ?? "";
+      return generateFn({
+        data: {
+          storagePath: key,
+          subjectId: sid,
+          titleHint: titleHint || undefined,
+          sourceCredit: sourceCredit || undefined,
+          subjectHint: subjectTitle,
+          xpReward: 100,
+        },
+      });
+    },
+    onSuccess: (result) => {
+      toast.success("AI draft ready — review before publishing.");
+      setFile(null);
+      setTitleHint("");
+      setReviewTaskId(result.task.id);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (err: Error) => toast.error(err.message || "Could not draft lesson from PDF."),
+  });
+
+  const publish = useMutation({
+    mutationFn: async (taskId: string) =>
+      publishFn({
+        data: {
+          taskId,
+          title: editTitle.trim() || undefined,
+          description: editDescription.trim() || null,
+          sourceCredit: editCredit.trim() || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Lesson published — students can practice it now.");
+      setReviewTaskId(null);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (err: Error) => toast.error(err.message || "Could not publish."),
+  });
+
+  const discard = useMutation({
+    mutationFn: async (taskId: string) => {
+      if (!window.confirm("Discard this draft and delete the uploaded PDF?")) {
+        throw new Error("cancelled");
+      }
+      return discardFn({ data: { taskId } });
+    },
+    onSuccess: () => {
+      toast.success("Draft discarded.");
+      setReviewTaskId(null);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (err: Error) => {
+      if (err.message === "cancelled") return;
+      toast.error(err.message || "Could not discard draft.");
+    },
+  });
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          generate.mutate();
+        }}
+        className="surface-card space-y-3 p-5"
+      >
+        <h3 className="flex items-center gap-2 text-sm font-bold">
+          <FileUp className="size-4 text-primary" /> Upload worksheet → AI lesson draft
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Upload a PDF you are allowed to use. The AI drafts a lesson with 5 quiz questions and
+          fillable on-site worksheet fields. Students never see drafts until you publish. No
+          scraping — upload only.
+        </p>
+        <Field label="Subject">
+          <select
+            value={subjectId}
+            onChange={(e) => setSubjectId(e.target.value)}
+            className="input-base"
+            required
+          >
+            <option value="">Choose a subject…</option>
+            {subjects.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Title hint (optional)">
+          <input
+            className="input-base"
+            value={titleHint}
+            onChange={(e) => setTitleHint(e.target.value)}
+            placeholder="Fractions practice — unlike denominators"
+          />
+        </Field>
+        <Field label="Source credit (optional)">
+          <input
+            className="input-base"
+            value={sourceCredit}
+            onChange={(e) => setSourceCredit(e.target.value)}
+            placeholder="Worksheet uploaded by parent"
+          />
+        </Field>
+        <Field label="Worksheet PDF (required · max 15 MB · text-based)">
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            onChange={(e) => {
+              const next = e.target.files?.[0] ?? null;
+              if (next && !isPdfFile(next)) {
+                toast.error("Only PDF files are allowed.");
+                e.target.value = "";
+                setFile(null);
+                return;
+              }
+              if (next && next.size > MAX_PDF_BYTES) {
+                toast.error("PDF must be 15 MB or smaller.");
+                e.target.value = "";
+                setFile(null);
+                return;
+              }
+              setFile(next);
+            }}
+            className="input-base file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-secondary-foreground"
+            required
+          />
+        </Field>
+        <button
+          type="submit"
+          disabled={generate.isPending || !file}
+          className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
+        >
+          {generate.isPending ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="size-4 animate-spin" /> Drafting with AI…
+            </span>
+          ) : (
+            "Generate draft lesson"
+          )}
+        </button>
+      </form>
+
+      <div className="surface-card space-y-3 p-5">
+        <h3 className="text-sm font-bold">Review drafts</h3>
+        {drafts.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No drafts yet. Upload a PDF to generate one.
+          </p>
+        )}
+        {drafts.length > 1 && (
+          <Field label="Draft">
+            <select
+              className="input-base"
+              value={reviewTask?.id ?? ""}
+              onChange={(e) => setReviewTaskId(e.target.value)}
+            >
+              {drafts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.title}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
+        {reviewTask && reviewPayload && (
+          <div className="space-y-3">
+            <Field label="Title">
+              <input
+                className="input-base"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            </Field>
+            <Field label="Description">
+              <textarea
+                className="input-base min-h-16"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+              />
+            </Field>
+            <Field label="Source credit">
+              <input
+                className="input-base"
+                value={editCredit}
+                onChange={(e) => setEditCredit(e.target.value)}
+              />
+            </Field>
+            <div className="rounded-lg border border-border bg-background/50 p-3 text-xs">
+              <p className="font-semibold">{reviewPayload.title}</p>
+              <p className="mt-1 text-muted-foreground">
+                {reviewPayload.questions.length} quiz questions ·{" "}
+                {reviewPayload.worksheet?.fields.length ?? 0} fillable fields · pass{" "}
+                {reviewPayload.passPercent}%
+              </p>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
+                {reviewPayload.questions.map((q) => (
+                  <li key={q.id}>{q.prompt}</li>
+                ))}
+              </ul>
+              {reviewPayload.worksheet?.fields?.length ? (
+                <>
+                  <p className="mt-3 font-semibold">Fillable worksheet</p>
+                  <ul className="mt-1 list-inside list-disc space-y-1 text-muted-foreground">
+                    {reviewPayload.worksheet.fields.map((f) => (
+                      <li key={f.id}>
+                        [{f.type}] {f.prompt}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={publish.isPending}
+                onClick={() => publish.mutate(reviewTask.id)}
+                className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-60"
+              >
+                {publish.isPending ? "Publishing…" : "Publish"}
+              </button>
+              <button
+                type="button"
+                disabled={discard.isPending}
+                onClick={() => discard.mutate(reviewTask.id)}
+                className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-destructive disabled:opacity-60"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -78,6 +396,8 @@ function TaskCreator({ userId, subjects }: { userId: string; subjects: Subject[]
         unit_tag: form.unit_tag || null,
         xp_reward: Number(form.xp_reward) || 100,
         created_by: userId,
+        is_draft: false,
+        published_at: new Date().toISOString(),
       });
       if (error) throw error;
     },
@@ -563,9 +883,12 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
   );
 
   const bySubject = subjects.map((s) => {
-    // Only quizzable curriculum lessons count toward mastery %
+    // Quizzable curriculum lessons + published payload lessons count toward mastery %
     const list = (tasks ?? []).filter(
-      (t: Task) => t.subject_id === s.id && Boolean(lessonForUnit(t.unit_tag)),
+      (t: Task) =>
+        t.subject_id === s.id &&
+        !t.is_draft &&
+        Boolean(resolveTaskLesson(t)),
     );
     const done = list.filter((t) => masteredIds.has(t.id)).length;
     return {
@@ -764,7 +1087,9 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
               yourself.
             </p>
             <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
-              {(tasks ?? []).map((t: Task) => {
+              {(tasks ?? [])
+                .filter((t: Task) => !t.is_draft)
+                .map((t: Task) => {
                 const row = progress?.find(
                   (p) => p.task_id === t.id && p.score >= MASTERY_SCORE_MIN,
                 );
@@ -789,6 +1114,7 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
                       <p className="text-[11px] text-muted-foreground">
                         {t.unit_tag ?? "—"} · {t.xp_reward} XP · {status}
                         {!canRemove ? " · curriculum" : ""}
+                        {t.lesson_payload ? " · worksheet lesson" : ""}
                       </p>
                     </div>
                     {canRemove && (

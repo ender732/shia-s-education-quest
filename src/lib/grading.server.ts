@@ -123,3 +123,126 @@ export function xpForScore(score: number) {
   if (score >= 60) return 100;
   return 75;
 }
+
+const WORKSHEET_SYSTEM_PROMPT = `You are "AI Teacher", an experienced NYC District 6 / P.S./I.S. 187 Hudson Cliffs 5th-grade teacher.
+
+Grade the student's fillable worksheet answers against the prompts and grading hints provided.
+Be warm and encouraging but honest — this is a 10-year-old. Keep every sentence short and readable.
+
+Scoring:
+- 90–100: essentially correct / complete
+- 70–89: mostly correct; minor mistakes
+- 50–69: partial understanding; needs another try
+- below 50: mostly incorrect or blank
+
+Return ONLY valid JSON:
+{
+  "score": <integer 0-100>,
+  "strengths": "<2-4 short sentences>",
+  "improvements": "<2-4 specific next steps>",
+  "field_notes": { "<fieldId>": "<one short note for that field>" },
+  "teacher_note": "<one motivating sentence>"
+}`;
+
+export type WorksheetGradeFeedback = {
+  score: number;
+  strengths: string;
+  improvements: string;
+  field_notes: Record<string, string>;
+  teacher_note: string;
+};
+
+export async function gradeWorksheetWithAi(input: {
+  lessonTitle: string;
+  worksheetTitle?: string;
+  fields: Array<{
+    id: string;
+    type: string;
+    prompt: string;
+    gradingHint?: string;
+    parts?: Array<{ id: string; prompt: string }>;
+  }>;
+  answers: Record<string, unknown>;
+}): Promise<WorksheetGradeFeedback> {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error(
+      "AI grading is not configured. Add OPENAI_API_KEY to your server environment (.env locally, or Netlify env vars), then restart the app.",
+    );
+  }
+
+  const response = await fetch(GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: process.env.AI_MODEL ?? "gpt-4o-mini",
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: WORKSHEET_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: JSON.stringify(
+            {
+              lessonTitle: input.lessonTitle,
+              worksheetTitle: input.worksheetTitle ?? null,
+              fields: input.fields,
+              studentAnswers: input.answers,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    }),
+  });
+
+  if (response.status === 429) {
+    throw new Error("The AI teacher is busy right now. Please try again in a minute.");
+  }
+  if (response.status === 402) {
+    throw new Error("AI credits are used up. Please add credits to keep grading.");
+  }
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      "AI grading rejected the API key. Check OPENAI_API_KEY in your server environment.",
+    );
+  }
+  if (!response.ok) {
+    const detail = await response.text();
+    console.error("AI gateway error (worksheet)", response.status, detail);
+    throw new Error(
+      "The AI teacher could not grade this worksheet. Check OPENAI_API_KEY / AI_MODEL and try again.",
+    );
+  }
+
+  const payload = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const raw = payload.choices?.[0]?.message?.content ?? "";
+
+  let parsed: Partial<WorksheetGradeFeedback>;
+  try {
+    parsed = JSON.parse(raw) as Partial<WorksheetGradeFeedback>;
+  } catch {
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("The AI teacher returned an unreadable answer. Please try again.");
+    parsed = JSON.parse(match[0]) as Partial<WorksheetGradeFeedback>;
+  }
+
+  const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score ?? 0))));
+  const fieldNotes =
+    parsed.field_notes && typeof parsed.field_notes === "object"
+      ? (parsed.field_notes as Record<string, string>)
+      : {};
+
+  return {
+    score,
+    strengths: String(parsed.strengths ?? "").trim(),
+    improvements: String(parsed.improvements ?? "").trim(),
+    field_notes: fieldNotes,
+    teacher_note: String(parsed.teacher_note ?? "").trim(),
+  };
+}

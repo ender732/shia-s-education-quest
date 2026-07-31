@@ -446,9 +446,14 @@ export type Database = {
           description: string | null
           id: string
           is_completed: boolean
+          is_draft: boolean
+          lesson_payload: Json | null
+          published_at: string | null
+          source_credit: string | null
           subject_id: string | null
           title: string
           unit_tag: string | null
+          worksheet_pdf_url: string | null
           xp_reward: number
         }
         Insert: {
@@ -457,9 +462,14 @@ export type Database = {
           description?: string | null
           id?: string
           is_completed?: boolean
+          is_draft?: boolean
+          lesson_payload?: Json | null
+          published_at?: string | null
+          source_credit?: string | null
           subject_id?: string | null
           title: string
           unit_tag?: string | null
+          worksheet_pdf_url?: string | null
           xp_reward?: number
         }
         Update: {
@@ -468,9 +478,14 @@ export type Database = {
           description?: string | null
           id?: string
           is_completed?: boolean
+          is_draft?: boolean
+          lesson_payload?: Json | null
+          published_at?: string | null
+          source_credit?: string | null
           subject_id?: string | null
           title?: string
           unit_tag?: string | null
+          worksheet_pdf_url?: string | null
           xp_reward?: number
         }
         Relationships: [
@@ -486,6 +501,54 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worksheet_submissions: {
+        Row: {
+          ai_feedback: Json
+          ai_score: number
+          answers: Json
+          id: string
+          student_id: string
+          submitted_at: string
+          task_id: string
+          xp_awarded: number
+        }
+        Insert: {
+          ai_feedback?: Json
+          ai_score: number
+          answers?: Json
+          id?: string
+          student_id: string
+          submitted_at?: string
+          task_id: string
+          xp_awarded?: number
+        }
+        Update: {
+          ai_feedback?: Json
+          ai_score?: number
+          answers?: Json
+          id?: string
+          student_id?: string
+          submitted_at?: string
+          task_id?: string
+          xp_awarded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worksheet_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worksheet_submissions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -700,5 +763,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-A new version of Supabase CLI is available: v2.110.0 (currently installed v2.102.0)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

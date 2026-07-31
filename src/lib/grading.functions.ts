@@ -1,12 +1,25 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  hasFillableWorksheet,
+  parseLessonPayload,
+  type WorksheetAnswers,
+} from "@/lib/lesson-payload";
+import { levelForXp } from "@/lib/gamification";
 
 const GradeInput = z.object({
   bookId: z.string().uuid().nullable().optional(),
   bookTitle: z.string().max(300).default(""),
   chapter: z.string().max(300).default(""),
   reportText: z.string().min(40, "Write at least a few sentences before submitting.").max(20000),
+});
+
+const WorksheetGradeInput = z.object({
+  taskId: z.string().uuid(),
+  answers: z.record(z.union([z.string().max(4000), z.record(z.string().max(2000))])),
+  /** Quiz score from the 5 MCQs (0–100). Required when the lesson has a worksheet. */
+  quizScore: z.number().int().min(0).max(100),
 });
 
 export const gradeBookReport = createServerFn({ method: "POST" })
@@ -59,4 +72,159 @@ export const gradeBookReport = createServerFn({ method: "POST" })
     }
 
     return { report, feedback, xpAwarded, newXp };
+  });
+
+const MASTERY_MIN = 70;
+
+export const gradeWorksheet = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => WorksheetGradeInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: isParent } = await supabase.rpc("is_parent", { _uid: userId });
+    if (isParent) {
+      throw new Error("Worksheet practice is for students.");
+    }
+
+    const { data: task, error: taskError } = await supabase
+      .from("tasks")
+      .select("id, title, xp_reward, is_draft, lesson_payload")
+      .eq("id", data.taskId)
+      .maybeSingle();
+
+    if (taskError || !task) {
+      throw new Error("Lesson not found.");
+    }
+    if (task.is_draft) {
+      throw new Error("This lesson is not published yet.");
+    }
+
+    const payload = parseLessonPayload(task.lesson_payload);
+    if (!payload || !hasFillableWorksheet(payload)) {
+      throw new Error("This lesson has no fillable worksheet to grade.");
+    }
+
+    const fields = payload.worksheet!.fields;
+    for (const field of fields) {
+      const answer = data.answers[field.id];
+      if (field.type === "multipart") {
+        const parts = field.parts ?? [];
+        if (!answer || typeof answer !== "object") {
+          throw new Error(`Please complete: ${field.prompt}`);
+        }
+        for (const part of parts) {
+          const partVal = (answer as Record<string, string>)[part.id];
+          if (!String(partVal ?? "").trim()) {
+            throw new Error(`Please complete: ${field.prompt} — ${part.prompt}`);
+          }
+        }
+      } else if (!String(answer ?? "").trim()) {
+        throw new Error(`Please complete: ${field.prompt}`);
+      }
+    }
+
+    if (data.quizScore < MASTERY_MIN) {
+      throw new Error(
+        `Pass the practice quiz at ${MASTERY_MIN}% or higher before submitting the worksheet.`,
+      );
+    }
+
+    const { gradeWorksheetWithAi } = await import("./grading.server");
+    const feedback = await gradeWorksheetWithAi({
+      lessonTitle: payload.title || task.title,
+      worksheetTitle: payload.worksheet?.title,
+      fields: fields.map((f) => ({
+        id: f.id,
+        type: f.type,
+        prompt: f.prompt,
+        gradingHint: f.gradingHint,
+        parts: f.parts?.map((p) => ({ id: p.id, prompt: p.prompt })),
+      })),
+      answers: data.answers as WorksheetAnswers,
+    });
+
+    const worksheetPassed = feedback.score >= MASTERY_MIN;
+    const combinedScore = Math.round((data.quizScore + feedback.score) / 2);
+    const mastered = worksheetPassed && data.quizScore >= MASTERY_MIN;
+
+    let xpAwarded = 0;
+    let alreadyMastered = false;
+    let newXp: number | null = null;
+
+    if (mastered) {
+      const existing = await supabase
+        .from("task_progress")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("task_id", data.taskId)
+        .maybeSingle();
+
+      if (existing.data) {
+        alreadyMastered = true;
+      } else {
+        xpAwarded = task.xp_reward;
+        const { error: progressError } = await supabase.from("task_progress").insert({
+          user_id: userId,
+          task_id: data.taskId,
+          score: combinedScore,
+          correct_count: Math.round((combinedScore / 100) * (fields.length + 5)),
+          total_count: fields.length + 5,
+          xp_awarded: xpAwarded,
+          answers: {
+            quizScore: data.quizScore,
+            worksheetScore: feedback.score,
+            worksheetAnswers: data.answers,
+          } as never,
+        });
+        if (progressError) {
+          console.error("[gradeWorksheet] task_progress", progressError.message);
+          throw new Error("Could not save mastery progress. Please try again.");
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("xp_points")
+          .eq("id", userId)
+          .maybeSingle();
+        newXp = (profile?.xp_points ?? 0) + xpAwarded;
+        const { error: xpError } = await supabase
+          .from("profiles")
+          .update({ xp_points: newXp, level: levelForXp(newXp) })
+          .eq("id", userId);
+        if (xpError) {
+          console.error("[gradeWorksheet] xp update failed", xpError.message);
+        }
+      }
+    }
+
+    const { data: submission, error: subError } = await supabase
+      .from("worksheet_submissions")
+      .insert({
+        task_id: data.taskId,
+        student_id: userId,
+        answers: data.answers as never,
+        ai_score: feedback.score,
+        ai_feedback: feedback as never,
+        xp_awarded: xpAwarded,
+      })
+      .select()
+      .single();
+
+    if (subError) {
+      console.error("[gradeWorksheet] submission insert", subError.message);
+      throw new Error("Could not save your worksheet. Please try again.");
+    }
+
+    return {
+      submission,
+      feedback,
+      quizScore: data.quizScore,
+      worksheetScore: feedback.score,
+      combinedScore,
+      passed: mastered,
+      xpAwarded,
+      alreadyMastered,
+      newXp,
+    };
   });

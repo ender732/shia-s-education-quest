@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -8,21 +9,30 @@ import {
   Lightbulb,
   Loader2,
   RotateCcw,
+  Sparkles,
   XCircle,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { LessonVideo } from "@/components/LessonVideo";
-import type { Task } from "@/components/TaskBoard";
+import { resolveTaskLesson, type Task } from "@/components/TaskBoard";
 import { useDailyActivityTracker } from "@/hooks/useDailyActivityTracker";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import { celebrate } from "@/lib/confetti";
-import { checkAnswer, lessonForUnit, type Question } from "@/lib/curriculum";
+import { checkAnswer, type Question } from "@/lib/curriculum";
 import { DAILY_LEADERBOARD_QUERY_KEY, upsertDailyScore } from "@/lib/daily-activity";
 import { levelForXp } from "@/lib/gamification";
+import { gradeWorksheet } from "@/lib/grading.functions";
+import {
+  hasFillableWorksheet,
+  type LessonPayload,
+  type WorksheetAiFeedback,
+  type WorksheetAnswers,
+  type WorksheetField,
+} from "@/lib/lesson-payload";
 
-type Phase = "teach" | "quiz" | "results";
+type Phase = "teach" | "quiz" | "worksheet" | "results";
 
 type AnswerRecord = {
   questionId: string;
@@ -43,14 +53,24 @@ export function LessonPractice({
   alreadyCompleted: boolean;
   onClose: () => void;
 }) {
-  const lesson = lessonForUnit(task.unit_tag);
+  const resolved = resolveTaskLesson(task);
+  const lesson = resolved?.lesson ?? null;
+  const payload: LessonPayload | null = resolved?.payload ?? null;
+  const needsWorksheet = hasFillableWorksheet(payload);
   const queryClient = useQueryClient();
+  const gradeWorksheetFn = useServerFn(gradeWorksheet);
+
   const [phase, setPhase] = useState<Phase>("teach");
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [shortValue, setShortValue] = useState("");
   const [revealed, setRevealed] = useState(false);
   const [records, setRecords] = useState<AnswerRecord[]>([]);
+  const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [worksheetAnswers, setWorksheetAnswers] = useState<WorksheetAnswers>({});
+  const [worksheetFeedback, setWorksheetFeedback] = useState<WorksheetAiFeedback | null>(null);
+  const [worksheetScore, setWorksheetScore] = useState<number | null>(null);
+  const [masteryXp, setMasteryXp] = useState(0);
 
   useEffect(() => {
     void trackEvent("lesson_open", {
@@ -63,17 +83,25 @@ export function LessonPractice({
   const question = lesson?.questions[index];
   const total = lesson?.questions.length ?? 0;
   const correctCount = records.filter((r) => r.correct).length;
-  const score = total ? Math.round((correctCount / total) * 100) : 0;
-  const passed = lesson ? score >= lesson.passPercent : false;
+  const liveQuizScore = total ? Math.round((correctCount / total) * 100) : 0;
+  const effectiveQuizScore = quizScore ?? liveQuizScore;
+  const passedQuiz = lesson ? effectiveQuizScore >= lesson.passPercent : false;
+  const passedWorksheet =
+    worksheetScore != null && worksheetScore >= (lesson?.passPercent ?? 70);
+  const passed = needsWorksheet
+    ? passedQuiz && passedWorksheet
+    : lesson
+      ? effectiveQuizScore >= lesson.passPercent
+      : false;
 
   useDailyActivityTracker({
-    enabled: Boolean(lesson) && (phase === "teach" || phase === "quiz"),
+    enabled: Boolean(lesson) && (phase === "teach" || phase === "quiz" || phase === "worksheet"),
     taskId: task.id,
     subjectId: task.subject_id,
   });
 
-  const saveProgress = useMutation({
-    mutationFn: async (payload: {
+  const saveQuizProgress = useMutation({
+    mutationFn: async (payloadScore: {
       score: number;
       correctCount: number;
       total: number;
@@ -82,21 +110,24 @@ export function LessonPractice({
     }) => {
       await upsertDailyScore({
         taskId: task.id,
-        score: payload.score,
+        score: payloadScore.score,
         subjectId: task.subject_id,
       });
 
-      if (!lesson || alreadyCompleted || !payload.passed) return { awarded: 0 };
+      // Curriculum lessons without fillable worksheets: mastery on quiz pass.
+      if (needsWorksheet || !lesson || alreadyCompleted || !payloadScore.passed) {
+        return { awarded: 0 };
+      }
 
       const { saveTaskProgress } = await import("@/lib/task-progress");
       const result = await saveTaskProgress({
         userId,
         taskId: task.id,
-        score: payload.score,
-        correctCount: payload.correctCount,
-        totalCount: payload.total,
+        score: payloadScore.score,
+        correctCount: payloadScore.correctCount,
+        totalCount: payloadScore.total,
         xpAwarded: task.xp_reward,
-        answers: payload.records,
+        answers: payloadScore.records,
       });
 
       if (result.already || result.awarded <= 0) return { awarded: 0 };
@@ -130,6 +161,46 @@ export function LessonPractice({
     },
   });
 
+  const submitWorksheet = useMutation({
+    mutationFn: async () => {
+      if (quizScore == null || quizScore < (lesson?.passPercent ?? 70)) {
+        throw new Error("Pass the practice quiz first, then submit the worksheet.");
+      }
+      return gradeWorksheetFn({
+        data: {
+          taskId: task.id,
+          answers: worksheetAnswers,
+          quizScore,
+        },
+      });
+    },
+    onSuccess: (result) => {
+      setWorksheetFeedback(result.feedback);
+      setWorksheetScore(result.worksheetScore);
+      setMasteryXp(result.xpAwarded);
+      setPhase("results");
+      void upsertDailyScore({
+        taskId: task.id,
+        score: result.combinedScore,
+        subjectId: task.subject_id,
+      });
+      queryClient.invalidateQueries({ queryKey: ["task_progress", userId] });
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      queryClient.invalidateQueries({ queryKey: [DAILY_LEADERBOARD_QUERY_KEY] });
+      if (result.passed && result.xpAwarded > 0) {
+        void celebrate();
+        toast.success(`Worksheet mastered! +${result.xpAwarded} XP`);
+      } else if (result.passed && result.alreadyMastered) {
+        toast.success("Nice review — XP was already earned earlier.");
+      } else if (!result.passed) {
+        toast.message("Keep practicing — score at least 70% on the worksheet to master this lesson.");
+      }
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Could not grade your worksheet.");
+    },
+  });
+
   function resetQuiz() {
     setPhase("quiz");
     setIndex(0);
@@ -137,6 +208,17 @@ export function LessonPractice({
     setShortValue("");
     setRevealed(false);
     setRecords([]);
+    setQuizScore(null);
+    setWorksheetFeedback(null);
+    setWorksheetScore(null);
+    setMasteryXp(0);
+  }
+
+  function resetWorksheetOnly() {
+    setPhase("worksheet");
+    setWorksheetFeedback(null);
+    setWorksheetScore(null);
+    setMasteryXp(0);
   }
 
   function submitCurrent() {
@@ -170,9 +252,20 @@ export function LessonPractice({
       const finalCorrect = records.filter((r) => r.correct).length;
       const finalScore = Math.round((finalCorrect / lesson.questions.length) * 100);
       const didPass = finalScore >= lesson.passPercent;
+      setQuizScore(finalScore);
+
+      if (needsWorksheet && didPass) {
+        setPhase("worksheet");
+        void upsertDailyScore({
+          taskId: task.id,
+          score: finalScore,
+          subjectId: task.subject_id,
+        });
+        return;
+      }
+
       setPhase("results");
-      // Always record today's best score; XP only on first pass.
-      saveProgress.mutate({
+      saveQuizProgress.mutate({
         score: finalScore,
         correctCount: finalCorrect,
         total: lesson.questions.length,
@@ -187,6 +280,11 @@ export function LessonPractice({
     setRevealed(false);
   }
 
+  const worksheetFields = useMemo(
+    () => payload?.worksheet?.fields ?? [],
+    [payload?.worksheet?.fields],
+  );
+
   if (!lesson) {
     return (
       <div className="surface-card space-y-4 p-6">
@@ -199,7 +297,7 @@ export function LessonPractice({
         <h2 className="text-lg font-bold">{task.title}</h2>
         <p className="text-sm text-muted-foreground">
           Practice questions for this assignment are not ready yet. Ask a parent to
-          tag it with a known unit code (like <code>187_MATH_FRACTIONS</code>).
+          tag it with a known unit code (like <code>187_MATH_FRACTIONS</code>) or upload a worksheet PDF.
         </p>
         {task.description && (
           <p className="rounded-lg border border-border bg-background/50 p-3 text-sm">
@@ -209,6 +307,15 @@ export function LessonPractice({
       </div>
     );
   }
+
+  const phaseLabel =
+    phase === "teach"
+      ? "Learn"
+      : phase === "quiz"
+        ? "Practice"
+        : phase === "worksheet"
+          ? "Worksheet"
+          : "Results";
 
   return (
     <div className="space-y-4">
@@ -221,7 +328,10 @@ export function LessonPractice({
         </button>
         <span
           className="rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider"
-          style={{ backgroundColor: `color-mix(in oklch, var(--${accent}) 20%, transparent)`, color: `var(--${accent})` }}
+          style={{
+            backgroundColor: `color-mix(in oklch, var(--${accent}) 20%, transparent)`,
+            color: `var(--${accent})`,
+          }}
         >
           {task.unit_tag}
         </span>
@@ -230,10 +340,15 @@ export function LessonPractice({
       <div className="surface-card overflow-hidden">
         <div className="border-b border-border px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            {phase === "teach" ? "Learn" : phase === "quiz" ? "Practice" : "Results"}
+            {phaseLabel}
           </p>
           <h2 className="mt-1 font-display text-xl font-extrabold">{lesson.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{task.title}</p>
+          {(payload?.sourceCredit || task.source_credit) && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {payload?.sourceCredit || task.source_credit}
+            </p>
+          )}
         </div>
 
         <div className="p-5">
@@ -262,6 +377,14 @@ export function LessonPractice({
                   youtubeChannel={lesson.youtubeChannel}
                   transcript={lesson.transcript}
                 />
+                {lesson.transcript && !lesson.youtubeVideoId && (
+                  <details className="rounded-xl border border-border bg-background/40 p-3 text-sm">
+                    <summary className="cursor-pointer font-semibold">Reading text</summary>
+                    <p className="mt-2 whitespace-pre-wrap leading-relaxed text-muted-foreground">
+                      {lesson.transcript}
+                    </p>
+                  </details>
+                )}
                 <div className="flex items-start gap-2 rounded-xl border border-xp/30 bg-xp/10 p-3 text-sm">
                   <Lightbulb className="mt-0.5 size-4 shrink-0 text-xp" />
                   <p>
@@ -275,6 +398,12 @@ export function LessonPractice({
                 >
                   Start practice questions <ArrowRight className="size-4" />
                 </button>
+                {needsWorksheet && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    After the quiz, you&apos;ll fill in the worksheet on this site and get AI feedback.
+                    You need {lesson.passPercent}%+ on both to earn XP.
+                  </p>
+                )}
                 {alreadyCompleted && (
                   <p className="text-center text-xs text-success">
                     You already mastered this lesson. You can still practice again.
@@ -295,9 +424,7 @@ export function LessonPractice({
                   <span>
                     Question {index + 1} of {total}
                   </span>
-                  <span>
-                    Need {lesson.passPercent}% to earn XP
-                  </span>
+                  <span>Need {lesson.passPercent}% to {needsWorksheet ? "continue" : "earn XP"}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-secondary">
                   <div
@@ -354,11 +481,72 @@ export function LessonPractice({
                       onClick={goNext}
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
                     >
-                      {index >= total - 1 ? "See results" : "Next question"}
+                      {index >= total - 1
+                        ? needsWorksheet &&
+                          Math.round(
+                            (records.filter((r) => r.correct).length / lesson.questions.length) *
+                              100,
+                          ) >= lesson.passPercent
+                          ? "Continue to worksheet"
+                          : "See results"
+                        : "Next question"}
                       <ArrowRight className="size-4" />
                     </button>
                   )}
                 </div>
+              </motion.div>
+            )}
+
+            {phase === "worksheet" && payload?.worksheet && (
+              <motion.div
+                key="worksheet"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="space-y-4"
+              >
+                <div className="rounded-xl border border-border bg-background/50 p-3 text-sm">
+                  <p className="font-bold">
+                    {payload.worksheet.title ?? "Fillable worksheet"}
+                  </p>
+                  {payload.worksheet.instructions && (
+                    <p className="mt-1 text-muted-foreground">
+                      {payload.worksheet.instructions}
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Quiz score: {quizScore}% · Need {lesson.passPercent}%+ on this worksheet for mastery.
+                  </p>
+                </div>
+
+                {worksheetFields.map((field) => (
+                  <WorksheetFieldInput
+                    key={field.id}
+                    field={field}
+                    value={worksheetAnswers[field.id]}
+                    disabled={submitWorksheet.isPending}
+                    onChange={(next) =>
+                      setWorksheetAnswers((prev) => ({ ...prev, [field.id]: next }))
+                    }
+                  />
+                ))}
+
+                <button
+                  type="button"
+                  disabled={submitWorksheet.isPending}
+                  onClick={() => submitWorksheet.mutate()}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
+                >
+                  {submitWorksheet.isPending ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" /> AI Teacher is grading…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="size-4" /> Submit worksheet to AI Teacher
+                    </>
+                  )}
+                </button>
               </motion.div>
             )}
 
@@ -369,40 +557,61 @@ export function LessonPractice({
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-4 text-center"
               >
-                {saveProgress.isPending && (
+                {(saveQuizProgress.isPending || submitWorksheet.isPending) && (
                   <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="size-4 animate-spin" /> Saving progress…
                   </p>
                 )}
-                <p className="font-display text-4xl font-black text-xp">{score}%</p>
-                <p className="text-sm text-muted-foreground">
-                  {correctCount} of {total} correct
+                <p className="font-display text-4xl font-black text-xp">
+                  {needsWorksheet && worksheetScore != null
+                    ? `${Math.round((effectiveQuizScore + worksheetScore) / 2)}%`
+                    : `${effectiveQuizScore}%`}
                 </p>
+                <p className="text-sm text-muted-foreground">
+                  {needsWorksheet && worksheetScore != null
+                    ? `Quiz ${effectiveQuizScore}% · Worksheet ${worksheetScore}%`
+                    : `${correctCount} of ${total} correct`}
+                </p>
+
+                {needsWorksheet && worksheetFeedback && (
+                  <WorksheetFeedbackCard feedback={worksheetFeedback} />
+                )}
+
                 {passed ? (
                   <div className="rounded-xl border border-success/40 bg-success/10 p-4 text-sm">
                     <p className="font-bold text-success">Lesson mastered</p>
                     <p className="mt-1 text-muted-foreground">
-                      {alreadyCompleted
+                      {alreadyCompleted || (needsWorksheet && masteryXp === 0 && worksheetScore != null)
                         ? "Nice review — XP was already earned earlier."
-                        : `You earned +${task.xp_reward} XP for learning this skill.`}
+                        : `You earned +${needsWorksheet ? masteryXp || task.xp_reward : task.xp_reward} XP for learning this skill.`}
                     </p>
                   </div>
                 ) : (
                   <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
                     <p className="font-bold text-destructive">Keep practicing</p>
                     <p className="mt-1 text-muted-foreground">
-                      You need at least {lesson.passPercent}% to complete this lesson and earn XP.
-                      Review the teaching notes and try again.
+                      {needsWorksheet && passedQuiz && !passedWorksheet
+                        ? `You need at least ${lesson.passPercent}% on the worksheet. Review the AI feedback and try again — the lesson stays available.`
+                        : `You need at least ${lesson.passPercent}% to complete this lesson and earn XP. Review the teaching notes and try again.`}
                     </p>
                   </div>
                 )}
                 <div className="flex flex-wrap justify-center gap-2">
-                  <button
-                    onClick={resetQuiz}
-                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
-                  >
-                    <RotateCcw className="size-4" /> Try again
-                  </button>
+                  {needsWorksheet && passedQuiz && !passedWorksheet ? (
+                    <button
+                      onClick={resetWorksheetOnly}
+                      className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
+                    >
+                      <RotateCcw className="size-4" /> Retry worksheet
+                    </button>
+                  ) : (
+                    <button
+                      onClick={resetQuiz}
+                      className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
+                    >
+                      <RotateCcw className="size-4" /> Try again
+                    </button>
+                  )}
                   <button
                     onClick={() => setPhase("teach")}
                     className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
@@ -480,11 +689,106 @@ function QuestionPrompt({
           disabled={revealed}
           onChange={(e) => onShortChange(e.target.value)}
           placeholder={question.placeholder ?? "Type your answer"}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.form?.requestSubmit();
-          }}
         />
       )}
+    </div>
+  );
+}
+
+function WorksheetFieldInput({
+  field,
+  value,
+  disabled,
+  onChange,
+}: {
+  field: WorksheetField;
+  value: string | Record<string, string> | undefined;
+  disabled?: boolean;
+  onChange: (next: string | Record<string, string>) => void;
+}) {
+  if (field.type === "multipart") {
+    const parts = field.parts ?? [];
+    const map = (value && typeof value === "object" ? value : {}) as Record<string, string>;
+    return (
+      <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3 text-left">
+        <p className="text-sm font-bold">{field.prompt}</p>
+        {parts.map((part) => (
+          <label key={part.id} className="block">
+            <span className="text-xs font-semibold text-muted-foreground">{part.prompt}</span>
+            <input
+              className="input-base mt-1"
+              disabled={disabled}
+              value={map[part.id] ?? ""}
+              placeholder={part.placeholder ?? "Type your answer"}
+              onChange={(e) => onChange({ ...map, [part.id]: e.target.value })}
+            />
+          </label>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <label className="block space-y-1 text-left">
+      <span className="text-sm font-bold">{field.prompt}</span>
+      {field.type === "numeric" ? (
+        <input
+          className="input-base"
+          inputMode="decimal"
+          disabled={disabled}
+          value={typeof value === "string" ? value : ""}
+          placeholder={field.placeholder ?? "Enter a number"}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <textarea
+          className="input-base min-h-20"
+          disabled={disabled}
+          value={typeof value === "string" ? value : ""}
+          placeholder={field.placeholder ?? "Type your answer"}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+    </label>
+  );
+}
+
+function WorksheetFeedbackCard({ feedback }: { feedback: WorksheetAiFeedback }) {
+  const notes = Object.entries(feedback.field_notes ?? {});
+  return (
+    <div className="overflow-hidden rounded-xl border border-border text-left">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary/40 px-4 py-3">
+        <div className="flex items-center gap-2 text-sm font-bold">
+          <Sparkles className="size-4 text-primary" /> AI Teacher feedback
+        </div>
+        <div className="text-xl font-black text-xp">{feedback.score}/100</div>
+      </div>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
+        <div>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-success">Strengths</h4>
+          <p className="mt-1 text-sm text-muted-foreground">{feedback.strengths}</p>
+        </div>
+        <div>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-ela">Improvements</h4>
+          <p className="mt-1 text-sm text-muted-foreground">{feedback.improvements}</p>
+        </div>
+        {feedback.teacher_note && (
+          <p className="sm:col-span-2 text-sm font-semibold text-primary">{feedback.teacher_note}</p>
+        )}
+        {notes.length > 0 && (
+          <div className="sm:col-span-2 space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Per-question notes
+            </h4>
+            {notes.map(([id, note]) => (
+              <p key={id} className="rounded-lg border border-border bg-background/50 px-3 py-2 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">{id}: </span>
+                {note}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

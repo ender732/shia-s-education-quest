@@ -12,8 +12,18 @@ import {
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lessonForUnit } from "@/lib/curriculum";
+import { lessonFromPayload, parseLessonPayload } from "@/lib/lesson-payload";
 import { LessonPractice } from "@/components/LessonPractice";
 
+export function resolveTaskLesson(task: {
+  unit_tag?: string | null;
+  lesson_payload?: unknown;
+}) {
+  const payload = parseLessonPayload(task.lesson_payload);
+  if (payload) return { lesson: lessonFromPayload(payload), payload };
+  const lesson = lessonForUnit(task.unit_tag);
+  return lesson ? { lesson, payload: null } : null;
+}
 export type Task = {
   id: string;
   subject_id: string | null;
@@ -23,6 +33,11 @@ export type Task = {
   xp_reward: number;
   is_completed: boolean;
   created_by: string | null;
+  is_draft?: boolean;
+  lesson_payload?: unknown;
+  source_credit?: string | null;
+  worksheet_pdf_url?: string | null;
+  published_at?: string | null;
 };
 
 export type TaskProgress = {
@@ -133,7 +148,8 @@ export function TaskBoard({
         <AnimatePresence initial={false}>
           {tasks.map((task) => {
             const done = completedIds.has(task.id);
-            const lesson = lessonForUnit(task.unit_tag);
+            const resolved = resolveTaskLesson(task);
+            const lesson = resolved?.lesson;
             const progressRow = progress?.find((p) => p.task_id === task.id);
             return (
               <motion.button
@@ -163,7 +179,9 @@ export function TaskBoard({
                     <h3 className="text-sm font-bold">{task.title}</h3>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {lesson
-                        ? `${lesson.questions.length} practice questions · learn first, then quiz`
+                        ? resolved?.payload?.worksheet
+                          ? `${lesson.questions.length} quiz questions + fillable worksheet`
+                          : `${lesson.questions.length} practice questions · learn first, then quiz`
                         : task.description || "Practice coming soon for this unit."}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
