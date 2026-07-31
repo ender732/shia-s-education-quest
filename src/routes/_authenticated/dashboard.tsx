@@ -6,13 +6,13 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BookStudio } from "@/components/BookStudio";
 import { GamificationHeader } from "@/components/GamificationHeader";
+import { ParentLinkCodeCard } from "@/components/ParentLinkCodeCard";
 import { ParentPortal } from "@/components/ParentPortal";
 import { TaskBoard, useTasks } from "@/components/TaskBoard";
 import { useProfile, useSession, useStreakTouch } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { accentFor } from "@/lib/gamification";
-
-const PARENT_PIN = "1187";
+import { canAccessParentPortal } from "@/lib/parent-access";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -37,6 +37,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const { session } = useSession();
   const userId = session?.user.id;
+  const userEmail = session?.user.email;
   const { data: profile, isLoading: profileLoading } = useProfile(userId);
   useStreakTouch(profile);
 
@@ -56,8 +57,6 @@ function Dashboard() {
 
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
   const [parentMode, setParentMode] = useState(false);
-  const [pinOpen, setPinOpen] = useState(false);
-  const [pin, setPin] = useState("");
 
   const current = useMemo(
     () => subjects?.find((s) => s.id === activeSubject) ?? subjects?.[0] ?? null,
@@ -75,11 +74,11 @@ function Dashboard() {
   }
 
   function requestParentMode() {
-    if (profile?.role === "parent") {
+    if (canAccessParentPortal(userEmail)) {
       setParentMode(true);
       return;
     }
-    setPinOpen(true);
+    toast.error("Parent Portal access is restricted to authorized parent emails.");
   }
 
   if (profileLoading || subjectsLoading || !userId) {
@@ -119,39 +118,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {pinOpen && (
-        <div className="mb-4 surface-card flex flex-wrap items-center gap-3 p-4">
-          <p className="text-sm font-semibold">Enter the parent PIN</p>
-          <input
-            type="password"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            className="input-base max-w-40"
-            placeholder="••••"
-          />
-          <button
-            onClick={() => {
-              if (pin === PARENT_PIN) {
-                setParentMode(true);
-                setPinOpen(false);
-                setPin("");
-              } else {
-                toast.error("Incorrect PIN.");
-              }
-            }}
-            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
-          >
-            Unlock
-          </button>
-          <button
-            onClick={() => setPinOpen(false)}
-            className="text-xs text-muted-foreground hover:underline"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-
       {parentMode ? (
         <ParentPortal userId={userId} subjects={subjects ?? []} />
       ) : (
@@ -161,6 +127,10 @@ function Dashboard() {
             xp={profile?.xp_points ?? 0}
             streak={profile?.streak_days ?? 0}
           />
+
+          {(profile?.role ?? "student") === "student" && (
+            <ParentLinkCodeCard linkCode={profile?.link_code} />
+          )}
 
           <nav className="flex flex-wrap gap-2">
             {(subjects ?? []).map((s) => {

@@ -103,6 +103,42 @@ export type Database = {
           },
         ]
       }
+      parent_student_links: {
+        Row: {
+          id: string
+          parent_id: string
+          student_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          parent_id: string
+          student_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          parent_id?: string
+          student_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_student_links_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_student_links_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -110,6 +146,7 @@ export type Database = {
           id: string
           last_active_date: string | null
           level: number
+          link_code: string
           role: string
           streak_days: number
           xp_points: number
@@ -120,6 +157,7 @@ export type Database = {
           id: string
           last_active_date?: string | null
           level?: number
+          link_code?: string
           role?: string
           streak_days?: number
           xp_points?: number
@@ -130,6 +168,7 @@ export type Database = {
           id?: string
           last_active_date?: string | null
           level?: number
+          link_code?: string
           role?: string
           streak_days?: number
           xp_points?: number
@@ -264,7 +303,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_linked_student: { Args: { _student_id: string }; Returns: boolean }
       is_parent: { Args: { _uid: string }; Returns: boolean }
+      link_student_by_code: { Args: { _code: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never

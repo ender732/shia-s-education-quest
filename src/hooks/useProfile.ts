@@ -11,6 +11,7 @@ export type Profile = {
   level: number;
   streak_days: number;
   last_active_date: string | null;
+  link_code?: string | null;
 };
 
 export function useSession() {

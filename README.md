@@ -138,7 +138,7 @@ Configure Supabase with the following relational tables and Row Level Security (
 
 ### Dual Access & Toggle
 
-- Top-right control to switch between Student View and Parent Portal (protected by password or PIN check).
+- Top-right control to switch between Student View and Parent Portal (gated by `VITE_PARENT_EMAILS` allowlist).
 
 ### Parent Features
 

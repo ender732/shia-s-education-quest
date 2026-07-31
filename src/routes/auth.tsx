@@ -117,6 +117,12 @@ function AuthPage() {
                       </button>
                     ))}
                   </div>
+                  {role === "parent" && (
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      Parent Portal access also requires your email to be on the authorized allowlist
+                      (configured by the site admin). Choosing parent here only sets your profile role.
+                    </p>
+                  )}
                 </>
               )}
               <input

@@ -48,14 +48,23 @@ export async function fetchTaskProgress(userId: string): Promise<ProgressRow[]> 
   return readLocal(userId);
 }
 
-export async function fetchAllTaskProgress(): Promise<ProgressRow[]> {
+/** Fetch progress for specific linked students only (empty ids → empty result). */
+export async function fetchTaskProgressForStudents(studentIds: string[]): Promise<ProgressRow[]> {
+  if (studentIds.length === 0) return [];
+
   const { data, error } = await supabase
     .from("task_progress")
-    .select("task_id, score, xp_awarded, completed_at, user_id");
+    .select("task_id, score, xp_awarded, completed_at, user_id")
+    .in("user_id", studentIds);
 
   if (!error && data) return data as ProgressRow[];
   console.warn("[task_progress] parent view local-limited:", error?.message);
   return [];
+}
+
+/** @deprecated Prefer fetchTaskProgressForStudents — global parent reads are no longer allowed. */
+export async function fetchAllTaskProgress(): Promise<ProgressRow[]> {
+  return fetchTaskProgressForStudents([]);
 }
 
 export async function saveTaskProgress(input: SaveInput): Promise<{ awarded: number; already: boolean }> {

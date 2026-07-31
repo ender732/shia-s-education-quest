@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookUp, Loader2, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { BookUp, Link2, Loader2, Plus, Trash2, Unlink } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CURRICULUM_UNIT_TAGS } from "@/lib/curriculum";
@@ -9,6 +9,29 @@ import { useTasks, type Task } from "./TaskBoard";
 
 type Subject = { id: string; title: string };
 
+type LinkedStudent = {
+  id: string;
+  display_name: string | null;
+  xp_points: number;
+  level: number;
+  streak_days: number;
+};
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isMissingLinksSchema(message: string | undefined) {
+  if (!message) return false;
+  const m = message.toLowerCase();
+  return (
+    m.includes("parent_student_links") ||
+    m.includes("link_student_by_code") ||
+    m.includes("link_code") ||
+    m.includes("could not find the function") ||
+    m.includes("schema cache")
+  );
+}
+
 export function ParentPortal({ userId, subjects }: { userId: string; subjects: Subject[] }) {
   return (
     <div className="space-y-4">
@@ -16,7 +39,7 @@ export function ParentPortal({ userId, subjects }: { userId: string; subjects: S
         <TaskCreator userId={userId} subjects={subjects} />
         <BookUploader userId={userId} />
       </div>
-      <ProgressMonitor subjects={subjects} />
+      <ProgressMonitor parentId={userId} subjects={subjects} />
     </div>
   );
 }
@@ -222,42 +245,127 @@ function BookUploader({ userId }: { userId: string }) {
   );
 }
 
-function ProgressMonitor({ subjects }: { subjects: Subject[] }) {
+function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: Subject[] }) {
   const { data: tasks } = useTasks();
   const queryClient = useQueryClient();
+  const [linkCode, setLinkCode] = useState("");
+  const [selectedId, setSelectedId] = useState<string | "all">("all");
+  const [schemaMissing, setSchemaMissing] = useState(false);
 
-  const { data: students } = useQuery({
-    queryKey: ["all-profiles"],
-    queryFn: async () => {
-      const { data, error } = await supabase
+  const {
+    data: students,
+    isLoading: studentsLoading,
+    error: studentsError,
+  } = useQuery({
+    queryKey: ["linked-students", parentId],
+    queryFn: async (): Promise<LinkedStudent[]> => {
+      const { data: links, error: linksError } = await supabase
+        .from("parent_student_links")
+        .select("student_id")
+        .eq("parent_id", parentId);
+
+      if (linksError) {
+        if (isMissingLinksSchema(linksError.message)) {
+          setSchemaMissing(true);
+          return [];
+        }
+        throw linksError;
+      }
+      setSchemaMissing(false);
+
+      const ids = (links ?? []).map((l) => l.student_id);
+      if (ids.length === 0) return [];
+
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, display_name, role, xp_points, level, streak_days")
-        .eq("role", "student");
-      if (error) throw error;
-      return data ?? [];
+        .select("id, display_name, xp_points, level, streak_days")
+        .in("id", ids);
+
+      if (profilesError) throw profilesError;
+      return (profiles ?? []) as LinkedStudent[];
     },
   });
 
-  const studentId = students?.[0]?.id;
+  useEffect(() => {
+    if (!students?.length) {
+      setSelectedId("all");
+      return;
+    }
+    if (selectedId !== "all" && !students.some((s) => s.id === selectedId)) {
+      setSelectedId(students[0].id);
+    }
+  }, [students, selectedId]);
+
+  const focusIds = useMemo(() => {
+    if (!students?.length) return [] as string[];
+    if (selectedId === "all") return students.map((s) => s.id);
+    return [selectedId];
+  }, [students, selectedId]);
+
   const { data: progress } = useQuery({
-    queryKey: ["task_progress_all"],
+    queryKey: ["task_progress_linked", focusIds],
+    enabled: focusIds.length > 0,
     queryFn: async () => {
-      const { fetchAllTaskProgress } = await import("@/lib/task-progress");
-      return fetchAllTaskProgress();
+      const { fetchTaskProgressForStudents } = await import("@/lib/task-progress");
+      return fetchTaskProgressForStudents(focusIds);
     },
   });
 
-  const { data: reports, isLoading } = useQuery({
-    queryKey: ["book_reports"],
+  const { data: reports, isLoading: reportsLoading } = useQuery({
+    queryKey: ["book_reports_linked", focusIds],
+    enabled: focusIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("book_reports")
         .select("*")
+        .in("student_id", focusIds)
         .order("submitted_at", { ascending: false })
         .limit(20);
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const linkStudent = useMutation({
+    mutationFn: async (code: string) => {
+      const trimmed = code.trim();
+      if (!UUID_RE.test(trimmed)) {
+        throw new Error("Enter a valid parent link code (UUID).");
+      }
+      const { data, error } = await supabase.rpc("link_student_by_code", { _code: trimmed });
+      if (error) {
+        if (isMissingLinksSchema(error.message)) {
+          setSchemaMissing(true);
+          throw new Error(
+            "Parent–student linking is not set up yet. Run the parent_student_links migration in Supabase, then try again.",
+          );
+        }
+        throw error;
+      }
+      return data as string;
+    },
+    onSuccess: () => {
+      toast.success("Student linked.");
+      setLinkCode("");
+      queryClient.invalidateQueries({ queryKey: ["linked-students", parentId] });
+    },
+    onError: (err: Error) => toast.error(err.message || "Could not link that student."),
+  });
+
+  const unlinkStudent = useMutation({
+    mutationFn: async (studentId: string) => {
+      const { error } = await supabase
+        .from("parent_student_links")
+        .delete()
+        .eq("parent_id", parentId)
+        .eq("student_id", studentId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Student unlinked.");
+      queryClient.invalidateQueries({ queryKey: ["linked-students", parentId] });
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   const remove = useMutation({
@@ -280,118 +388,217 @@ function ProgressMonitor({ subjects }: { subjects: Subject[] }) {
     return { ...s, total: list.length, done, pct: list.length ? Math.round((done / list.length) * 100) : 0 };
   });
 
+  const hasLinks = (students?.length ?? 0) > 0;
+  const loadError =
+    studentsError instanceof Error
+      ? studentsError.message
+      : studentsError
+        ? String(studentsError)
+        : null;
+
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {(students ?? []).map((s) => (
-          <div key={s.id} className="surface-card p-4">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">Student</p>
-            <p className="text-sm font-bold">{s.display_name ?? "Student"}</p>
-            <p className="mt-2 text-2xl font-black text-xp">{s.xp_points.toLocaleString()} XP</p>
-            <p className="text-xs text-muted-foreground">
-              Level {s.level} · {s.streak_days} day streak
-            </p>
-          </div>
-        ))}
-        {students?.length === 0 && (
-          <div className="surface-card p-4 text-sm text-muted-foreground">
-            No student accounts yet.
-          </div>
-        )}
-      </div>
-
-      <div className="surface-card p-5">
-        <h3 className="text-sm font-bold">Lesson mastery by subject</h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Based on practice quizzes scored at 70% or higher.
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          linkStudent.mutate(linkCode);
+        }}
+        className="surface-card space-y-3 p-5"
+      >
+        <h3 className="flex items-center gap-2 text-sm font-bold">
+          <Link2 className="size-4 text-primary" /> Link a student
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Ask your child for their Parent link code (shown on their dashboard), then paste it here.
         </p>
-        <div className="mt-3 space-y-3">
-          {bySubject.map((s) => (
-            <div key={s.id}>
-              <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                <span>{s.title}</span>
-                <span>
-                  {s.done}/{s.total} · {s.pct}%
-                </span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-secondary">
-                <div className="xp-gradient h-full" style={{ width: `${s.pct}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="surface-card p-5">
-        <h3 className="text-sm font-bold">Manage published lessons</h3>
-        <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
-          {(tasks ?? []).map((t: Task) => {
-            const row = progress?.find((p) => p.task_id === t.id);
-            return (
-              <div
-                key={t.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/50 px-3 py-2"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold">{t.title}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {t.unit_tag ?? "—"} · {t.xp_reward} XP ·{" "}
-                    {row ? `mastered at ${row.score}%` : "not mastered yet"}
-                  </p>
-                </div>
-                <button
-                  onClick={() => remove.mutate(t.id)}
-                  className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
-                  aria-label={`Delete ${t.title}`}
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="text-sm font-bold">Recent AI-graded book reports</h3>
-        {isLoading && (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Loading reports…
+        <Field label="Parent link code">
+          <input
+            className="input-base font-mono text-sm"
+            value={linkCode}
+            onChange={(e) => setLinkCode(e.target.value)}
+            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            autoComplete="off"
+            spellCheck={false}
+            required
+          />
+        </Field>
+        <button
+          type="submit"
+          disabled={linkStudent.isPending}
+          className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
+        >
+          {linkStudent.isPending ? "Linking…" : "Link student"}
+        </button>
+        {(schemaMissing || (loadError && isMissingLinksSchema(loadError))) && (
+          <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            Database migration required: run{" "}
+            <code className="font-mono">supabase/migrations/*_parent_student_links.sql</code> in the
+            Supabase SQL editor (or <code className="font-mono">supabase db push</code>), then
+            refresh.
           </p>
         )}
-        {reports?.length === 0 && (
-          <p className="surface-card p-5 text-sm text-muted-foreground">No submissions yet.</p>
-        )}
-        {(reports ?? []).map((r) => (
-          <details key={r.id} className="surface-card p-4">
-            <summary className="cursor-pointer text-sm font-semibold">
-              {r.chapter_or_topic} —{" "}
-              <span className="text-xp">{r.ai_score ?? "ungraded"}</span>{" "}
-              <span className="text-xs font-normal text-muted-foreground">
-                ({new Date(r.submitted_at).toLocaleString()})
-              </span>
-            </summary>
+      </form>
+
+      {studentsLoading && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" /> Loading linked students…
+        </p>
+      )}
+
+      {!studentsLoading && !hasLinks && !schemaMissing && (
+        <div className="surface-card p-5 text-sm text-muted-foreground">
+          No students linked yet. Ask your child for their <strong>Parent link code</strong> on their
+          dashboard, then paste it above.
+        </div>
+      )}
+
+      {hasLinks && (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Viewing
+            </span>
+            <select
+              className="input-base max-w-xs text-sm"
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value as string | "all")}
+            >
+              <option value="all">All linked students</option>
+              {(students ?? []).map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.display_name ?? "Student"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {(students ?? []).map((s) => (
+              <div
+                key={s.id}
+                className={`surface-card p-4 ${
+                  selectedId === s.id ? "ring-2 ring-primary/40" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Student</p>
+                    <p className="text-sm font-bold">{s.display_name ?? "Student"}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => unlinkStudent.mutate(s.id)}
+                    disabled={unlinkStudent.isPending}
+                    className="rounded-md p-1.5 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
+                    aria-label={`Unlink ${s.display_name ?? "student"}`}
+                    title="Unlink"
+                  >
+                    <Unlink className="size-3.5" />
+                  </button>
+                </div>
+                <p className="mt-2 text-2xl font-black text-xp">{s.xp_points.toLocaleString()} XP</p>
+                <p className="text-xs text-muted-foreground">
+                  Level {s.level} · {s.streak_days} day streak
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="surface-card p-5">
+            <h3 className="text-sm font-bold">Lesson mastery by subject</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Based on practice quizzes scored at 70% or higher
+              {selectedId === "all" ? " (all linked students)." : "."}
+            </p>
             <div className="mt-3 space-y-3">
-              <p className="whitespace-pre-wrap rounded-lg border border-border bg-background/50 p-3 text-xs leading-relaxed text-muted-foreground">
-                {r.report_text}
-              </p>
-              {r.ai_feedback && (
-                <FeedbackCard
-                  feedback={
-                    r.ai_feedback as unknown as {
-                      score: number;
-                      strengths: string;
-                      improvements: string;
-                      racece_checklist: Record<string, boolean>;
-                      teacher_note: string;
-                    }
-                  }
-                />
-              )}
+              {bySubject.map((s) => (
+                <div key={s.id}>
+                  <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+                    <span>{s.title}</span>
+                    <span>
+                      {s.done}/{s.total} · {s.pct}%
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-secondary">
+                    <div className="xp-gradient h-full" style={{ width: `${s.pct}%` }} />
+                  </div>
+                </div>
+              ))}
             </div>
-          </details>
-        ))}
-      </div>
+          </div>
+
+          <div className="surface-card p-5">
+            <h3 className="text-sm font-bold">Manage published lessons</h3>
+            <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
+              {(tasks ?? []).map((t: Task) => {
+                const row = progress?.find((p) => p.task_id === t.id);
+                return (
+                  <div
+                    key={t.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/50 px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold">{t.title}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {t.unit_tag ?? "—"} · {t.xp_reward} XP ·{" "}
+                        {row ? `mastered at ${row.score}%` : "not mastered yet"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => remove.mutate(t.id)}
+                      className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
+                      aria-label={`Delete ${t.title}`}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold">Recent AI-graded book reports</h3>
+            {reportsLoading && (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" /> Loading reports…
+              </p>
+            )}
+            {!reportsLoading && reports?.length === 0 && (
+              <p className="surface-card p-5 text-sm text-muted-foreground">No submissions yet.</p>
+            )}
+            {(reports ?? []).map((r) => (
+              <details key={r.id} className="surface-card p-4">
+                <summary className="cursor-pointer text-sm font-semibold">
+                  {r.chapter_or_topic} —{" "}
+                  <span className="text-xp">{r.ai_score ?? "ungraded"}</span>{" "}
+                  <span className="text-xs font-normal text-muted-foreground">
+                    ({new Date(r.submitted_at).toLocaleString()})
+                  </span>
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <p className="whitespace-pre-wrap rounded-lg border border-border bg-background/50 p-3 text-xs leading-relaxed text-muted-foreground">
+                    {r.report_text}
+                  </p>
+                  {r.ai_feedback && (
+                    <FeedbackCard
+                      feedback={
+                        r.ai_feedback as unknown as {
+                          score: number;
+                          strengths: string;
+                          improvements: string;
+                          racece_checklist: Record<string, boolean>;
+                          teacher_note: string;
+                        }
+                      }
+                    />
+                  )}
+                </div>
+              </details>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
