@@ -18,13 +18,13 @@ Auth supports email/password (with confirmation) and Google OAuth. Parent access
 | UI | Tailwind CSS 4, Radix/shadcn-style components, Framer Motion, Lucide |
 | Data / Auth | Supabase (Auth, Postgres, Storage, RLS) |
 | Hosting | Netlify (`@netlify/vite-plugin-tanstack-start`) |
-| Optional | Resend (parent link emails), OpenAI (book-report grading) |
+| Optional | Resend (parent link emails), Google Gemini (AI grading / coach / drafts) |
 
 ## Features
 
 - **Student dashboard** — subjects, lessons/quizzes, XP bar, streaks, daily leaderboard
 - **Parent portal** — link students by code, create tasks, upload PDFs, monitor progress
-- **Book studio** — assigned reading + AI-graded reports (when `OPENAI_API_KEY` is set)
+- **Book studio** — assigned reading + AI-graded reports (when `GEMINI_API_KEY` is set)
 - **Auth** — email confirm → `/auth/confirm`; Google sign-in; parent vs student roles
 - **Parent link codes** — students share a UUID; optional email via Resend
 
@@ -33,7 +33,7 @@ Auth supports email/password (with confirmation) and Google OAuth. Parent access
 - **Node.js** 20+ (repo developed on Node 26; use a current LTS if unsure)
 - A **Supabase** project
 - **Netlify** account (for deploy)
-- Optional: Resend + OpenAI API keys
+- Optional: Resend + Google Gemini API keys
 
 ## Local setup
 
@@ -61,9 +61,9 @@ Copy `.env.example`. Client vars need the `VITE_` prefix for the browser; server
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Server | Privileged admin ops only |
 | `RESEND_API_KEY` | No | Server | Email parent link codes |
 | `EMAIL_FROM` / `RESEND_FROM` | No | Server | From address for Resend |
-| `OPENAI_API_KEY` | No | Server | AI book-report grading |
-| `AI_MODEL` | No | Server | Defaults to `gpt-4o-mini` |
-| `AI_GATEWAY_URL` | No | Server | Defaults to OpenAI chat completions URL |
+| `GEMINI_API_KEY` | No | Server | AI grading, coach, lesson drafts (Google AI Studio) |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | No | Server | Alias for `GEMINI_API_KEY` |
+| `GEMINI_MODEL` / `AI_MODEL` | No | Server | Defaults to `gemini-2.0-flash` |
 
 On Netlify, set the same keys in **Site settings → Environment variables**. Do not put service-role keys in `VITE_*` vars.
 

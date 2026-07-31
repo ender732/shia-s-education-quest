@@ -164,7 +164,7 @@ function parseWorksheetField(raw: unknown, index: number): WorksheetField | null
   };
 }
 
-/** Normalize / validate JSON from OpenAI or the database into LessonPayload. */
+/** Normalize / validate JSON from Gemini or the database into LessonPayload. */
 export function parseLessonPayload(raw: unknown): LessonPayload | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;

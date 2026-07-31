@@ -1,3 +1,4 @@
+import { generateGeminiJson } from "@/lib/gemini.server";
 import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
 
 /**
@@ -8,9 +9,6 @@ async function loadUnpdf() {
   const unpdf = await import("unpdf");
   return unpdf;
 }
-
-const GATEWAY_URL =
-  process.env.AI_GATEWAY_URL ?? "https://api.openai.com/v1/chat/completions";
 
 const SYSTEM_PROMPT = `You are an expert NYC Grade 5 (P.S./I.S. 187 Hudson Cliffs) curriculum designer.
 
@@ -57,7 +55,7 @@ Return ONLY valid JSON matching this shape:
         "id": "w2",
         "type": "numeric",
         "prompt": "...",
-        "placeholder": "e. and.",
+        "placeholder": "e.g.",
         "gradingHint": "Expected number: ..."
       },
       {
@@ -74,64 +72,13 @@ Return ONLY valid JSON matching this shape:
   }
 }`;
 
-function requireApiKey() {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error(
-      "AI lesson drafting is not configured. Add OPENAI_API_KEY to your server environment (.env locally, or Netlify env vars), then restart the app.",
-    );
-  }
-  return apiKey;
-}
-
-async function callOpenAiJson(system: string, user: string): Promise<unknown> {
-  const apiKey = requireApiKey();
-  const response = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: process.env.AI_MODEL ?? "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
+async function callGeminiJson(system: string, user: string): Promise<unknown> {
+  return generateGeminiJson({
+    featureLabel: "lesson drafting",
+    system,
+    contents: [{ role: "user", parts: [{ text: user }] }],
+    maxOutputTokens: 4096,
   });
-
-  if (response.status === 429) {
-    throw new Error("The AI teacher is busy right now. Please try again in a minute.");
-  }
-  if (response.status === 402) {
-    throw new Error("AI credits are used up. Please add credits to keep generating lessons.");
-  }
-  if (response.status === 401 || response.status === 403) {
-    throw new Error(
-      "AI lesson drafting rejected the API key. Check OPENAI_API_KEY in your server environment.",
-    );
-  }
-  if (!response.ok) {
-    const detail = await response.text();
-    console.error("AI gateway error (lesson draft)", response.status, detail);
-    throw new Error(
-      "The AI teacher could not draft this lesson. Check OPENAI_API_KEY / AI_MODEL and try again.",
-    );
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const raw = payload.choices?.[0]?.message?.content ?? "";
-  try {
-    return JSON.parse(raw) as unknown;
-  } catch {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("The AI teacher returned an unreadable lesson draft. Please try again.");
-    return JSON.parse(match[0]) as unknown;
-  }
 }
 
 /** Extract plain text from a PDF buffer. Throws a clear error for scan-only PDFs. */
@@ -174,7 +121,7 @@ export async function draftLessonFromPdfText(input: {
   sourceCredit?: string;
   titleHint?: string;
 }): Promise<LessonPayload> {
-  const parsed = await callOpenAiJson(
+  const parsed = await callGeminiJson(
     SYSTEM_PROMPT,
     [
       input.subjectHint ? `Subject hint: ${input.subjectHint}` : null,

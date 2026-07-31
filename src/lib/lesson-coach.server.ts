@@ -1,5 +1,7 @@
-const GATEWAY_URL =
-  process.env.AI_GATEWAY_URL ?? "https://api.openai.com/v1/chat/completions";
+import {
+  generateGeminiText,
+  type GeminiContent,
+} from "@/lib/gemini.server";
 
 const SYSTEM_PROMPT = `You are "AI Coach", a warm NYC District 6 / P.S./I.S. 187 Hudson Cliffs Grade 5 tutor.
 
@@ -42,17 +44,7 @@ export async function askLessonCoachWithAi(input: {
   userMessage: string;
   history?: CoachHistoryMessage[];
 }): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error(
-      "AI coaching is not configured. Add OPENAI_API_KEY to your server environment (.env locally, or Netlify env vars), then restart the app.",
-    );
-  }
-
-  const history = (input.history ?? []).slice(-6).map((m) => ({
-    role: m.role as "user" | "assistant",
-    content: m.content.slice(0, 800),
-  }));
+  const history = (input.history ?? []).slice(-6);
 
   const contextBlock = [
     `Lesson title: ${input.lessonTitle}`,
@@ -64,49 +56,21 @@ export async function askLessonCoachWithAi(input: {
     `Student question:\n${input.userMessage}`,
   ].join("\n");
 
-  const response = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: process.env.AI_MODEL ?? "gpt-4o-mini",
-      temperature: 0.5,
-      max_tokens: 350,
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...history,
-        { role: "user", content: contextBlock },
-      ],
-    }),
+  const contents: GeminiContent[] = [
+    ...history.map((m) => ({
+      role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
+      parts: [{ text: m.content.slice(0, 800) }],
+    })),
+    { role: "user", parts: [{ text: contextBlock }] },
+  ];
+
+  const reply = await generateGeminiText({
+    featureLabel: "coaching",
+    system: SYSTEM_PROMPT,
+    contents,
+    temperature: 0.5,
+    maxOutputTokens: 350,
   });
 
-  if (response.status === 429) {
-    throw new Error("The AI coach is busy right now. Please try again in a minute.");
-  }
-  if (response.status === 402) {
-    throw new Error("AI credits are used up. Please add credits to keep coaching.");
-  }
-  if (response.status === 401 || response.status === 403) {
-    throw new Error(
-      "AI coaching rejected the API key. Check OPENAI_API_KEY in your server environment.",
-    );
-  }
-  if (!response.ok) {
-    const detail = await response.text();
-    console.error("AI gateway error (lesson coach)", response.status, detail);
-    throw new Error(
-      "The AI coach could not reply. Check OPENAI_API_KEY / AI_MODEL and try again.",
-    );
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const reply = String(payload.choices?.[0]?.message?.content ?? "").trim();
-  if (!reply) {
-    throw new Error("The AI coach returned an empty reply. Please try again.");
-  }
   return reply.slice(0, 2000);
 }

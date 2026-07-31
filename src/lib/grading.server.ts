@@ -1,5 +1,8 @@
-const GATEWAY_URL =
-  process.env.AI_GATEWAY_URL ?? "https://api.openai.com/v1/chat/completions";
+import {
+  dataUrlToInlinePart,
+  generateGeminiJson,
+  type GeminiPart,
+} from "@/lib/gemini.server";
 
 const SYSTEM_PROMPT = `You are "AI Teacher", an experienced NYC District 6 / P.S./I.S. 187 Hudson Cliffs 5th-grade ELA teacher.
 
@@ -44,66 +47,22 @@ export async function gradeWithAi(input: {
   chapter: string;
   reportText: string;
 }): Promise<AiFeedback> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error(
-      "AI grading is not configured. Add OPENAI_API_KEY to your server environment (.env locally, or Netlify env vars), then restart the app.",
-    );
-  }
-
-  const response = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: process.env.AI_MODEL ?? "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Book: ${input.bookTitle || "(not given)"}\nChapter / Topic: ${
-            input.chapter || "(not given)"
-          }\n\nStudent response:\n"""\n${input.reportText}\n"""`,
-        },
-      ],
-    }),
-  });
-
-  if (response.status === 429) {
-    throw new Error("The AI teacher is busy right now. Please try again in a minute.");
-  }
-  if (response.status === 402) {
-    throw new Error("AI credits are used up. Please add credits to keep grading.");
-  }
-  if (response.status === 401 || response.status === 403) {
-    throw new Error(
-      "AI grading rejected the API key. Check OPENAI_API_KEY in your server environment.",
-    );
-  }
-  if (!response.ok) {
-    const detail = await response.text();
-    console.error("AI gateway error", response.status, detail);
-    throw new Error(
-      "The AI teacher could not grade this report. Check OPENAI_API_KEY / AI_MODEL and try again.",
-    );
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const raw = payload.choices?.[0]?.message?.content ?? "";
-
-  let parsed: Partial<AiFeedback>;
-  try {
-    parsed = JSON.parse(raw) as Partial<AiFeedback>;
-  } catch {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("The AI teacher returned an unreadable answer. Please try again.");
-    parsed = JSON.parse(match[0]) as Partial<AiFeedback>;
-  }
+  const parsed = (await generateGeminiJson({
+    featureLabel: "grading",
+    system: SYSTEM_PROMPT,
+    contents: [
+      {
+        role: "user",
+        parts: [
+          {
+            text: `Book: ${input.bookTitle || "(not given)"}\nChapter / Topic: ${
+              input.chapter || "(not given)"
+            }\n\nStudent response:\n"""\n${input.reportText}\n"""`,
+          },
+        ],
+      },
+    ],
+  })) as Partial<AiFeedback>;
 
   const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score ?? 0))));
 
@@ -169,10 +128,6 @@ type NormalizedStudentAnswer = {
   hasScribble: boolean;
 };
 
-type ChatContentPart =
-  | { type: "text"; text: string }
-  | { type: "image_url"; image_url: { url: string; detail?: "low" | "high" | "auto" } };
-
 function stripHeavyScribblesForJson(
   answers: Record<string, { text?: string; parts?: Record<string, string>; scribble?: string }>,
 ): Record<string, NormalizedStudentAnswer> {
@@ -193,13 +148,6 @@ export async function gradeWorksheetWithAi(input: {
   fields: WorksheetFieldForGrade[];
   answers: Record<string, { text?: string; parts?: Record<string, string>; scribble?: string }>;
 }): Promise<WorksheetGradeFeedback> {
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-  if (!apiKey) {
-    throw new Error(
-      "AI grading is not configured. Add OPENAI_API_KEY to your server environment (.env locally, or Netlify env vars), then restart the app.",
-    );
-  }
-
   const textPayload = {
     lessonTitle: input.lessonTitle,
     worksheetTitle: input.worksheetTitle ?? null,
@@ -208,74 +156,24 @@ export async function gradeWorksheetWithAi(input: {
     note: "Images attached below are the student's handwritten/drawn work for fields marked hasScribble=true.",
   };
 
-  const content: ChatContentPart[] = [
-    { type: "text", text: JSON.stringify(textPayload, null, 2) },
-  ];
+  const parts: GeminiPart[] = [{ text: JSON.stringify(textPayload, null, 2) }];
 
   for (const field of input.fields) {
     const scribble = input.answers[field.id]?.scribble;
     if (!scribble?.startsWith("data:image/")) continue;
-    // Cap very large payloads — vision models accept data URLs.
-    if (scribble.length > 900_000) continue;
-    content.push({
-      type: "text",
+    const imagePart = dataUrlToInlinePart(scribble);
+    if (!imagePart) continue;
+    parts.push({
       text: `Handwriting / drawing for field "${field.id}" (${field.prompt}):`,
     });
-    content.push({
-      type: "image_url",
-      image_url: { url: scribble, detail: "high" },
-    });
+    parts.push(imagePart);
   }
 
-  const response = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      // gpt-4o-mini supports vision; override with AI_MODEL if needed.
-      model: process.env.AI_MODEL ?? "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: WORKSHEET_SYSTEM_PROMPT },
-        { role: "user", content },
-      ],
-    }),
-  });
-
-  if (response.status === 429) {
-    throw new Error("The AI teacher is busy right now. Please try again in a minute.");
-  }
-  if (response.status === 402) {
-    throw new Error("AI credits are used up. Please add credits to keep grading.");
-  }
-  if (response.status === 401 || response.status === 403) {
-    throw new Error(
-      "AI grading rejected the API key. Check OPENAI_API_KEY in your server environment.",
-    );
-  }
-  if (!response.ok) {
-    const detail = await response.text();
-    console.error("AI gateway error (worksheet)", response.status, detail);
-    throw new Error(
-      "The AI teacher could not grade this worksheet. Check OPENAI_API_KEY / AI_MODEL and try again.",
-    );
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const raw = payload.choices?.[0]?.message?.content ?? "";
-
-  let parsed: Partial<WorksheetGradeFeedback>;
-  try {
-    parsed = JSON.parse(raw) as Partial<WorksheetGradeFeedback>;
-  } catch {
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("The AI teacher returned an unreadable answer. Please try again.");
-    parsed = JSON.parse(match[0]) as Partial<WorksheetGradeFeedback>;
-  }
+  const parsed = (await generateGeminiJson({
+    featureLabel: "grading",
+    system: WORKSHEET_SYSTEM_PROMPT,
+    contents: [{ role: "user", parts }],
+  })) as Partial<WorksheetGradeFeedback>;
 
   const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score ?? 0))));
   const fieldNotes =
