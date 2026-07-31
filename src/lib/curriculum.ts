@@ -32,6 +32,8 @@ export type Lesson = {
   youtubeTitle?: string;
   /** Channel credit shown under the embed (defaults to Crash Course Kids). */
   youtubeChannel?: string;
+  /** Readable transcript / lesson reading version for the video. */
+  transcript?: string;
 };
 
 function normalizeAnswer(value: string) {
@@ -65,6 +67,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "RVYwunbpMHA",
     youtubeTitle: "Math Antics - Multi-Digit Multiplication Pt 2",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Multi-Digit Multiplication.\n\nWhen you multiply a 3-digit number by a 2-digit number, break the 2-digit number into tens and ones.\n\nExample: 246 × 32 = (246 × 30) + (246 × 2).\n\n246 × 2 = 492. 246 × 30 = 7,380. Add them: 7,380 + 492 = 7,872.\n\nLine up place values carefully and carry when a product is 10 or more.\n\nCoach tip: Estimate first: 250 × 30 = 7,500. Your exact answer should be near that.",
     passPercent: 70,
     questions: [
       {
@@ -122,6 +126,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "KG6ILNOiMgM",
     youtubeTitle: "Math Antics - Decimal Place Value",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Decimals to Thousandths.\n\nPlace values after the decimal: tenths (0.1), hundredths (0.01), thousandths (0.001).\n\nTo compare decimals, line up the decimal points and compare digit by digit from the left.\n\nRounding: look at the next digit. 5 or greater → round up. Less than 5 → stay the same.\n\nWhen adding/subtracting, always line up the decimal points first.\n\nCoach tip: Write zeros as placeholders: 0.7 = 0.700. That makes comparing easier.",
     passPercent: 70,
     questions: [
       {
@@ -179,6 +185,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "pZEmFSP3Z0I",
     youtubeTitle: "Math Antics - Common Denominator LCD",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Fractions with Unlike Denominators.\n\nYou can only add or subtract fractions that share the same denominator.\n\nFind a common denominator (often the least common multiple of both denominators).\n\nRewrite each fraction as an equivalent fraction, then add or subtract the numerators.\n\nSimplify the answer when you can.\n\nCoach tip: For 1/3 + 1/4, LCM of 3 and 4 is 12 → 4/12 + 3/12 = 7/12.",
     passPercent: 70,
     questions: [
       {
@@ -235,6 +243,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "qJwecTgce6c",
     youtubeTitle: "Math Antics - Volume",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Volume of Rectangular Prisms.\n\nVolume measures how much space a solid takes up (NY-5.MD.3–5).\n\nFor a rectangular prism: V = length × width × height (or V = B × h).\n\nUnits are cubic units (cm³, in³).\n\nFor composite shapes, split into prisms, find each volume, then add.\n\nCoach tip: If cubes are 1 cm on each side, count the cubes — that count is the volume in cm³.",
     passPercent: 70,
     questions: [
       {
@@ -290,6 +300,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "T5Qf0qSSJFI",
     youtubeTitle: "Math Antics - Place Value",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Powers of 10 & Place Value.\n\nGrade 5 (NY-5.NBT.1–2): each place is 10 times the place to its right.\n\nMultiplying by 10, 100, or 1,000 shifts digits left; dividing shifts right.\n\n10¹ = 10, 10² = 100, 10³ = 1,000 — exponents count the zeros for powers of 10.\n\nExample: 3.45 × 100 = 345 because the decimal point moves two places right.\n\nCoach tip: Count the zeros in the power of 10 — that is how many places the decimal moves.",
     passPercent: 70,
     questions: [
       {
@@ -346,6 +358,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "kwh4SD1ToFc",
     youtubeTitle: "Math Antics - Decimal Arithmetic",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Decimal Operations to Hundredths.\n\nNY-5.NBT.7: add, subtract, multiply, and divide decimals to hundredths.\n\nLine up decimal points for +/−. Keep the decimal in the sum or difference.\n\nFor multiplication, multiply as whole numbers, then place the decimal by counting total decimal places.\n\nFor division, you can rewrite as an equivalent problem with whole-number divisors when helpful.\n\nCoach tip: Estimate first: 2.4 × 3 should be near 7, not 70.",
     passPercent: 70,
     questions: [
       {
@@ -401,6 +415,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "qmfXyR7Z6Lk",
     youtubeTitle: "Math Antics - Multiplying Fractions",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Multiply & Divide Fractions.\n\nNY-5.NF: multiply fractions and whole numbers; divide in limited cases.\n\nTo multiply fractions: multiply numerators, multiply denominators, then simplify.\n\nA whole number times a fraction: write the whole number as a fraction over 1.\n\nLimited division: unit fraction ÷ whole number, or whole number ÷ unit fraction (not fraction ÷ fraction until Grade 6).\n\nCoach tip: 1/2 × 1/3 = 1/6. Of means multiply: 1/2 of 12 = 6.",
     passPercent: 70,
     questions: [
       {
@@ -461,6 +477,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "HdU_rf7eMTI",
     youtubeTitle: "Math Antics - Long Division with 2-Digit Divisors",
     youtubeChannel: "Math Antics",
+    transcript:
+      "Here is a readable version of this lesson on Division with 2-Digit Divisors.\n\nNY-5.NBT.6: find whole-number quotients with up to 4-digit dividends and 2-digit divisors.\n\nEstimate first using compatible numbers (e.g., 480 ÷ 20).\n\nUse place value, area models, or the standard algorithm — check with multiplication.\n\nRemainders matter: sometimes you leave a remainder; sometimes you express as a fraction or decimal later.\n\nCoach tip: Check: quotient × divisor + remainder should equal the dividend.",
     passPercent: 70,
     questions: [
       {
@@ -521,6 +539,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "Hhk4N9A0oCA",
     youtubeTitle: "What makes a hero? - Matthew Winkler",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on Character Change in Narratives.\n\nCharacters change because of events, relationships, or what they learn.\n\nLook for what the character wanted at the beginning vs. the end.\n\nEvidence means words or actions from the text — not just your opinion.\n\nA strong answer names the change and proves it with two clear details.\n\nCoach tip: Ask: What did they believe before? What do they believe now? What moment caused the shift?",
     passPercent: 70,
     questions: [
       {
@@ -599,6 +619,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "Ytr28t5VzAs",
     youtubeTitle: "Where do new words come from? - Marcel Danesi",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on Greek & Latin Roots.\n\nMany English words are built from Greek and Latin roots.\n\nIf you know the root, you can unlock unfamiliar words.\n\nExamples: bio = life, graph = write, tele = far, port = carry, rupt = break.\n\nPrefixes and suffixes attach to roots to change meaning.\n\nCoach tip: Break the word apart: tele + phone = far + sound.",
     passPercent: 70,
     questions: [
       {
@@ -662,6 +684,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "3klMM9BkW5o",
     youtubeTitle: "How to use rhetoric to get what you want - Camille A. Langston",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on RACECE Writing Framework.\n\nRACECE helps you write a complete constructed response:\n\nR — Restate the question. A — Answer directly.\n\nC — Cite evidence #1. E — Explain that evidence.\n\nC — Cite evidence #2. E — Explain the second piece.\n\nTwo citations make your answer stronger and more convincing.\n\nCoach tip: Sentence starters: “The text states…” then “This shows…”",
     passPercent: 70,
     questions: [
       {
@@ -734,6 +758,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "eREopphW5Bw",
     youtubeTitle: "Mining literature for deeper meanings - Amy E. Harter",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on Main Idea & Text Evidence.\n\nNYS Grade 5 reading: determine a main idea and explain how details support it.\n\nThe main idea is what the text is mostly about — not just one interesting fact.\n\nSupporting details prove or explain the main idea with examples, facts, or events.\n\nQuote or paraphrase evidence, then tell why it matters.\n\nCoach tip: If a detail can be removed and the big idea still stands, it may not be central.",
     passPercent: 70,
     questions: [
       {
@@ -811,6 +837,8 @@ export const LESSONS: Record<string, Lesson> = {
     tip: "Ask: Can I see it? Feel it? Measure it with a tool?",
     youtubeVideoId: "ZZYnERZe3Cg",
     youtubeTitle: "Hunting for Properties: Crash Course Kids #9.1",
+    transcript:
+      "Here is a readable version of this lesson on Properties of Matter.\n\nMatter is anything that has mass and takes up space.\n\nObservable properties include color, texture, hardness, and state (solid/liquid/gas).\n\nMeasurable properties include mass, volume, temperature, and density.\n\nWe classify materials by comparing these properties.\n\nCoach tip: Ask: Can I see it? Feel it? Measure it with a tool?",
     passPercent: 70,
     questions: [
       {
@@ -867,6 +895,8 @@ export const LESSONS: Record<string, Lesson> = {
     tip: "Think: mass is rearranged, not erased.",
     youtubeVideoId: "3lHHOiTdmK4",
     youtubeTitle: "Vacation or Conservation (Of Mass): Crash Course Kids #23.1",
+    transcript:
+      "Here is a readable version of this lesson on Conservation of Mass.\n\nIn a closed system, mass is conserved — it doesn’t appear or disappear.\n\nWhen substances mix or change form, total mass stays the same if nothing escapes.\n\nExample: vinegar + baking soda in a sealed bag still has the same total mass.\n\nIf a gas escapes into the air, the container can seem lighter — but the mass moved, it didn’t vanish.\n\nCoach tip: Think: mass is rearranged, not erased.",
     passPercent: 70,
     questions: [
       {
@@ -939,6 +969,8 @@ export const LESSONS: Record<string, Lesson> = {
     tip: "Geo = Earth/rock, Hydro = water, Atmo = air, Bio = life.",
     youtubeVideoId: "VMxjzWHbyFM",
     youtubeTitle: "Four Spheres Part 1 (Geo and Bio): Crash Course Kids #6.1",
+    transcript:
+      "Here is a readable version of this lesson on Earth’s Four Spheres.\n\nGeosphere: rocks, soil, landforms, Earth’s interior.\n\nHydrosphere: all water — oceans, rivers, ice, groundwater.\n\nAtmosphere: the layer of gases around Earth.\n\nBiosphere: all living things and the places they live.\n\nThe spheres interact constantly (rain weathers rock; plants use air and water).\n\nCoach tip: Geo = Earth/rock, Hydro = water, Atmo = air, Bio = life.",
     passPercent: 70,
     questions: [
       {
@@ -1000,6 +1032,8 @@ export const LESSONS: Record<string, Lesson> = {
     tip: "Producers make their own food; consumers eat; decomposers recycle.",
     youtubeVideoId: "Vtb3I8Vzlfg",
     youtubeTitle: "Food Webs: Crash Course Kids #21.2",
+    transcript:
+      "Here is a readable version of this lesson on Matter & Energy in Ecosystems.\n\nNYSSLS 5-LS: plants get materials for growth mainly from air and water — not soil alone.\n\nMatter cycles among producers (plants), consumers (animals), decomposers, and the environment.\n\nFood webs show how energy and matter move through living things.\n\nWhen organisms die, decomposers return matter to soil, water, and air.\n\nCoach tip: Producers make their own food; consumers eat; decomposers recycle.",
     passPercent: 70,
     questions: [
       {
@@ -1056,6 +1090,8 @@ export const LESSONS: Record<string, Lesson> = {
     tip: "Apparent brightness ≠ true size. Distance matters a lot.",
     youtubeVideoId: "M41yLjQ2ot0",
     youtubeTitle: "Seeing Stars: Crash Course Kids #20.1",
+    transcript:
+      "Here is a readable version of this lesson on Stars & Relative Brightness.\n\nNYSSLS 5-ESS1: stars range widely in distance and size; brightness as seen from Earth depends on both.\n\nOur Sun is a star — closer than other stars, so it looks much brighter.\n\nA star that is farther away can look dimmer even if it is larger than the Sun.\n\nDaily patterns (day/night) come from Earth’s rotation; seasonal patterns relate to Earth’s orbit and tilt.\n\nCoach tip: Apparent brightness ≠ true size. Distance matters a lot.",
     passPercent: 70,
     questions: [
       {
@@ -1132,6 +1168,8 @@ export const LESSONS: Record<string, Lesson> = {
     tip: "Ocean ≈ nearly all water; drinkable fresh water is only a tiny slice.",
     youtubeVideoId: "oaQCiwzjnCM",
     youtubeTitle: "The Basics of Freshwater: Crash Course Kids #14.1",
+    transcript:
+      "Here is a readable version of this lesson on Water on Earth.\n\nNYSSLS 5-ESS2-2: most of Earth’s water is in the ocean (salt water).\n\nFresh water is a much smaller share — found in glaciers/ice, groundwater, lakes, and rivers.\n\nGraphs and percentages help compare reservoirs of water.\n\nProtecting fresh water matters because usable fresh water is limited.\n\nCoach tip: Ocean ≈ nearly all water; drinkable fresh water is only a tiny slice.",
     passPercent: 70,
     questions: [
       {
@@ -1194,6 +1232,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "R35URiT_fm8",
     youtubeTitle: "South America | Destination World",
     youtubeChannel: "Nat Geo Kids",
+    transcript:
+      "Here is a readable version of this lesson on Geography of the Western Hemisphere.\n\nPassport Grade 5 Unit 1: geography of the Western Hemisphere.\n\nThe Western Hemisphere includes North America and South America (and nearby waters).\n\nUse a map key/legend, compass rose, and scale to read maps.\n\nMajor features: Rocky Mountains, Andes, Amazon River, Mississippi River, Great Lakes.\n\nCoach tip: North is up on most classroom maps — check the compass rose to be sure.",
     passPercent: 70,
     questions: [
       {
@@ -1261,6 +1301,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "UO5ktwPXsyM",
     youtubeTitle: "The rise and fall of the Inca Empire - Gordon McEwan",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on Early Societies: Maya, Aztec, Inca.\n\nPassport Grade 5 Unit 1 includes early societies of the Western Hemisphere.\n\nMaya: city-states in Mesoamerica; advanced writing, calendar, and math; stepped pyramids.\n\nAztec: empire in central Mexico; capital Tenochtitlán; tribute system.\n\nInca: Andes empire; roads, terrace farming, quipu record-keeping.\n\nCoach tip: Maya → writing/calendar; Aztec → Tenochtitlán; Inca → Andes roads & terraces.",
     passPercent: 70,
     questions: [
       {
@@ -1328,6 +1370,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "pFdiX8mj0Es",
     youtubeTitle: "How Magellan circumnavigated the globe - Ewandro Magalhaes",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on European Exploration.\n\nPassport Grade 5 Unit 2: European exploration of the Western Hemisphere.\n\nExplorers sought new trade routes, wealth, and land claims for European nations.\n\nContact brought exchange of goods, ideas, plants, and animals — and also disease, conflict, and conquest.\n\nIndigenous peoples already lived throughout the Americas with rich cultures and governments.\n\nCoach tip: Ask: Who benefited? Who was harmed? What changed for people already living here?",
     passPercent: 70,
     questions: [
       {
@@ -1405,6 +1449,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "HuFR5XBYLfU",
     youtubeTitle: "How is power divided in the United States government? - Belinda Stutzman",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on Case Study: United States.\n\nPassport case study: United States in the Western Hemisphere.\n\nGeography shapes life: coasts, rivers, plains, mountains, and varied climates.\n\nThe U.S. is a representative democracy with federal and state governments.\n\nImmigration and cultural diversity are central to U.S. history and communities today.\n\nCoach tip: Connect physical features (Mississippi, Rockies) to how people live and work.",
     passPercent: 70,
     questions: [
       {
@@ -1541,6 +1587,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "JZj7acYZ19w",
     youtubeTitle: "A day in the life of an Aztec midwife - Kay Read",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on Case Study: Mexico.\n\nPassport case study: Mexico — neighbor to the United States in North America.\n\nDiverse geography: deserts, mountains, coasts, and highlands.\n\nDeep Indigenous heritage (including Aztec and Maya regions) plus Spanish colonial history.\n\nToday Mexico is a federal republic with rich arts, food traditions, and trade links.\n\nCoach tip: Connect Mexico’s past civilizations to its regions and modern identity.",
     passPercent: 70,
     questions: [
       {
@@ -1608,6 +1656,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "AOUK3Oit86o",
     youtubeTitle: "North America | Destination World",
     youtubeChannel: "Nat Geo Kids",
+    transcript:
+      "Here is a readable version of this lesson on Case Study: Canada.\n\nPassport case study: Canada — large northern neighbor of the United States.\n\nGeography includes vast forests, tundra, lakes, and the Canadian Shield.\n\nCanada is a constitutional monarchy / parliamentary democracy within the Commonwealth.\n\nIndigenous Nations, English and French heritage, and immigration shape Canadian society.\n\nCoach tip: Think climate and latitude: much of Canada is colder than most of the U.S.",
     passPercent: 70,
     questions: [
       {
@@ -1754,6 +1804,8 @@ export const LESSONS: Record<string, Lesson> = {
     youtubeVideoId: "ctaPAm14L10",
     youtubeTitle: "How fiction can change reality - Jessica Wise",
     youtubeChannel: "TED-Ed",
+    transcript:
+      "Here is a readable version of this lesson on Strong Reading Habits.\n\nA reading log tracks time, pages, and what you understood.\n\nGood readers pause to ask questions and summarize in their own words.\n\nThirty focused minutes beats rushing through pages you don’t remember.\n\nWrite one key event and one new word each session.\n\nCoach tip: After reading, tell someone the main idea in two sentences.",
     passPercent: 70,
     questions: [
       {

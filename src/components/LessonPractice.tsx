@@ -260,6 +260,7 @@ export function LessonPractice({
                   youtubeVideoId={lesson.youtubeVideoId}
                   youtubeTitle={lesson.youtubeTitle}
                   youtubeChannel={lesson.youtubeChannel}
+                  transcript={lesson.transcript}
                 />
                 <div className="flex items-start gap-2 rounded-xl border border-xp/30 bg-xp/10 p-3 text-sm">
                   <Lightbulb className="mt-0.5 size-4 shrink-0 text-xp" />
