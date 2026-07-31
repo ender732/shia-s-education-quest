@@ -209,7 +209,7 @@ function WorksheetLessonUploader({
         </h3>
         <p className="text-xs text-muted-foreground">
           Upload a PDF you are allowed to use. The AI drafts a lesson with 5 quiz questions and
-          fillable on-site worksheet fields (students write their own answers; answer keys stay hidden for grading/coaching). Students never see drafts until you publish. No
+          fillable on-site worksheet fields (students write their own answers; answer keys stay hidden for grading/coaching). The app also attaches a matching curriculum YouTube video + reading transcript when it finds a strong topic match. Students never see drafts until you publish. No
           scraping — upload only.
         </p>
         <Field label="Subject">
@@ -334,6 +334,22 @@ function WorksheetLessonUploader({
                 {reviewPayload.worksheet?.fields.length ?? 0} fillable fields · pass{" "}
                 {reviewPayload.passPercent}%
               </p>
+              {reviewPayload.youtubeVideoId ? (
+                <p className="mt-2 text-muted-foreground">
+                  Video: {reviewPayload.youtubeTitle ?? reviewPayload.youtubeVideoId}
+                  {reviewPayload.youtubeChannel ? ` · ${reviewPayload.youtubeChannel}` : ""}
+                </p>
+              ) : (
+                <p className="mt-2 text-amber-700 dark:text-amber-300">
+                  No matching curriculum video found for this topic — students will still get reading
+                  text.
+                </p>
+              )}
+              {reviewPayload.transcript ? (
+                <p className="mt-1 text-muted-foreground">
+                  Transcript ready ({reviewPayload.transcript.length} chars)
+                </p>
+              ) : null}
               <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
                 {reviewPayload.questions.map((q) => (
                   <li key={q.id}>{q.prompt}</li>

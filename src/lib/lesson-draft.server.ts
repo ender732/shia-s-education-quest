@@ -1,5 +1,10 @@
 import { generateGeminiJson } from "@/lib/gemini.server";
 import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
+import {
+  buildFallbackTranscript,
+  matchLessonVideo,
+} from "@/lib/lesson-videos";
+import { isValidYoutubeId } from "@/lib/youtube";
 
 /**
  * Load unpdf (and its serverless PDF.js build) only inside Node handlers.
@@ -28,8 +33,10 @@ Other rules:
 - Also produce a fillable worksheet section with 3–6 in-app fields the student will write/draw into on the website (finger, Apple Pencil, or typed notes — NOT PDF annotation). Use types: "short", "numeric", or "multipart".
 - Include gradingHint on every worksheet field: expected answers, acceptable alternatives, or rubric notes from the PDF answer key when present.
 - teach / transcript: story, passage, and instructions only — strip any Answers section.
+- ALWAYS include transcript: a readable 1–2 paragraph student reading version of the lesson (no answer key). This is shown under the video.
 - Keep language warm, clear, and grade-appropriate.
 - passPercent must be 70.
+- Do NOT invent YouTube video IDs. Video matching is handled separately by the app.
 
 Return ONLY valid JSON matching this shape:
 {
@@ -37,7 +44,7 @@ Return ONLY valid JSON matching this shape:
   "title": "<lesson title>",
   "teach": ["<2-5 short teaching bullet paragraphs — no answer key>"],
   "tip": "<one coach tip — strategy, not the answer>",
-  "transcript": "<optional reading/passage text only — never the Answers page>",
+  "transcript": "<required readable lesson reading text — never the Answers page>",
   "passPercent": 70,
   "questions": [
     {
@@ -172,6 +179,9 @@ export async function draftLessonFromPdfText(input: {
 
   // Safety net: never leave answer-key pages in student-facing text.
   payload.teach = payload.teach.map(stripAnswerKeySection).filter(Boolean);
+  if (!payload.teach.length) {
+    payload.teach = ["Read the worksheet carefully, then answer the practice questions."];
+  }
   if (payload.transcript) {
     payload.transcript = stripAnswerKeySection(payload.transcript) || undefined;
   }
@@ -190,6 +200,41 @@ export async function draftLessonFromPdfText(input: {
         placeholder: sanitizePlaceholder(part.placeholder, "short"),
       })),
     }));
+  }
+
+  // Attach a curated YouTube explainer + ensure a student transcript exists.
+  // Never trust model-invented video IDs.
+  if (!isValidYoutubeId(payload.youtubeVideoId)) {
+    payload.youtubeVideoId = undefined;
+    payload.youtubeTitle = undefined;
+    payload.youtubeChannel = undefined;
+  }
+
+  const matched = matchLessonVideo({
+    title: payload.title,
+    teach: payload.teach,
+    tip: payload.tip,
+    unitTag: payload.unitTag,
+    subjectHint: input.subjectHint,
+    pdfExcerpt: input.pdfText,
+  });
+
+  if (matched) {
+    payload.youtubeVideoId = matched.youtubeVideoId;
+    payload.youtubeTitle = matched.youtubeTitle;
+    payload.youtubeChannel = matched.youtubeChannel;
+    // Prefer draft transcript when present; otherwise use the catalog reading text.
+    if (!payload.transcript?.trim()) {
+      payload.transcript = matched.transcript;
+    }
+  }
+
+  if (!payload.transcript?.trim()) {
+    payload.transcript = buildFallbackTranscript({
+      title: payload.title,
+      teach: payload.teach,
+      tip: payload.tip,
+    });
   }
 
   payload.passPercent = 70;

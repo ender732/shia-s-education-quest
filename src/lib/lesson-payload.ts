@@ -27,6 +27,9 @@ export type LessonPayload = {
   passPercent: number;
   questions: Question[];
   transcript?: string;
+  youtubeVideoId?: string;
+  youtubeTitle?: string;
+  youtubeChannel?: string;
   sourceCredit?: string;
   worksheet?: LessonWorksheet;
 };
@@ -199,6 +202,12 @@ export function parseLessonPayload(raw: unknown): LessonPayload | null {
     passPercent,
     questions,
     transcript: asString(obj.transcript) || undefined,
+    youtubeVideoId: (() => {
+      const id = asString(obj.youtubeVideoId);
+      return id && /^[\w-]{11}$/.test(id) ? id : undefined;
+    })(),
+    youtubeTitle: asString(obj.youtubeTitle) || undefined,
+    youtubeChannel: asString(obj.youtubeChannel) || undefined,
     sourceCredit: asString(obj.sourceCredit) || undefined,
     worksheet: fields.length
       ? {
@@ -219,6 +228,9 @@ export function lessonFromPayload(payload: LessonPayload): Lesson {
     passPercent: payload.passPercent,
     questions: payload.questions,
     transcript: payload.transcript,
+    youtubeVideoId: payload.youtubeVideoId,
+    youtubeTitle: payload.youtubeTitle,
+    youtubeChannel: payload.youtubeChannel,
   };
 }
 
