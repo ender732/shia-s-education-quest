@@ -2,12 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { BookOpen, CheckCircle2, Loader2, Sparkles, Trash2, XCircle } from "lucide-react";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PdfReader } from "@/components/PdfReader";
 import { supabase } from "@/integrations/supabase/client";
 import { celebrate } from "@/lib/confetti";
 import { gradeBookReport } from "@/lib/grading.functions";
+
+// Keep react-pdf / pdfjs-dist out of the Netlify SSR module graph.
+const PdfReader = lazy(() =>
+  import("@/components/PdfReader").then((m) => ({ default: m.PdfReader })),
+);
 
 export const BOOKS_BUCKET = "assigned-books";
 
@@ -208,7 +212,15 @@ export function BookStudio({ userId }: { userId: string }) {
             )}
           </div>
           {signedUrl ? (
-            <PdfReader url={signedUrl} title={selected?.title ?? "Assigned book"} />
+            <Suspense
+              fallback={
+                <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" /> Loading reader…
+                </div>
+              }
+            >
+              <PdfReader url={signedUrl} title={selected?.title ?? "Assigned book"} />
+            </Suspense>
           ) : (
             <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
               {selected

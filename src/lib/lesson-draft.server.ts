@@ -1,5 +1,13 @@
-import { extractText, getDocumentProxy } from "unpdf";
 import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
+
+/**
+ * Load unpdf (and its serverless PDF.js build) only inside Node handlers.
+ * Do not import browser `pdfjs-dist` — that crashes Netlify with DOMMatrix.
+ */
+async function loadUnpdf() {
+  const unpdf = await import("unpdf");
+  return unpdf;
+}
 
 const GATEWAY_URL =
   process.env.AI_GATEWAY_URL ?? "https://api.openai.com/v1/chat/completions";
@@ -129,6 +137,7 @@ async function callOpenAiJson(system: string, user: string): Promise<unknown> {
 /** Extract plain text from a PDF buffer. Throws a clear error for scan-only PDFs. */
 export async function extractPdfText(bytes: Uint8Array): Promise<string> {
   try {
+    const { extractText, getDocumentProxy } = await loadUnpdf();
     const pdf = await getDocumentProxy(bytes);
     const result = await extractText(pdf, { mergePages: true });
     const text = String(result.text ?? "")
@@ -145,6 +154,12 @@ export async function extractPdfText(bytes: Uint8Array): Promise<string> {
   } catch (err) {
     if (err instanceof Error && /Could not extract enough text/i.test(err.message)) {
       throw err;
+    }
+    if (err instanceof Error && /DOMMatrix/i.test(err.message)) {
+      console.error("[extractPdfText] browser pdfjs loaded in Node", err);
+      throw new Error(
+        "PDF text extraction is misconfigured on the server. Please try again later.",
+      );
     }
     console.error("[extractPdfText]", err);
     throw new Error(

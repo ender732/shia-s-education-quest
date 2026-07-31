@@ -30,7 +30,13 @@ export default defineConfig({
       "react/jsx-dev-runtime",
     ],
     // Avoid Vite rewriting the PDF.js worker into a broken "fake worker" in dev.
-    exclude: ["pdfjs-dist"],
+    // Keep browser PDF viewer packages out of the shared prebundle.
+    exclude: ["pdfjs-dist", "react-pdf"],
+  },
+  ssr: {
+    // unpdf ships a Node-safe PDF.js build + DOMMatrix stub; keep it external so
+    // Vite/Nitro do not rewrite it onto browser pdfjs-dist (DOMMatrix crash).
+    external: ["unpdf", "unpdf/pdfjs"],
   },
   plugins: [
     tailwindcss(),

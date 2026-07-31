@@ -1,13 +1,5 @@
 import { ChevronLeft, ChevronRight, Loader2, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
-
-// Must live in the same module as Document/Page (Vite bundles the worker).
-// Keep new URL(...) on one line — multiline breaks asset bundling on Vite ≥7.1.
-// prettier-ignore
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 const ZOOM_MIN = 0.75;
 const ZOOM_MAX = 2.5;
@@ -18,6 +10,15 @@ type PdfReaderProps = {
   title?: string;
 };
 
+type ReactPdfApi = {
+  Document: typeof import("react-pdf").Document;
+  Page: typeof import("react-pdf").Page;
+};
+
+/**
+ * Browser-only PDF viewer. react-pdf / pdfjs-dist must never evaluate in Node
+ * (Netlify functions crash with `DOMMatrix is not defined` on import).
+ */
 export function PdfReader({ url, title }: PdfReaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -25,6 +26,35 @@ export function PdfReader({ url, title }: PdfReaderProps) {
   const [pageNumber, setPageNumber] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [pdf, setPdf] = useState<ReactPdfApi | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const [{ Document, Page, pdfjs }] = await Promise.all([
+          import("react-pdf"),
+          import("react-pdf/dist/Page/AnnotationLayer.css"),
+          import("react-pdf/dist/Page/TextLayer.css"),
+        ]);
+
+        // Must live with Document/Page (Vite bundles the worker).
+        // Keep new URL(...) on one line — multiline breaks asset bundling on Vite ≥7.1.
+        // prettier-ignore
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+
+        if (!cancelled) setPdf({ Document, Page });
+      } catch (err) {
+        console.error("[PdfReader] failed to load react-pdf", err);
+        if (!cancelled) setLoadError("We couldn’t open this PDF in the reader.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     setPageNumber(1);
@@ -54,6 +84,9 @@ export function PdfReader({ url, title }: PdfReaderProps) {
   const goNext = () => setPageNumber((p) => Math.min(numPages || p, p + 1));
   const zoomOut = () => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - ZOOM_STEP) * 100) / 100));
   const zoomIn = () => setZoom((z) => Math.min(ZOOM_MAX, Math.round((z + ZOOM_STEP) * 100) / 100));
+
+  const Document = pdf?.Document;
+  const Page = pdf?.Page;
 
   return (
     <div
@@ -126,6 +159,10 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             >
               Open PDF in a new tab
             </a>
+          </div>
+        ) : !Document || !Page ? (
+          <div className="flex flex-1 items-center justify-center gap-2 self-center text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" /> Loading reader…
           </div>
         ) : (
           <Document
