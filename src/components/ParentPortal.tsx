@@ -13,6 +13,7 @@ import {
 } from "@/lib/lesson-draft.functions";
 import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
 import { FeedbackCard, removeAssignedBook, useBooks, type AssignedBook } from "./BookStudio";
+import { HowToContextual } from "@/components/howto/HowToContextual";
 import { resolveTaskLesson, useTasks, type Task } from "./TaskBoard";
 
 const MASTERY_SCORE_MIN = 70;
@@ -55,15 +56,36 @@ function isMissingLinksSchema(message: string | undefined) {
   );
 }
 
-export function ParentPortal({ userId, subjects }: { userId: string; subjects: Subject[] }) {
+export function ParentPortal({
+  userId,
+  subjects,
+  howtoEnabled = true,
+}: {
+  userId: string;
+  subjects: Subject[];
+  howtoEnabled?: boolean;
+}) {
   return (
     <div className="space-y-4">
-      <WorksheetLessonUploader userId={userId} subjects={subjects} />
+      <HowToContextual
+        userId={userId}
+        shortId="parent-welcome"
+        enabled={howtoEnabled}
+      />
+      <WorksheetLessonUploader
+        userId={userId}
+        subjects={subjects}
+        howtoEnabled={howtoEnabled}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
-        <TaskCreator userId={userId} subjects={subjects} />
-        <BookUploader userId={userId} />
+        <TaskCreator userId={userId} subjects={subjects} howtoEnabled={howtoEnabled} />
+        <BookUploader userId={userId} howtoEnabled={howtoEnabled} />
       </div>
-      <ProgressMonitor parentId={userId} subjects={subjects} />
+      <ProgressMonitor
+        parentId={userId}
+        subjects={subjects}
+        howtoEnabled={howtoEnabled}
+      />
     </div>
   );
 }
@@ -71,9 +93,11 @@ export function ParentPortal({ userId, subjects }: { userId: string; subjects: S
 function WorksheetLessonUploader({
   userId,
   subjects,
+  howtoEnabled = true,
 }: {
   userId: string;
   subjects: Subject[];
+  howtoEnabled?: boolean;
 }) {
   const queryClient = useQueryClient();
   const generateFn = useServerFn(generateLessonDraftFromPdf);
@@ -197,6 +221,11 @@ function WorksheetLessonUploader({
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
+      <HowToContextual
+        userId={userId}
+        shortId="parent-worksheet"
+        enabled={howtoEnabled}
+      />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -399,7 +428,15 @@ function WorksheetLessonUploader({
   );
 }
 
-function TaskCreator({ userId, subjects }: { userId: string; subjects: Subject[] }) {
+function TaskCreator({
+  userId,
+  subjects,
+  howtoEnabled = true,
+}: {
+  userId: string;
+  subjects: Subject[];
+  howtoEnabled?: boolean;
+}) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     subject_id: "",
@@ -432,6 +469,12 @@ function TaskCreator({ userId, subjects }: { userId: string; subjects: Subject[]
   });
 
   return (
+    <>
+      <HowToContextual
+        userId={userId}
+        shortId="parent-tasks-books"
+        enabled={howtoEnabled}
+      />
     <form
       onSubmit={(e) => {
         e.preventDefault();
@@ -512,10 +555,17 @@ function TaskCreator({ userId, subjects }: { userId: string; subjects: Subject[]
         {create.isPending ? "Publishing…" : "Publish task"}
       </button>
     </form>
+    </>
   );
 }
 
-function BookUploader({ userId }: { userId: string }) {
+function BookUploader({
+  userId,
+  howtoEnabled = true,
+}: {
+  userId: string;
+  howtoEnabled?: boolean;
+}) {
   const queryClient = useQueryClient();
   const { data: books } = useBooks();
   const [title, setTitle] = useState("");
@@ -623,6 +673,11 @@ function BookUploader({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
+      <HowToContextual
+        userId={userId}
+        shortId="parent-tasks-books"
+        enabled={howtoEnabled}
+      />
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -742,7 +797,15 @@ function BookUploader({ userId }: { userId: string }) {
   );
 }
 
-function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: Subject[] }) {
+function ProgressMonitor({
+  parentId,
+  subjects,
+  howtoEnabled = true,
+}: {
+  parentId: string;
+  subjects: Subject[];
+  howtoEnabled?: boolean;
+}) {
   const { data: tasks } = useTasks();
   const queryClient = useQueryClient();
   const [linkCode, setLinkCode] = useState("");
@@ -948,6 +1011,16 @@ function ProgressMonitor({ parentId, subjects }: { parentId: string; subjects: S
 
   return (
     <div className="space-y-4">
+      <HowToContextual
+        userId={parentId}
+        shortId="parent-link-student"
+        enabled={howtoEnabled}
+      />
+      <HowToContextual
+        userId={parentId}
+        shortId="parent-progress"
+        enabled={howtoEnabled && Boolean(students?.length)}
+      />
       <form
         onSubmit={(e) => {
           e.preventDefault();

@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import { BookStudio } from "@/components/BookStudio";
 import { DailyLeaderboard } from "@/components/DailyLeaderboard";
 import { GamificationHeader } from "@/components/GamificationHeader";
+import { HowToContextual } from "@/components/howto/HowToContextual";
+import { HowToHelpMenu } from "@/components/howto/HowToHelpMenu";
+import { HowToTour } from "@/components/howto/HowToTour";
 import { ParentLinkCodeCard } from "@/components/ParentLinkCodeCard";
 import { ParentPortal } from "@/components/ParentPortal";
 import { SubjectTabs } from "@/components/SubjectTabs";
@@ -64,6 +67,8 @@ function Dashboard() {
   const [upgradeDob, setUpgradeDob] = useState("");
   const [upgradeConfirm, setUpgradeConfirm] = useState(false);
   const [upgradeBusy, setUpgradeBusy] = useState(false);
+  const [forceTour, setForceTour] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
 
   const current = useMemo(
     () => subjects?.find((s) => s.id === activeSubject) ?? subjects?.[0] ?? null,
@@ -77,6 +82,9 @@ function Dashboard() {
 
   const isParent = canAccessParentPortal(profile?.role);
   const isAdmin = canAccessAdmin(profile?.role);
+  const howtoRole: "student" | "parent" =
+    parentMode && isParent ? "parent" : "student";
+  const tourBlocksContextual = tourActive || forceTour;
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -150,6 +158,13 @@ function Dashboard() {
           {parentMode && isParent ? "Parent Portal" : "Student Portal"}
         </span>
         <div className="flex flex-wrap items-center gap-2">
+          {userId && (
+            <HowToHelpMenu
+              userId={userId}
+              role={howtoRole}
+              onReplayTour={() => setForceTour(true)}
+            />
+          )}
           {isAdmin && (
             <Link
               to="/admin/analytics"
@@ -181,6 +196,16 @@ function Dashboard() {
           </button>
         </div>
       </div>
+
+      {userId && (
+        <HowToTour
+          userId={userId}
+          role={howtoRole}
+          forceRun={forceTour}
+          onForceHandled={() => setForceTour(false)}
+          onTourActiveChange={setTourActive}
+        />
+      )}
 
       {!isParent && showParentUpgrade && (
         <form
@@ -224,9 +249,18 @@ function Dashboard() {
       )}
 
       {parentMode && isParent ? (
-        <ParentPortal userId={userId} subjects={subjects ?? []} />
+        <ParentPortal
+          userId={userId}
+          subjects={subjects ?? []}
+          howtoEnabled={!tourBlocksContextual}
+        />
       ) : (
         <div className="space-y-5">
+          <HowToContextual
+            userId={userId}
+            shortId="student-welcome"
+            enabled={!tourBlocksContextual}
+          />
           <GamificationHeader
             name={profile?.display_name ?? "Explorer"}
             xp={profile?.xp_points ?? 0}
@@ -234,15 +268,32 @@ function Dashboard() {
           />
 
           {(profile?.role ?? "student") === "student" && (
-            <ParentLinkCodeCard
-              linkCode={profile?.link_code}
-              parentContactEmail={profile?.parent_contact_email}
-              studentName={profile?.display_name}
-            />
+            <>
+              <HowToContextual
+                userId={userId}
+                shortId="student-link-code"
+                enabled={!tourBlocksContextual}
+              />
+              <ParentLinkCodeCard
+                linkCode={profile?.link_code}
+                parentContactEmail={profile?.parent_contact_email}
+                studentName={profile?.display_name}
+              />
+            </>
           )}
 
+          <HowToContextual
+            userId={userId}
+            shortId="student-leaderboard"
+            enabled={!tourBlocksContextual}
+          />
           <DailyLeaderboard userId={userId} />
 
+          <HowToContextual
+            userId={userId}
+            shortId="student-subjects"
+            enabled={!tourBlocksContextual}
+          />
           <SubjectTabs
             subjects={subjects ?? []}
             activeId={current?.id}
@@ -255,7 +306,14 @@ function Dashboard() {
 
           <motion.div key={current?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             {isReading ? (
-              <BookStudio userId={userId} />
+              <>
+                <HowToContextual
+                  userId={userId}
+                  shortId="student-books"
+                  enabled={!tourBlocksContextual}
+                />
+                <BookStudio userId={userId} />
+              </>
             ) : (
               <TaskBoard
                 tasks={subjectTasks}
@@ -263,6 +321,7 @@ function Dashboard() {
                 error={tasksError}
                 accent={accentFor(current?.title ?? "")}
                 userId={userId}
+                howtoEnabled={!tourBlocksContextual}
               />
             )}
           </motion.div>

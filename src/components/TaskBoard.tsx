@@ -10,10 +10,11 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { LessonPractice } from "@/components/LessonPractice";
+import { HowToContextual } from "@/components/howto/HowToContextual";
 import { supabase } from "@/integrations/supabase/client";
 import { lessonForUnit } from "@/lib/curriculum";
 import { lessonFromPayload, parseLessonPayload } from "@/lib/lesson-payload";
-import { LessonPractice } from "@/components/LessonPractice";
 
 export function resolveTaskLesson(task: {
   unit_tag?: string | null;
@@ -78,12 +79,14 @@ export function TaskBoard({
   error,
   accent,
   userId,
+  howtoEnabled = true,
 }: {
   tasks: Task[];
   loading: boolean;
   error: boolean;
   accent: string;
   userId: string;
+  howtoEnabled?: boolean;
 }) {
   const { data: progress, isLoading: progressLoading } = useTaskProgress(userId);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
@@ -110,6 +113,11 @@ export function TaskBoard({
   if (tasks.length === 0) {
     return (
       <div className="surface-card p-10 text-center">
+        <HowToContextual
+          userId={userId}
+          shortId="student-subjects"
+          enabled={howtoEnabled}
+        />
         <p className="text-sm font-semibold">No lessons here yet</p>
         <p className="mt-1 text-sm text-muted-foreground">
           A parent can add assignments from the Parent Portal.
@@ -126,6 +134,7 @@ export function TaskBoard({
         userId={userId}
         alreadyCompleted={completedIds.has(activeTask.id)}
         onClose={() => setActiveTaskId(null)}
+        howtoEnabled={howtoEnabled}
       />
     );
   }

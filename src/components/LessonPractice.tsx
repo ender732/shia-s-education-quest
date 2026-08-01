@@ -16,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LessonCoach } from "@/components/LessonCoach";
 import { LessonVideo } from "@/components/LessonVideo";
+import { HowToContextual } from "@/components/howto/HowToContextual";
 import { ScribblePad, type ScribblePadHandle } from "@/components/ScribblePad";
 import { resolveTaskLesson, type Task } from "@/components/TaskBoard";
 import { useDailyActivityTracker } from "@/hooks/useDailyActivityTracker";
@@ -50,12 +51,14 @@ export function LessonPractice({
   userId,
   alreadyCompleted,
   onClose,
+  howtoEnabled = true,
 }: {
   task: Task;
   accent: string;
   userId: string;
   alreadyCompleted: boolean;
   onClose: () => void;
+  howtoEnabled?: boolean;
 }) {
   const resolved = resolveTaskLesson(task);
   const lesson = resolved?.lesson ?? null;
@@ -391,6 +394,11 @@ export function LessonPractice({
 
   return (
     <div className="space-y-4">
+      <HowToContextual
+        userId={userId}
+        shortId="student-lesson"
+        enabled={howtoEnabled}
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           onClick={onClose}
