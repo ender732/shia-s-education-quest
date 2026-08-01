@@ -13,11 +13,10 @@ import {
   rematchLessonVideos,
 } from "@/lib/lesson-draft.functions";
 import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
+import { MASTERY_SCORE_MIN } from "@/lib/task-progress";
 import { FeedbackCard, removeAssignedBook, useBooks, type AssignedBook } from "./BookStudio";
 import { HowToContextual } from "@/components/howto/HowToContextual";
 import { resolveTaskLesson, useTasks, type Task } from "./TaskBoard";
-
-const MASTERY_SCORE_MIN = 70;
 
 const BOOKS_BUCKET = "assigned-books";
 const LESSON_WORKSHEETS_BUCKET = "lesson-worksheets";
@@ -1037,9 +1036,14 @@ function ProgressMonitor({
     0,
   );
   const studyMinutes = Math.round(totalStudySeconds / 60);
+  const scoredAttempts = (progress ?? []).reduce(
+    (sum, row) => sum + Math.max(0, row.attempt_count ?? (row.score != null ? 1 : 0)),
+    0,
+  );
   const quizAttempts = (studyActivity ?? []).filter(
     (row) => row.best_score != null,
   ).length;
+  const attemptDisplay = scoredAttempts > 0 ? scoredAttempts : quizAttempts;
   const masteredCount = masteredIds.size;
   const hasMasteryData = masteredCount > 0;
 
@@ -1181,11 +1185,11 @@ function ProgressMonitor({
               Based on practice quizzes scored at {MASTERY_SCORE_MIN}% or higher
               {selectedId === "all" ? " (all linked students)." : "."}
             </p>
-            {(studyMinutes > 0 || quizAttempts > 0) && (
+            {(studyMinutes > 0 || attemptDisplay > 0) && (
               <p className="mt-2 text-xs text-muted-foreground">
                 Study time: <span className="font-semibold text-foreground">{studyMinutes} min</span>
-                {quizAttempts > 0
-                  ? ` · ${quizAttempts} quiz attempt${quizAttempts === 1 ? "" : "s"} recorded`
+                {attemptDisplay > 0
+                  ? ` · ${attemptDisplay} quiz attempt${attemptDisplay === 1 ? "" : "s"} recorded`
                   : " · no quiz submitted yet"}
               </p>
             )}
@@ -1252,19 +1256,23 @@ function ProgressMonitor({
               {(tasks ?? [])
                 .filter((t: Task) => !t.is_draft)
                 .map((t: Task) => {
-                const row = progress?.find(
-                  (p) => p.task_id === t.id && p.score >= MASTERY_SCORE_MIN,
-                );
+                const row = progress?.find((p) => p.task_id === t.id);
+                const mastered = row && row.score >= MASTERY_SCORE_MIN;
+                const attempts = row?.attempt_count ?? 0;
                 const attempt = (studyActivity ?? [])
                   .filter((a) => a.task_id === t.id)
                   .sort((a, b) => (b.best_score ?? -1) - (a.best_score ?? -1))[0];
-                const status = row
-                  ? `mastered at ${row.score}%`
-                  : attempt?.best_score != null
-                    ? `best attempt ${attempt.best_score}% (needs ${MASTERY_SCORE_MIN}%+)`
-                    : attempt && attempt.seconds_spent > 0
-                      ? "opened — quiz not finished"
-                      : "not mastered yet";
+                const status = mastered
+                  ? row!.score >= 100
+                    ? `perfect ${row!.score}% · ${attempts} attempt${attempts === 1 ? "" : "s"}`
+                    : `mastered at ${row!.score}% · ${attempts} attempt${attempts === 1 ? "" : "s"} · retry for 100%`
+                  : row
+                    ? `best ${row.score}% · ${attempts} attempt${attempts === 1 ? "" : "s"} (needs ${MASTERY_SCORE_MIN}%+)`
+                    : attempt?.best_score != null
+                      ? `best attempt ${attempt.best_score}% (needs ${MASTERY_SCORE_MIN}%+)`
+                      : attempt && attempt.seconds_spent > 0
+                        ? "opened — quiz not finished"
+                        : "not mastered yet";
                 const canRemove = t.created_by === parentId;
                 return (
                   <div

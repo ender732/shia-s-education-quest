@@ -391,9 +391,11 @@ export type Database = {
       task_progress: {
         Row: {
           answers: Json
+          attempt_count: number
           completed_at: string
           correct_count: number
           id: string
+          last_attempt_at: string
           score: number
           task_id: string
           total_count: number
@@ -402,9 +404,11 @@ export type Database = {
         }
         Insert: {
           answers?: Json
+          attempt_count?: number
           completed_at?: string
           correct_count?: number
           id?: string
+          last_attempt_at?: string
           score?: number
           task_id: string
           total_count?: number
@@ -413,9 +417,11 @@ export type Database = {
         }
         Update: {
           answers?: Json
+          attempt_count?: number
           completed_at?: string
           correct_count?: number
           id?: string
+          last_attempt_at?: string
           score?: number
           task_id?: string
           total_count?: number

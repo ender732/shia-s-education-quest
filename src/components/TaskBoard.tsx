@@ -46,6 +46,8 @@ export type TaskProgress = {
   score: number;
   xp_awarded: number;
   completed_at: string;
+  attempt_count?: number;
+  last_attempt_at?: string;
 };
 
 export function useTasks() {
@@ -73,6 +75,12 @@ export function useTaskProgress(userId?: string) {
   });
 }
 
+function progressRank(score: number | undefined): number {
+  if (score == null || score < 70) return 0; // not mastered — top
+  if (score < 100) return 1; // mastered, retry for 100%
+  return 2; // perfect — bottom
+}
+
 export function TaskBoard({
   tasks,
   loading,
@@ -91,8 +99,12 @@ export function TaskBoard({
   const { data: progress, isLoading: progressLoading } = useTaskProgress(userId);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
-  const completedIds = new Set((progress ?? []).map((p) => p.task_id));
+  const progressByTask = new Map((progress ?? []).map((p) => [p.task_id, p]));
+  const masteredIds = new Set(
+    (progress ?? []).filter((p) => p.score >= 70).map((p) => p.task_id),
+  );
   const activeTask = tasks.find((t) => t.id === activeTaskId) ?? null;
+  const activeProgress = activeTask ? progressByTask.get(activeTask.id) : undefined;
 
   if (loading || progressLoading) {
     return (
@@ -132,20 +144,22 @@ export function TaskBoard({
         task={activeTask}
         accent={accent}
         userId={userId}
-        alreadyCompleted={completedIds.has(activeTask.id)}
+        alreadyCompleted={masteredIds.has(activeTask.id)}
+        bestScore={activeProgress?.score ?? null}
+        attemptCount={activeProgress?.attempt_count ?? 0}
         onClose={() => setActiveTaskId(null)}
         howtoEnabled={howtoEnabled}
       />
     );
   }
 
-  const doneCount = tasks.filter((t) => completedIds.has(t.id)).length;
+  const doneCount = tasks.filter((t) => masteredIds.has(t.id)).length;
 
-  // Incomplete lessons first so students don't scroll past finished work to continue.
+  // Incomplete first, then mastered-but-not-perfect, then perfect 100%.
   const sortedTasks = [...tasks].sort((a, b) => {
-    const aDone = completedIds.has(a.id) ? 1 : 0;
-    const bDone = completedIds.has(b.id) ? 1 : 0;
-    if (aDone !== bDone) return aDone - bDone;
+    const aRank = progressRank(progressByTask.get(a.id)?.score);
+    const bRank = progressRank(progressByTask.get(b.id)?.score);
+    if (aRank !== bRank) return aRank - bRank;
     return 0;
   });
 
@@ -164,10 +178,12 @@ export function TaskBoard({
       <div className="grid gap-3 sm:grid-cols-2">
         <AnimatePresence initial={false}>
           {sortedTasks.map((task) => {
-            const done = completedIds.has(task.id);
+            const row = progressByTask.get(task.id);
+            const done = masteredIds.has(task.id);
+            const perfect = (row?.score ?? 0) >= 100;
+            const attempts = row?.attempt_count ?? 0;
             const resolved = resolveTaskLesson(task);
             const lesson = resolved?.lesson;
-            const progressRow = progress?.find((p) => p.task_id === task.id);
             return (
               <motion.button
                 key={task.id}
@@ -187,7 +203,9 @@ export function TaskBoard({
                   style={{ backgroundColor: `var(--${accent})` }}
                 />
                 <div className="flex items-start gap-3 pl-2">
-                  {done ? (
+                  {perfect ? (
+                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-xp" />
+                  ) : done ? (
                     <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" />
                   ) : (
                     <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
@@ -211,13 +229,29 @@ export function TaskBoard({
                       <span className="inline-flex items-center gap-1 rounded-md bg-background/70 px-2 py-1 text-[10px] font-bold text-xp">
                         <Zap className="size-3" />+{task.xp_reward} XP
                       </span>
-                      {done && progressRow && (
-                        <span className="rounded-md bg-success/15 px-2 py-1 text-[10px] font-bold text-success">
-                          Best {progressRow.score}%
+                      {attempts > 0 && (
+                        <span className="rounded-md bg-secondary px-2 py-1 text-[10px] font-bold text-secondary-foreground">
+                          {attempts} attempt{attempts === 1 ? "" : "s"}
+                        </span>
+                      )}
+                      {row && (
+                        <span
+                          className={`rounded-md px-2 py-1 text-[10px] font-bold ${
+                            perfect
+                              ? "bg-xp/15 text-xp"
+                              : done
+                                ? "bg-success/15 text-success"
+                                : "bg-background/70 text-muted-foreground"
+                          }`}
+                        >
+                          Best {row.score}%
+                          {done && !perfect ? " · retry for 100%" : ""}
+                          {perfect ? " · perfect" : ""}
                         </span>
                       )}
                       <span className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-1 text-[10px] font-bold text-primary opacity-0 transition group-hover:opacity-100">
-                        <Play className="size-3" /> {done ? "Review" : "Start"}
+                        <Play className="size-3" />{" "}
+                        {perfect ? "Review" : done ? "Retry for 100%" : "Start"}
                       </span>
                     </div>
                   </div>

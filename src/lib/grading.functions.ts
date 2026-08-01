@@ -176,54 +176,47 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
     const combinedScore = Math.round((data.quizScore + feedback.score) / 2);
     const mastered = worksheetPassed && data.quizScore >= MASTERY_MIN;
 
-    let xpAwarded = 0;
-    let alreadyMastered = false;
+    const { saveTaskProgress } = await import("./task-progress");
+    const progressResult = await saveTaskProgress({
+      userId,
+      taskId: data.taskId,
+      score: combinedScore,
+      correctCount: Math.round((combinedScore / 100) * (fields.length + 5)),
+      totalCount: fields.length + 5,
+      xpAwarded: mastered ? task.xp_reward : 0,
+      answers: {
+        quizScore: data.quizScore,
+        worksheetScore: feedback.score,
+        worksheetAnswers: normalizedAnswers,
+      },
+    });
+
+    const xpAwarded = progressResult.awarded;
+    const alreadyMastered =
+      progressResult.alreadyAwardedXp && progressResult.awarded === 0;
     let newXp: number | null = null;
 
-    if (mastered) {
-      const existing = await supabase
-        .from("task_progress")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("task_id", data.taskId)
+    if (xpAwarded > 0) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("xp_points")
+        .eq("id", userId)
         .maybeSingle();
-
-      if (existing.data) {
-        alreadyMastered = true;
-      } else {
-        xpAwarded = task.xp_reward;
-        const { error: progressError } = await supabase.from("task_progress").insert({
-          user_id: userId,
-          task_id: data.taskId,
-          score: combinedScore,
-          correct_count: Math.round((combinedScore / 100) * (fields.length + 5)),
-          total_count: fields.length + 5,
-          xp_awarded: xpAwarded,
-          answers: {
-            quizScore: data.quizScore,
-            worksheetScore: feedback.score,
-            worksheetAnswers: normalizedAnswers,
-          } as never,
-        });
-        if (progressError) {
-          console.error("[gradeWorksheet] task_progress", progressError.message);
-          throw new Error("Could not save mastery progress. Please try again.");
-        }
-
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("xp_points")
-          .eq("id", userId)
-          .maybeSingle();
-        newXp = (profile?.xp_points ?? 0) + xpAwarded;
-        const { error: xpError } = await supabase
-          .from("profiles")
-          .update({ xp_points: newXp, level: levelForXp(newXp) })
-          .eq("id", userId);
-        if (xpError) {
-          console.error("[gradeWorksheet] xp update failed", xpError.message);
-        }
+      newXp = (profile?.xp_points ?? 0) + xpAwarded;
+      const { error: xpError } = await supabase
+        .from("profiles")
+        .update({ xp_points: newXp, level: levelForXp(newXp) })
+        .eq("id", userId);
+      if (xpError) {
+        console.error("[gradeWorksheet] xp update failed", xpError.message);
       }
+    } else if (mastered) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("xp_points")
+        .eq("id", userId)
+        .maybeSingle();
+      newXp = profile?.xp_points ?? null;
     }
 
     const { data: submission, error: subError } = await supabase
@@ -254,5 +247,8 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
       xpAwarded,
       alreadyMastered,
       newXp,
+      attemptCount: progressResult.attemptCount,
+      bestScore: progressResult.bestScore,
+      isPerfect: progressResult.isPerfect,
     };
   });

@@ -51,6 +51,8 @@ export function LessonPractice({
   accent,
   userId,
   alreadyCompleted,
+  bestScore: initialBestScore = null,
+  attemptCount: initialAttemptCount = 0,
   onClose,
   howtoEnabled = true,
 }: {
@@ -58,6 +60,8 @@ export function LessonPractice({
   accent: string;
   userId: string;
   alreadyCompleted: boolean;
+  bestScore?: number | null;
+  attemptCount?: number;
   onClose: () => void;
   howtoEnabled?: boolean;
 }) {
@@ -84,6 +88,13 @@ export function LessonPractice({
   const [worksheetScore, setWorksheetScore] = useState<number | null>(null);
   const [masteryXp, setMasteryXp] = useState(0);
   const [levelUp, setLevelUp] = useState<LevelUpInfo | null>(null);
+  const [attemptCount, setAttemptCount] = useState(initialAttemptCount);
+  const [bestScore, setBestScore] = useState<number | null>(initialBestScore);
+
+  useEffect(() => {
+    setAttemptCount(initialAttemptCount);
+    setBestScore(initialBestScore);
+  }, [task.id, initialAttemptCount, initialBestScore]);
 
   useEffect(() => {
     void trackEvent("lesson_open", {
@@ -127,9 +138,17 @@ export function LessonPractice({
         subjectId: task.subject_id,
       });
 
-      // Curriculum lessons without fillable worksheets: mastery on quiz pass.
-      if (needsWorksheet || !lesson || alreadyCompleted || !payloadScore.passed) {
-        return { awarded: 0, previousXp: 0, newXp: 0 };
+      // Always record the attempt (pass or fail). XP only on first mastery.
+      if (needsWorksheet || !lesson) {
+        return {
+          awarded: 0,
+          previousXp: 0,
+          newXp: 0,
+          attemptCount: 0,
+          bestScore: 0,
+          improved: false,
+          isPerfect: false,
+        };
       }
 
       const { saveTaskProgress } = await import("@/lib/task-progress");
@@ -139,39 +158,55 @@ export function LessonPractice({
         score: payloadScore.score,
         correctCount: payloadScore.correctCount,
         totalCount: payloadScore.total,
-        xpAwarded: task.xp_reward,
+        xpAwarded: payloadScore.passed ? task.xp_reward : 0,
         answers: payloadScore.records,
       });
 
-      if (result.already || result.awarded <= 0) {
-        return { awarded: 0, previousXp: 0, newXp: 0 };
+      let previousXp = 0;
+      let newXp = 0;
+      if (result.awarded > 0) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("xp_points")
+          .eq("id", userId)
+          .maybeSingle();
+
+        previousXp = profile?.xp_points ?? 0;
+        newXp = previousXp + result.awarded;
+        const { error: xpError } = await supabase
+          .from("profiles")
+          .update({ xp_points: newXp, level: levelForXp(newXp) })
+          .eq("id", userId);
+        if (xpError) throw xpError;
       }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("xp_points")
-        .eq("id", userId)
-        .maybeSingle();
-
-      const previousXp = profile?.xp_points ?? 0;
-      const newXp = previousXp + result.awarded;
-      const { error: xpError } = await supabase
-        .from("profiles")
-        .update({ xp_points: newXp, level: levelForXp(newXp) })
-        .eq("id", userId);
-      if (xpError) throw xpError;
-
-      return { awarded: result.awarded, previousXp, newXp };
+      return {
+        awarded: result.awarded,
+        previousXp,
+        newXp,
+        attemptCount: result.attemptCount,
+        bestScore: result.bestScore,
+        improved: result.improved,
+        isPerfect: result.isPerfect,
+      };
     },
-    onSuccess: ({ awarded, previousXp }) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["task_progress", userId] });
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       queryClient.invalidateQueries({ queryKey: [DAILY_LEADERBOARD_QUERY_KEY] });
-      if (awarded > 0) {
+      if (result.attemptCount > 0) {
+        setAttemptCount(result.attemptCount);
+        setBestScore(result.bestScore);
+      }
+      if (result.awarded > 0) {
         void celebrate();
-        toast.success(`Lesson mastered! +${awarded} XP`);
-        const up = detectLevelUp(previousXp, awarded);
+        toast.success(`Lesson mastered! +${result.awarded} XP`);
+        const up = detectLevelUp(result.previousXp, result.awarded);
         if (up) setLevelUp(up);
+      } else if (result.improved && result.bestScore >= 100) {
+        toast.success("Perfect score — 100%! Great persistence.");
+      } else if (result.improved) {
+        toast.success(`New best score: ${result.bestScore}%`);
       }
     },
     onError: (err: Error) => {
@@ -231,9 +266,24 @@ export function LessonPractice({
           if (up) setLevelUp(up);
         }
       } else if (result.passed && result.alreadyMastered) {
-        toast.success("Nice review — XP was already earned earlier.");
+        if (result.isPerfect) {
+          toast.success("Perfect score — 100%! Great persistence.");
+        } else if (
+          typeof result.bestScore === "number" &&
+          result.bestScore > (bestScore ?? 0)
+        ) {
+          toast.success(`New best score: ${result.bestScore}% — keep going for 100%.`);
+        } else {
+          toast.success("Nice review — XP was already earned earlier.");
+        }
       } else if (!result.passed) {
         toast.message("Keep practicing — score at least 70% on the worksheet to master this lesson.");
+      }
+      if (typeof result.attemptCount === "number") {
+        setAttemptCount(result.attemptCount);
+      }
+      if (typeof result.bestScore === "number") {
+        setBestScore(result.bestScore);
       }
     },
     onError: (err: Error) => {
@@ -497,7 +547,30 @@ export function LessonPractice({
                     feedback. You need {lesson.passPercent}%+ on both to earn XP.
                   </p>
                 )}
-                {alreadyCompleted && (
+                {(attemptCount > 0 || bestScore != null) && (
+                  <p className="text-center text-xs text-muted-foreground">
+                    {attemptCount > 0
+                      ? `${attemptCount} attempt${attemptCount === 1 ? "" : "s"}`
+                      : "No attempts yet"}
+                    {bestScore != null ? ` · best score ${bestScore}%` : ""}
+                    {bestScore != null && bestScore >= 100
+                      ? " · perfect!"
+                      : bestScore != null && bestScore >= (lesson.passPercent ?? 70)
+                        ? " · retry anytime for 100%"
+                        : ""}
+                  </p>
+                )}
+                {alreadyCompleted && bestScore != null && bestScore < 100 && (
+                  <p className="text-center text-xs font-semibold text-xp">
+                    Mastered at {bestScore}% — retake the quiz to push for a perfect 100%.
+                  </p>
+                )}
+                {alreadyCompleted && bestScore != null && bestScore >= 100 && (
+                  <p className="text-center text-xs text-success">
+                    Perfect score unlocked. You can still practice again anytime.
+                  </p>
+                )}
+                {alreadyCompleted && bestScore == null && (
                   <p className="text-center text-xs text-success">
                     You already mastered this lesson. You can still practice again.
                   </p>
@@ -691,12 +764,28 @@ export function LessonPractice({
 
                 {passed ? (
                   <div className="rounded-xl border border-success/40 bg-success/10 p-4 text-sm">
-                    <p className="font-bold text-success">Lesson mastered</p>
+                    <p className="font-bold text-success">
+                      {effectiveQuizScore >= 100 ||
+                      (needsWorksheet &&
+                        worksheetScore != null &&
+                        Math.round((effectiveQuizScore + worksheetScore) / 2) >= 100)
+                        ? "Perfect score!"
+                        : "Lesson mastered"}
+                    </p>
                     <p className="mt-1 text-muted-foreground">
-                      {alreadyCompleted || (needsWorksheet && masteryXp === 0 && worksheetScore != null)
-                        ? "Nice review — XP was already earned earlier."
+                      {alreadyCompleted ||
+                      (needsWorksheet && masteryXp === 0 && worksheetScore != null)
+                        ? bestScore != null && bestScore < 100
+                          ? `Nice work — best so far ${bestScore}%. Retry to reach 100%.`
+                          : "Nice review — XP was already earned earlier."
                         : `You earned +${needsWorksheet ? masteryXp || task.xp_reward : task.xp_reward} XP for learning this skill.`}
                     </p>
+                    {attemptCount > 0 && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Attempts: {attemptCount}
+                        {bestScore != null ? ` · Best: ${bestScore}%` : ""}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
@@ -706,6 +795,12 @@ export function LessonPractice({
                         ? `You need at least ${lesson.passPercent}% on the worksheet. Review the AI feedback and try again — the lesson stays available.`
                         : `You need at least ${lesson.passPercent}% to complete this lesson and earn XP. Review the teaching notes and try again.`}
                     </p>
+                    {attemptCount > 0 && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Attempts: {attemptCount}
+                        {bestScore != null ? ` · Best: ${bestScore}%` : ""}
+                      </p>
+                    )}
                   </div>
                 )}
                 <div className="flex flex-wrap justify-center gap-2">
@@ -721,7 +816,10 @@ export function LessonPractice({
                       onClick={resetQuiz}
                       className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
                     >
-                      <RotateCcw className="size-4" /> Try again
+                      <RotateCcw className="size-4" />{" "}
+                      {passed && bestScore != null && bestScore < 100
+                        ? "Retry for 100%"
+                        : "Try again"}
                     </button>
                   )}
                   <button
