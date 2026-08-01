@@ -6,7 +6,9 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { celebrate } from "@/lib/confetti";
+import { detectLevelUp, type LevelUpInfo } from "@/lib/gamification";
 import { gradeBookReport } from "@/lib/grading.functions";
+import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 
 // Keep react-pdf / pdfjs-dist out of the Netlify SSR module graph.
 const PdfReader = lazy(() =>
@@ -88,6 +90,7 @@ export function BookStudio({ userId }: { userId: string }) {
   const [chapter, setChapter] = useState("");
   const [reportText, setReportText] = useState("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [levelUp, setLevelUp] = useState<LevelUpInfo | null>(null);
 
   const selected = useMemo(
     () => books?.find((b) => b.id === selectedId) ?? books?.[0] ?? null,
@@ -126,6 +129,11 @@ export function BookStudio({ userId }: { userId: string }) {
       toast.success(`Graded! +${result.xpAwarded} XP earned`);
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       queryClient.invalidateQueries({ queryKey: ["book_reports"] });
+      if (typeof result.newXp === "number" && result.xpAwarded > 0) {
+        const previousXp = result.newXp - result.xpAwarded;
+        const up = detectLevelUp(previousXp, result.xpAwarded);
+        if (up) setLevelUp(up);
+      }
     },
     onError: (err: Error) => toast.error(err.message || "Grading failed. Try again."),
   });
@@ -158,6 +166,7 @@ export function BookStudio({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
+      <LevelUpCelebration info={levelUp} onClose={() => setLevelUp(null)} />
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" /> Loading your library…

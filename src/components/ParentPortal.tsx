@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookUp, FileUp, Link2, Loader2, Plus, Trash2, Unlink } from "lucide-react";
+import { BookUp, FileUp, Link2, Loader2, Plus, RefreshCw, Trash2, Unlink } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import {
   discardLessonDraft,
   generateLessonDraftFromPdf,
   publishLessonDraft,
+  rematchLessonVideos,
 } from "@/lib/lesson-draft.functions";
 import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
 import { FeedbackCard, removeAssignedBook, useBooks, type AssignedBook } from "./BookStudio";
@@ -77,10 +78,8 @@ export function ParentPortal({
         subjects={subjects}
         howtoEnabled={howtoEnabled}
       />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <TaskCreator userId={userId} subjects={subjects} howtoEnabled={howtoEnabled} />
-        <BookUploader userId={userId} howtoEnabled={howtoEnabled} />
-      </div>
+      <BookUploader userId={userId} howtoEnabled={howtoEnabled} />
+      <TaskCreator userId={userId} subjects={subjects} howtoEnabled={howtoEnabled} />
       <ProgressMonitor
         parentId={userId}
         subjects={subjects}
@@ -461,11 +460,11 @@ function TaskCreator({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Task published to the student portal.");
+      toast.success("Built-in lesson assigned to the student portal.");
       setForm({ subject_id: form.subject_id, title: "", description: "", unit_tag: "", xp_reward: 100 });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (err: Error) => toast.error(err.message || "Could not publish that task."),
+    onError: (err: Error) => toast.error(err.message || "Could not assign that lesson."),
   });
 
   return (
@@ -475,86 +474,109 @@ function TaskCreator({
         shortId="parent-tasks-books"
         enabled={howtoEnabled}
       />
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        create.mutate();
-      }}
-      className="surface-card space-y-3 p-5"
-    >
-      <h3 className="flex items-center gap-2 text-sm font-bold">
-        <Plus className="size-4 text-primary" /> Curriculum Task Creator
-      </h3>
-      <Field label="Subject">
-        <select
-          value={form.subject_id}
-          onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
-          className="input-base"
-          required
+      <details className="surface-card group overflow-hidden">
+        <summary className="cursor-pointer list-none p-5 marker:content-none [&::-webkit-details-marker]:hidden">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="flex items-center gap-2 text-sm font-bold">
+                <Plus className="size-4 shrink-0 text-muted-foreground" />
+                Advanced: assign a built-in curriculum lesson
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Optional. Use this only to assign an existing Grade 5 unit already in the library
+                (by unit tag). For custom worksheets, use{" "}
+                <span className="font-medium text-foreground/80">AI lesson draft from PDF</span>{" "}
+                above instead.
+              </p>
+            </div>
+            <span className="mt-0.5 shrink-0 text-xs font-semibold text-muted-foreground group-open:hidden">
+              Show
+            </span>
+            <span className="mt-0.5 hidden shrink-0 text-xs font-semibold text-muted-foreground group-open:inline">
+              Hide
+            </span>
+          </div>
+        </summary>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            create.mutate();
+          }}
+          className="space-y-3 border-t border-border px-5 pb-5 pt-4"
         >
-          <option value="">Choose a subject…</option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.title}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Field label="Task title">
-        <input
-          className="input-base"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          placeholder="Fractions with unlike denominators — set B"
-          required
-        />
-      </Field>
-      <Field label="Description">
-        <textarea
-          className="input-base min-h-20"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          placeholder="What should the student do?"
-        />
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="P.S. 187 unit tag">
-          <input
-            className="input-base"
-            value={form.unit_tag}
-            onChange={(e) => setForm({ ...form, unit_tag: e.target.value })}
-            placeholder="187_MATH_FRACTIONS"
-            list="hudson-cliffs-unit-tags"
-          />
-          <datalist id="hudson-cliffs-unit-tags">
-            {CURRICULUM_UNIT_TAGS.map((tag) => (
-              <option key={tag} value={tag} />
-            ))}
-          </datalist>
-        </Field>
-        <Field label="XP reward">
-          <input
-            type="number"
-            min={10}
-            step={10}
-            className="input-base"
-            value={form.xp_reward}
-            onChange={(e) => setForm({ ...form, xp_reward: Number(e.target.value) })}
-          />
-        </Field>
-      </div>
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
-        NYC Grade 5 / Hudson Cliffs unit tags (pick from the list):{" "}
-        {CURRICULUM_UNIT_TAGS.join(", ")}.
-      </p>
-      <button
-        type="submit"
-        disabled={create.isPending}
-        className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
-      >
-        {create.isPending ? "Publishing…" : "Publish task"}
-      </button>
-    </form>
+          <Field label="Subject">
+            <select
+              value={form.subject_id}
+              onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
+              className="input-base"
+              required
+            >
+              <option value="">Choose a subject…</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Task title">
+            <input
+              className="input-base"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Extra practice: unlike denominators"
+              required
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              className="input-base min-h-20"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Optional note for the student"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Built-in unit tag">
+              <input
+                className="input-base"
+                value={form.unit_tag}
+                onChange={(e) => setForm({ ...form, unit_tag: e.target.value })}
+                placeholder="187_MATH_FRACTIONS"
+                list="hudson-cliffs-unit-tags"
+                required
+              />
+              <datalist id="hudson-cliffs-unit-tags">
+                {CURRICULUM_UNIT_TAGS.map((tag) => (
+                  <option key={tag} value={tag} />
+                ))}
+              </datalist>
+            </Field>
+            <Field label="XP reward">
+              <input
+                type="number"
+                min={10}
+                step={10}
+                className="input-base"
+                value={form.xp_reward}
+                onChange={(e) => setForm({ ...form, xp_reward: Number(e.target.value) })}
+              />
+            </Field>
+          </div>
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            Links the student to a pre-made lesson quiz/video (not a new PDF worksheet). Tags:{" "}
+            {CURRICULUM_UNIT_TAGS.join(", ")}.
+          </p>
+          <button
+            type="submit"
+            disabled={create.isPending}
+            className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-bold transition hover:bg-secondary disabled:opacity-60"
+          >
+            {create.isPending ? "Assigning…" : "Assign built-in lesson"}
+          </button>
+        </form>
+      </details>
     </>
   );
 }
@@ -808,6 +830,7 @@ function ProgressMonitor({
 }) {
   const { data: tasks } = useTasks();
   const queryClient = useQueryClient();
+  const rematchFn = useServerFn(rematchLessonVideos);
   const [linkCode, setLinkCode] = useState("");
   const [selectedId, setSelectedId] = useState<string | "all">("all");
   const [schemaMissing, setSchemaMissing] = useState(false);
@@ -961,6 +984,31 @@ function ProgressMonitor({
     onError: (err: Error) => toast.error(err.message || "Could not remove task."),
   });
 
+  const rematchVideos = useMutation({
+    mutationFn: async () => rematchFn({ data: {} }),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      const updated = result?.updated ?? 0;
+      const scanned = result?.scanned ?? 0;
+      if (updated === 0) {
+        toast.success(
+          scanned
+            ? `Checked ${scanned} worksheet lesson${scanned === 1 ? "" : "s"} — videos already look right.`
+            : "No worksheet lessons found to update.",
+        );
+        return;
+      }
+      toast.success(
+        `Updated videos on ${updated} of ${scanned} worksheet lesson${scanned === 1 ? "" : "s"}.`,
+      );
+    },
+    onError: (err: Error) =>
+      toast.error(err.message || "Could not refresh lesson videos."),
+  });
+
+  const worksheetLessonCount = (tasks ?? []).filter(
+    (t: Task) => t.created_by === parentId && Boolean(t.lesson_payload),
+  ).length;
   const masteredIds = new Set(
     (progress ?? [])
       .filter((p) => p.score >= MASTERY_SCORE_MIN)
@@ -1180,6 +1228,25 @@ function ProgressMonitor({
             <p className="mt-1 text-xs text-muted-foreground">
               Curriculum lessons stay in the library. You can only remove tasks you published
               yourself.
+            </p>
+            {worksheetLessonCount > 0 && (
+              <button
+                type="button"
+                onClick={() => rematchVideos.mutate()}
+                disabled={rematchVideos.isPending}
+                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold transition hover:bg-secondary disabled:opacity-60"
+              >
+                {rematchVideos.isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-3.5" />
+                )}
+                Fix worksheet videos
+              </button>
+            )}
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Re-matches YouTube explainers for your uploaded worksheets (for example magnetism →
+              magnets, not ecosystems).
             </p>
             <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
               {(tasks ?? [])

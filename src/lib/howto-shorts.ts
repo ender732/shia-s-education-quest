@@ -293,8 +293,9 @@ export const HOWTO_SHORTS: HowToShort[] = [
     scenes: [
       {
         icon: "graduation",
-        caption: "Create a task from curriculum units when you want a built-in lesson.",
-        emphasis: "Tasks",
+        caption:
+          "Optional advanced tool: assign a built-in Grade 5 unit by tag. Prefer AI PDF drafts for custom worksheets.",
+        emphasis: "Built-in units",
       },
       {
         icon: "book",

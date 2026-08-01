@@ -141,6 +141,14 @@ export function TaskBoard({
 
   const doneCount = tasks.filter((t) => completedIds.has(t.id)).length;
 
+  // Incomplete lessons first so students don't scroll past finished work to continue.
+  const sortedTasks = [...tasks].sort((a, b) => {
+    const aDone = completedIds.has(a.id) ? 1 : 0;
+    const bDone = completedIds.has(b.id) ? 1 : 0;
+    if (aDone !== bDone) return aDone - bDone;
+    return 0;
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
@@ -155,7 +163,7 @@ export function TaskBoard({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <AnimatePresence initial={false}>
-          {tasks.map((task) => {
+          {sortedTasks.map((task) => {
             const done = completedIds.has(task.id);
             const resolved = resolveTaskLesson(task);
             const lesson = resolved?.lesson;

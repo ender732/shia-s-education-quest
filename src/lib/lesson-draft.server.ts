@@ -2,7 +2,7 @@ import { generateGeminiJson } from "@/lib/gemini.server";
 import { parseLessonPayload, type LessonPayload } from "@/lib/lesson-payload";
 import {
   buildFallbackTranscript,
-  matchLessonVideo,
+  attachMatchedVideoToPayload,
 } from "@/lib/lesson-videos";
 import { isValidYoutubeId } from "@/lib/youtube";
 
@@ -210,24 +210,11 @@ export async function draftLessonFromPdfText(input: {
     payload.youtubeChannel = undefined;
   }
 
-  const matched = matchLessonVideo({
-    title: payload.title,
-    teach: payload.teach,
-    tip: payload.tip,
-    unitTag: payload.unitTag,
+  const withVideo = attachMatchedVideoToPayload(payload, {
     subjectHint: input.subjectHint,
     pdfExcerpt: input.pdfText,
   });
-
-  if (matched) {
-    payload.youtubeVideoId = matched.youtubeVideoId;
-    payload.youtubeTitle = matched.youtubeTitle;
-    payload.youtubeChannel = matched.youtubeChannel;
-    // Prefer draft transcript when present; otherwise use the catalog reading text.
-    if (!payload.transcript?.trim()) {
-      payload.transcript = matched.transcript;
-    }
-  }
+  Object.assign(payload, withVideo);
 
   if (!payload.transcript?.trim()) {
     payload.transcript = buildFallbackTranscript({

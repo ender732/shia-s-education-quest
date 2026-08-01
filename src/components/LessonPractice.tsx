@@ -25,7 +25,7 @@ import { trackEvent } from "@/lib/analytics";
 import { celebrate } from "@/lib/confetti";
 import { checkAnswer, type Question } from "@/lib/curriculum";
 import { DAILY_LEADERBOARD_QUERY_KEY, upsertDailyScore } from "@/lib/daily-activity";
-import { levelForXp } from "@/lib/gamification";
+import { detectLevelUp, levelForXp, type LevelUpInfo } from "@/lib/gamification";
 import { gradeWorksheet } from "@/lib/grading.functions";
 import {
   fieldAnswerHasContent,
@@ -36,6 +36,7 @@ import {
   type WorksheetField,
   type WorksheetFieldAnswer,
 } from "@/lib/lesson-payload";
+import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 
 type Phase = "teach" | "quiz" | "worksheet" | "results";
 
@@ -82,6 +83,7 @@ export function LessonPractice({
   const [worksheetFeedback, setWorksheetFeedback] = useState<WorksheetAiFeedback | null>(null);
   const [worksheetScore, setWorksheetScore] = useState<number | null>(null);
   const [masteryXp, setMasteryXp] = useState(0);
+  const [levelUp, setLevelUp] = useState<LevelUpInfo | null>(null);
 
   useEffect(() => {
     void trackEvent("lesson_open", {
@@ -127,7 +129,7 @@ export function LessonPractice({
 
       // Curriculum lessons without fillable worksheets: mastery on quiz pass.
       if (needsWorksheet || !lesson || alreadyCompleted || !payloadScore.passed) {
-        return { awarded: 0 };
+        return { awarded: 0, previousXp: 0, newXp: 0 };
       }
 
       const { saveTaskProgress } = await import("@/lib/task-progress");
@@ -141,7 +143,9 @@ export function LessonPractice({
         answers: payloadScore.records,
       });
 
-      if (result.already || result.awarded <= 0) return { awarded: 0 };
+      if (result.already || result.awarded <= 0) {
+        return { awarded: 0, previousXp: 0, newXp: 0 };
+      }
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -149,22 +153,25 @@ export function LessonPractice({
         .eq("id", userId)
         .maybeSingle();
 
-      const newXp = (profile?.xp_points ?? 0) + result.awarded;
+      const previousXp = profile?.xp_points ?? 0;
+      const newXp = previousXp + result.awarded;
       const { error: xpError } = await supabase
         .from("profiles")
         .update({ xp_points: newXp, level: levelForXp(newXp) })
         .eq("id", userId);
       if (xpError) throw xpError;
 
-      return { awarded: result.awarded };
+      return { awarded: result.awarded, previousXp, newXp };
     },
-    onSuccess: ({ awarded }) => {
+    onSuccess: ({ awarded, previousXp }) => {
       queryClient.invalidateQueries({ queryKey: ["task_progress", userId] });
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       queryClient.invalidateQueries({ queryKey: [DAILY_LEADERBOARD_QUERY_KEY] });
       if (awarded > 0) {
         void celebrate();
         toast.success(`Lesson mastered! +${awarded} XP`);
+        const up = detectLevelUp(previousXp, awarded);
+        if (up) setLevelUp(up);
       }
     },
     onError: (err: Error) => {
@@ -218,6 +225,11 @@ export function LessonPractice({
       if (result.passed && result.xpAwarded > 0) {
         void celebrate();
         toast.success(`Worksheet mastered! +${result.xpAwarded} XP`);
+        if (typeof result.newXp === "number") {
+          const previousXp = result.newXp - result.xpAwarded;
+          const up = detectLevelUp(previousXp, result.xpAwarded);
+          if (up) setLevelUp(up);
+        }
       } else if (result.passed && result.alreadyMastered) {
         toast.success("Nice review — XP was already earned earlier.");
       } else if (!result.passed) {
@@ -394,6 +406,7 @@ export function LessonPractice({
 
   return (
     <div className="space-y-4">
+      <LevelUpCelebration info={levelUp} onClose={() => setLevelUp(null)} />
       <HowToContextual
         userId={userId}
         shortId="student-lesson"
