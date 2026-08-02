@@ -10,8 +10,9 @@ import { GamificationHeader } from "@/components/GamificationHeader";
 import { HowToContextual } from "@/components/howto/HowToContextual";
 import { HowToHelpMenu } from "@/components/howto/HowToHelpMenu";
 import { HowToTour } from "@/components/howto/HowToTour";
-import { MathArcade } from "@/components/math-arcade/MathArcade";
+import { ArcadeHub } from "@/components/arcade/ArcadeHub";
 import { ParentLinkCodeCard } from "@/components/ParentLinkCodeCard";
+import { arcadeForSubjectTitle } from "@/lib/arcade/index";
 import { ParentPortal } from "@/components/ParentPortal";
 import { SubjectTabs } from "@/components/SubjectTabs";
 import { TaskBoard, useTasks } from "@/components/TaskBoard";
@@ -146,7 +147,7 @@ function Dashboard() {
   }
 
   const isReading = current?.title === "Assigned Reading";
-  const isMath = current?.title === "Math";
+  const subjectArcade = arcadeForSubjectTitle(current?.title);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -314,6 +315,9 @@ function Dashboard() {
           >
             {isReading ? (
               <>
+                {subjectArcade && (
+                  <ArcadeHub subject={subjectArcade} tasks={subjectTasks} userId={userId} />
+                )}
                 <HowToContextual
                   userId={userId}
                   shortId="student-books"
@@ -323,7 +327,9 @@ function Dashboard() {
               </>
             ) : (
               <>
-                {isMath && <MathArcade tasks={subjectTasks} userId={userId} />}
+                {subjectArcade && (
+                  <ArcadeHub subject={subjectArcade} tasks={subjectTasks} userId={userId} />
+                )}
                 <TaskBoard
                   tasks={subjectTasks}
                   loading={tasksLoading}
