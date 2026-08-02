@@ -5,14 +5,24 @@ const PREFIX = "howto-shorts:v1:";
 type Progress = {
   seen: string[];
   tourComplete: boolean;
+  /** When true, never auto-show contextual tips or the welcome tour. */
+  tipsHidden: boolean;
 };
+
+let tipsHiddenVersion = 0;
+const tipsHiddenListeners = new Set<() => void>();
+
+function bumpTipsHidden() {
+  tipsHiddenVersion += 1;
+  tipsHiddenListeners.forEach((l) => l());
+}
 
 function storageKey(userId: string): string {
   return `${PREFIX}${userId}`;
 }
 
 function emptyProgress(): Progress {
-  return { seen: [], tourComplete: false };
+  return { seen: [], tourComplete: false, tipsHidden: false };
 }
 
 function read(userId: string): Progress {
@@ -24,6 +34,7 @@ function read(userId: string): Progress {
     return {
       seen: Array.isArray(parsed.seen) ? parsed.seen.filter((id) => typeof id === "string") : [],
       tourComplete: Boolean(parsed.tourComplete),
+      tipsHidden: Boolean(parsed.tipsHidden),
     };
   } catch {
     return emptyProgress();
@@ -75,10 +86,46 @@ export function clearHowToTourComplete(userId: string, role: "student" | "parent
   write(userId, progress);
 }
 
+export function areHowToTipsHidden(userId: string): boolean {
+  return read(userId).tipsHidden;
+}
+
+/** Suppress all auto-shown tips/tours. Manual Help replay still works. */
+export function hideAllHowToTips(userId: string) {
+  const progress = read(userId);
+  progress.tipsHidden = true;
+  progress.tourComplete = true;
+  // Mark both role tour keys so switching student/parent views stays quiet.
+  for (const r of ["student", "parent"] as const) {
+    const key = `tour:${r}`;
+    if (!progress.seen.includes(key)) progress.seen.push(key);
+  }
+  write(userId, progress);
+  bumpTipsHidden();
+}
+
+export function showHowToTips(userId: string) {
+  const progress = read(userId);
+  if (!progress.tipsHidden) return;
+  progress.tipsHidden = false;
+  write(userId, progress);
+  bumpTipsHidden();
+}
+
 export function resetAllHowToTips(userId: string) {
   write(userId, emptyProgress());
+  bumpTipsHidden();
 }
 
 export function getHowToProgress(userId: string): Progress {
   return read(userId);
+}
+
+export function getHowToTipsHiddenVersion(): number {
+  return tipsHiddenVersion;
+}
+
+export function subscribeHowToTipsHidden(listener: () => void): () => void {
+  tipsHiddenListeners.add(listener);
+  return () => tipsHiddenListeners.delete(listener);
 }

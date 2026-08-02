@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { HowToShortPlayer } from "@/components/howto/HowToShortPlayer";
 import {
+  areHowToTipsHidden,
+  getHowToTipsHiddenVersion,
+  hideAllHowToTips,
   isHowToShortSeen,
   markHowToShortSeen,
+  subscribeHowToTipsHidden,
 } from "@/lib/howto-progress";
 import {
   claimHowToSlot,
@@ -22,6 +26,7 @@ type Options = {
 
 /**
  * Auto-opens a contextual short once if unseen and the global how-to slot is free.
+ * Respects the per-user "Hide all tips" preference for auto-show only.
  */
 export function useHowToShort({ userId, shortId, enabled = true }: Options) {
   const [manualOpen, setManualOpen] = useState(false);
@@ -31,17 +36,32 @@ export function useHowToShort({ userId, shortId, enabled = true }: Options) {
     getHowToSlotVersion,
     () => 0,
   );
+  const tipsHiddenVersion = useSyncExternalStore(
+    subscribeHowToTipsHidden,
+    getHowToTipsHiddenVersion,
+    () => 0,
+  );
 
   const short = getHowToShort(shortId);
   const ownerId = `contextual:${shortId}`;
+  const tipsHidden = Boolean(userId && areHowToTipsHidden(userId));
+  void tipsHiddenVersion;
 
   useEffect(() => {
     if (!userId || !enabled || !short || manualOpen) return;
+    if (areHowToTipsHidden(userId)) return;
     if (isHowToShortSeen(userId, shortId)) return;
     if (!isHowToSlotFree()) return;
     if (!claimHowToSlot(ownerId)) return;
     setAutoOpen(true);
-  }, [userId, shortId, enabled, short, manualOpen, slotVersion, ownerId]);
+  }, [userId, shortId, enabled, short, manualOpen, slotVersion, ownerId, tipsHiddenVersion]);
+
+  // Global hide closes any auto-open tip immediately.
+  useEffect(() => {
+    if (!userId || !tipsHidden || !autoOpen) return;
+    setAutoOpen(false);
+    releaseHowToSlot(ownerId);
+  }, [userId, tipsHidden, autoOpen, ownerId]);
 
   const open = manualOpen || autoOpen;
 
@@ -56,6 +76,13 @@ export function useHowToShort({ userId, shortId, enabled = true }: Options) {
     [userId, shortId, ownerId],
   );
 
+  const hideAll = useCallback(() => {
+    if (userId) hideAllHowToTips(userId);
+    setManualOpen(false);
+    setAutoOpen(false);
+    releaseHowToSlot(ownerId);
+  }, [userId, ownerId]);
+
   const replay = useCallback(() => {
     if (!short) return;
     if (!claimHowToSlot(ownerId) && !isHowToSlotFree(ownerId)) return;
@@ -64,7 +91,12 @@ export function useHowToShort({ userId, shortId, enabled = true }: Options) {
 
   const player =
     short && open ? (
-      <HowToShortPlayer short={short} open={open} onClose={close} />
+      <HowToShortPlayer
+        short={short}
+        open={open}
+        onClose={close}
+        onHideAll={hideAll}
+      />
     ) : null;
 
   return { player, replay, open };

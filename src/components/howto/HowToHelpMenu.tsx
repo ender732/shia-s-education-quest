@@ -1,8 +1,13 @@
-import { CircleHelp, Play, RotateCcw, X } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { CircleHelp, Eye, EyeOff, Play, RotateCcw, X } from "lucide-react";
+import { useId, useMemo, useState, useSyncExternalStore } from "react";
 import {
+  areHowToTipsHidden,
   clearHowToTourComplete,
+  getHowToTipsHiddenVersion,
+  hideAllHowToTips,
   resetAllHowToTips,
+  showHowToTips,
+  subscribeHowToTipsHidden,
 } from "@/lib/howto-progress";
 import { claimHowToSlot, isHowToSlotFree, releaseHowToSlot } from "@/lib/howto-lock";
 import { getHowToShort, shortsForRole } from "@/lib/howto-shorts";
@@ -20,6 +25,13 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
   const [replayId, setReplayId] = useState<string | null>(null);
   const shorts = useMemo(() => shortsForRole(role), [role]);
   const replayShort = replayId ? getHowToShort(replayId) : undefined;
+  const tipsHiddenVersion = useSyncExternalStore(
+    subscribeHowToTipsHidden,
+    getHowToTipsHiddenVersion,
+    () => 0,
+  );
+  const tipsHidden = areHowToTipsHidden(userId);
+  void tipsHiddenVersion;
 
   function startReplay(id: string) {
     const owner = `help:${id}`;
@@ -39,7 +51,7 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
         >
           <CircleHelp className="size-3.5 text-primary" />
-          How-to shorts
+          {tipsHidden ? "Help" : "How-to shorts"}
         </button>
 
         {open && (
@@ -62,6 +74,12 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
               </button>
             </div>
 
+            {tipsHidden && (
+              <p className="mb-2 rounded-lg bg-secondary/60 px-2 py-1.5 text-[11px] leading-snug text-muted-foreground">
+                Tips are hidden. Replay any short below, or turn tips back on.
+              </p>
+            )}
+
             <ul className="max-h-56 space-y-1 overflow-y-auto">
               {shorts.map((s) => (
                 <li key={s.id}>
@@ -79,6 +97,30 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
             </ul>
 
             <div className="mt-3 space-y-1.5 border-t border-border pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (tipsHidden) {
+                    showHowToTips(userId);
+                  } else {
+                    hideAllHowToTips(userId);
+                  }
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs font-semibold hover:bg-secondary"
+              >
+                {tipsHidden ? (
+                  <>
+                    <Eye className="size-3.5 text-primary" />
+                    Show tips
+                  </>
+                ) : (
+                  <>
+                    <EyeOff className="size-3.5 text-primary" />
+                    Hide all tips
+                  </>
+                )}
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -112,6 +154,11 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
           short={replayShort}
           open
           onClose={() => {
+            releaseHowToSlot(`help:${replayShort.id}`);
+            setReplayId(null);
+          }}
+          onHideAll={() => {
+            hideAllHowToTips(userId);
             releaseHowToSlot(`help:${replayShort.id}`);
             setReplayId(null);
           }}

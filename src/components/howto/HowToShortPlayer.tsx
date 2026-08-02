@@ -46,6 +46,9 @@ type HowToShortPlayerProps = {
   /** Extra footer action, e.g. Skip all tour */
   onSkipAll?: () => void;
   skipAllLabel?: string;
+  /** Persistently hide all auto tips app-wide. */
+  onHideAll?: () => void;
+  hideAllLabel?: string;
 };
 
 export function HowToShortPlayer({
@@ -54,6 +57,8 @@ export function HowToShortPlayer({
   onClose,
   onSkipAll,
   skipAllLabel = "Skip all tips",
+  onHideAll,
+  hideAllLabel = "Hide all tips",
 }: HowToShortPlayerProps) {
   const titleId = useId();
   const [index, setIndex] = useState(0);
@@ -150,7 +155,7 @@ export function HowToShortPlayer({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-3">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               disabled={index === 0}
@@ -166,6 +171,15 @@ export function HowToShortPlayer({
                 className="min-h-11 rounded-xl px-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
               >
                 {skipAllLabel}
+              </button>
+            )}
+            {onHideAll && (
+              <button
+                type="button"
+                onClick={onHideAll}
+                className="min-h-11 rounded-xl px-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+              >
+                {hideAllLabel}
               </button>
             )}
           </div>
