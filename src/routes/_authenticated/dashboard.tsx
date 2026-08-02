@@ -10,6 +10,7 @@ import { GamificationHeader } from "@/components/GamificationHeader";
 import { HowToContextual } from "@/components/howto/HowToContextual";
 import { HowToHelpMenu } from "@/components/howto/HowToHelpMenu";
 import { HowToTour } from "@/components/howto/HowToTour";
+import { MathArcade } from "@/components/math-arcade/MathArcade";
 import { ParentLinkCodeCard } from "@/components/ParentLinkCodeCard";
 import { ParentPortal } from "@/components/ParentPortal";
 import { SubjectTabs } from "@/components/SubjectTabs";
@@ -145,6 +146,7 @@ function Dashboard() {
   }
 
   const isReading = current?.title === "Assigned Reading";
+  const isMath = current?.title === "Math";
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -304,7 +306,12 @@ function Dashboard() {
             <p className="text-sm text-muted-foreground">{current.description}</p>
           )}
 
-          <motion.div key={current?.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div
+            key={current?.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
             {isReading ? (
               <>
                 <HowToContextual
@@ -315,14 +322,17 @@ function Dashboard() {
                 <BookStudio userId={userId} />
               </>
             ) : (
-              <TaskBoard
-                tasks={subjectTasks}
-                loading={tasksLoading}
-                error={tasksError}
-                accent={accentFor(current?.title ?? "")}
-                userId={userId}
-                howtoEnabled={!tourBlocksContextual}
-              />
+              <>
+                {isMath && <MathArcade tasks={subjectTasks} userId={userId} />}
+                <TaskBoard
+                  tasks={subjectTasks}
+                  loading={tasksLoading}
+                  error={tasksError}
+                  accent={accentFor(current?.title ?? "")}
+                  userId={userId}
+                  howtoEnabled={!tourBlocksContextual}
+                />
+              </>
             )}
           </motion.div>
         </div>
