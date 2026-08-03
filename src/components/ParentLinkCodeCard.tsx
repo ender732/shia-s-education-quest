@@ -78,10 +78,15 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <Link2 className="size-3.5 text-primary" />
+            <Link2 className="size-3.5 text-primary" aria-hidden />
             {t("linkCode.label")}
           </p>
-          <p className="mt-1 break-all font-mono text-sm font-semibold tracking-tight">{linkCode}</p>
+          <p
+            className="mt-1 break-all font-mono text-sm font-semibold tracking-tight"
+            aria-label={t("linkCode.codeAria")}
+          >
+            {linkCode}
+          </p>
           <p className="mt-1 text-[11px] text-muted-foreground">{t("linkCode.shareNote")}</p>
         </div>
         <button
@@ -89,18 +94,27 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
           onClick={copy}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold transition hover:bg-secondary"
         >
-          {copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
+          {copied ? (
+            <Check className="size-3.5 text-primary" aria-hidden />
+          ) : (
+            <Copy className="size-3.5" aria-hidden />
+          )}
           {copied ? t("common.copied") : t("common.copy")}
         </button>
       </div>
 
       <div className="flex flex-col gap-2 border-t border-border pt-3 sm:flex-row sm:items-center">
+        <label className="sr-only" htmlFor="parent-link-email">
+          {t("linkCode.emailLabel")}
+        </label>
         <input
+          id="parent-link-email"
           className="input-base flex-1"
           type="email"
           placeholder={t("linkCode.emailPlaceholder")}
           value={emailDraft}
           onChange={(e) => setEmailDraft(e.target.value)}
+          autoComplete="email"
         />
         <button
           type="button"
@@ -108,7 +122,11 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
           disabled={sending}
           className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold transition hover:bg-secondary disabled:opacity-60"
         >
-          {sending ? <Loader2 className="size-3.5 animate-spin" /> : <Mail className="size-3.5" />}
+          {sending ? (
+            <Loader2 className="size-3.5 animate-spin" aria-hidden />
+          ) : (
+            <Mail className="size-3.5" aria-hidden />
+          )}
           {t("linkCode.emailButton")}
         </button>
       </div>

@@ -59,15 +59,18 @@ export function SubjectTabs({ subjects, activeId, onSelect }: SubjectTabsProps) 
                   style={{ background: `color-mix(in oklab, var(--${accent}) 25%, transparent)` }}
                 />
               )}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"
+                aria-hidden
+              />
               <span
                 className={`absolute inset-x-0 bottom-0 p-2 text-[11px] font-bold leading-tight text-white drop-shadow sm:text-xs ${
                   active ? "" : "opacity-95"
                 }`}
                 style={active ? { textShadow: `0 0 12px var(--${accent})` } : undefined}
               >
-              {tDb("subjects.title", s.title)}
-            </span>
+                {tDb("subjects.title", s.title)}
+              </span>
             </div>
           </button>
         );

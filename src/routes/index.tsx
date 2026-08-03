@@ -34,9 +34,9 @@ function Landing() {
   }, [loading, session, navigate]);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-5 py-16 text-center">
+    <main id="main-content" tabIndex={-1} className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-5 py-16 text-center">
       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-primary">
-        <Sparkles className="size-3.5" /> {t("landing.eyebrow")}
+        <Sparkles className="size-3.5" aria-hidden /> {t("landing.eyebrow")}
       </p>
       <h1 className="mt-4 text-4xl font-black leading-tight sm:text-6xl">
         {t("landing.titleLead")} <span className="text-primary">{t("landing.titleAccent")}</span>
@@ -47,21 +47,21 @@ function Landing() {
         to="/auth"
         className="glow-ring mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-110"
       >
-        <Rocket className="size-4" /> {t("landing.cta")}
+        <Rocket className="size-4" aria-hidden /> {t("landing.cta")}
       </Link>
 
       <div className="mt-14 grid w-full gap-4 sm:grid-cols-3">
-        <Card icon={<Trophy className="size-5 text-xp" />} title={t("landing.cards.xp.title")}>
+        <Card icon={<Trophy className="size-5 text-xp" aria-hidden />} title={t("landing.cards.xp.title")}>
           {t("landing.cards.xp.body")}
         </Card>
         <Card
-          icon={<Flame className="size-5 text-streak" />}
+          icon={<Flame className="size-5 text-streak" aria-hidden />}
           title={t("landing.cards.streak.title")}
         >
           {t("landing.cards.streak.body")}
         </Card>
         <Card
-          icon={<BookOpen className="size-5 text-reading" />}
+          icon={<BookOpen className="size-5 text-reading" aria-hidden />}
           title={t("landing.cards.grading.title")}
         >
           {t("landing.cards.grading.body")}

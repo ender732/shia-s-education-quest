@@ -152,7 +152,19 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
       }
     }
 
-    if (data.quizScore < MASTERY_MIN) {
+    // Soft integrity: do not trust client quizScore alone — require a stored
+    // task_progress score from a prior quiz attempt (still client-writable;
+    // deep anti-cheat is out of scope).
+    const { data: priorProgress } = await supabase
+      .from("task_progress")
+      .select("score")
+      .eq("user_id", userId)
+      .eq("task_id", data.taskId)
+      .maybeSingle();
+    const priorQuizScore = priorProgress?.score ?? 0;
+    const effectiveQuizScore = Math.min(data.quizScore, priorQuizScore);
+
+    if (effectiveQuizScore < MASTERY_MIN) {
       throw new Error(
         `Pass the practice quiz at ${MASTERY_MIN}% or higher before submitting the worksheet.`,
       );
@@ -173,8 +185,8 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
     });
 
     const worksheetPassed = feedback.score >= MASTERY_MIN;
-    const combinedScore = Math.round((data.quizScore + feedback.score) / 2);
-    const mastered = worksheetPassed && data.quizScore >= MASTERY_MIN;
+    const combinedScore = Math.round((effectiveQuizScore + feedback.score) / 2);
+    const mastered = worksheetPassed && effectiveQuizScore >= MASTERY_MIN;
 
     const { saveTaskProgress } = await import("./task-progress");
     const progressResult = await saveTaskProgress({
@@ -240,7 +252,7 @@ export const gradeWorksheet = createServerFn({ method: "POST" })
     return {
       submission,
       feedback,
-      quizScore: data.quizScore,
+      quizScore: effectiveQuizScore,
       worksheetScore: feedback.score,
       combinedScore,
       passed: mastered,

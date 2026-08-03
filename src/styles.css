@@ -137,6 +137,39 @@
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
+
+  /* Keyboard focus: visible ring for WCAG 2.2 AA (2.4.7 / 2.4.13). */
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  .skip-to-main {
+    position: absolute;
+    inset-inline-start: 1rem;
+    top: 1rem;
+    z-index: 100;
+    border-radius: var(--radius-md);
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-200%);
+    transition: transform 0.15s ease;
+  }
+
+  .skip-to-main:focus,
+  .skip-to-main:focus-visible {
+    transform: translateY(0);
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
 }
 
 /*
@@ -179,7 +212,9 @@ html[lang="ar"] * {
   color: var(--foreground);
   outline: none;
 
-  &:focus {
+  &:focus-visible {
     border-color: var(--primary);
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }

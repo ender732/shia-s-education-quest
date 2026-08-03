@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { Toaster } from "sonner";
 import { AnalyticsPageTracker } from "@/components/AnalyticsPageTracker";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SkipToMain } from "@/components/SkipToMain";
 import { DEFAULT_LOCALE, I18nProvider, LOCALE_META, useTranslation } from "@/i18n";
 
 import appCss from "../styles.css?url";
@@ -19,7 +20,7 @@ function NotFoundComponent() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main id="main-content" tabIndex={-1} className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">{t("errors.notFound.code")}</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">{t("errors.notFound.title")}</h2>
@@ -33,7 +34,7 @@ function NotFoundComponent() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -43,7 +44,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main id="main-content" tabIndex={-1} className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {t("errors.boundary.title")}
@@ -51,6 +52,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">{t("errors.boundary.body")}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
+            type="button"
             onClick={() => {
               router.invalidate();
               reset();
@@ -67,7 +69,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           </a>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -137,6 +139,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SkipToMain />
       <div className="flex min-h-screen flex-col">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <AnalyticsPageTracker />
@@ -145,7 +148,7 @@ function RootComponent() {
         </div>
         <SiteFooter />
       </div>
-      <Toaster theme="dark" position="top-center" richColors />
+      <Toaster theme="dark" position="top-center" richColors closeButton />
     </QueryClientProvider>
   );
 }

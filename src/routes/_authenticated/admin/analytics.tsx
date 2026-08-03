@@ -130,15 +130,15 @@ function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin" /> {t("admin.analytics.loading")}
+      <div className="flex min-h-screen items-center justify-center gap-2 text-muted-foreground" role="status">
+        <Loader2 className="size-5 animate-spin" aria-hidden /> {t("admin.analytics.loading")}
       </div>
     );
   }
 
   if (overview.isError) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
+      <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl px-4 py-10">
         <p className="text-sm text-destructive">
           {t("admin.analytics.loadErrorBefore")} <code className="text-xs">admin</code>.
         </p>
@@ -162,7 +162,7 @@ function AdminAnalyticsPage() {
   const maxRef = Math.max(1, ...(referrers.data ?? []).map((r) => r.sessions));
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">

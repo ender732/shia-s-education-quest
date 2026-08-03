@@ -66,8 +66,11 @@ export function ParentPortal({
   subjects: Subject[];
   howtoEnabled?: boolean;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
+      <h2 className="sr-only">{t("dashboard.parentBadge")}</h2>
       <HowToContextual
         userId={userId}
         shortId="parent-welcome"
@@ -1136,13 +1139,15 @@ function ProgressMonitor({
       {hasLinks && (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="parent-student-select">
               {t("parent.progress.viewing")}
-            </span>
+            </label>
             <select
+              id="parent-student-select"
               className="input-base max-w-xs text-sm"
               value={selectedId}
               onChange={(e) => setSelectedId(e.target.value as string | "all")}
+              aria-label={t("a11y.studentSelectAria")}
             >
               <option value="all">{t("parent.progress.allStudents")}</option>
               {(students ?? []).map((s) => (

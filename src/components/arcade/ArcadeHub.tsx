@@ -31,8 +31,6 @@ import {
   isLevelUnlocked,
   type ModeCampaignProgress,
 } from "@/lib/arcade/progress";
-import { ARCADE_XP_TODO } from "@/lib/arcade/questions";
-
 type ArcadeHubProps = {
   subject: ArcadeSubjectDef;
   tasks: Task[];
@@ -233,8 +231,6 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
           accentSoft={accent.uiAccentSoft}
           onPlay={(levelId) => setPlaying({ modeId: activeHubModeId, levelId })}
         />
-
-        <span className="sr-only">{ARCADE_XP_TODO}</span>
       </div>
     </section>
   );

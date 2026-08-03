@@ -130,27 +130,29 @@ function AuthConfirmPage() {
 
   if (state === "working") {
     return (
-      <main className="flex min-h-screen items-center justify-center px-5 py-12">
+      <main id="main-content" tabIndex={-1} className="flex min-h-screen items-center justify-center px-5 py-12">
         <div className="surface-card w-full max-w-md p-6 text-center sm:p-8">
           <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            <Sparkles className="size-3.5" /> {t("app.name")}
+            <Sparkles className="size-3.5" aria-hidden /> {t("app.name")}
           </p>
-          <Loader2 className="mx-auto mt-6 size-8 animate-spin text-primary" />
+          <Loader2 className="mx-auto mt-6 size-8 animate-spin text-primary" aria-hidden />
           <h1 className="mt-4 text-xl font-bold">{t("auth.confirm.workingTitle")}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirm.workingBody")}</p>
+          <p className="mt-2 text-sm text-muted-foreground" role="status" aria-live="polite">
+            {t("auth.confirm.workingBody")}
+          </p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-12">
+    <main id="main-content" tabIndex={-1} className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="surface-card w-full max-w-md p-6 sm:p-8">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          <Sparkles className="size-3.5" /> {t("app.name")}
+          <Sparkles className="size-3.5" aria-hidden /> {t("app.name")}
         </p>
-        <div className="mt-4 flex items-start gap-3">
-          <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" />
+        <div className="mt-4 flex items-start gap-3" role="alert">
+          <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
           <div>
             <h1 className="text-xl font-bold">{t("auth.confirm.errorTitle")}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -169,6 +171,7 @@ function AuthConfirmPage() {
               value={resendEmail}
               onChange={(e) => setResendEmail(e.target.value)}
               required
+              autoComplete="email"
             />
           </label>
           <button
@@ -176,7 +179,11 @@ function AuthConfirmPage() {
             disabled={resending}
             className="glow-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
           >
-            {resending ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+            {resending ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <Mail className="size-4" aria-hidden />
+            )}
             {t("auth.confirm.resendSubmit")}
           </button>
         </form>

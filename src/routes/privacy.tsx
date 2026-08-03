@@ -19,7 +19,7 @@ function PrivacyPage() {
   const { t } = useTranslation();
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl px-5 py-16">
+    <main id="main-content" tabIndex={-1} className="mx-auto min-h-screen max-w-2xl px-5 py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
         {t("app.name")}
       </p>

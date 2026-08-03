@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { BookOpen, CheckCircle2, Loader2, Sparkles, Trash2, XCircle } from "lucide-react";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CANCELLED, I18nError, isCancelled, useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +80,8 @@ export function useBooks() {
 export function BookStudio({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
   const { t, tError, formatNumber } = useTranslation();
+  const chapterId = useId();
+  const reportId = useId();
   const { data: books, isLoading, isError } = useBooks();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chapter, setChapter] = useState("");
@@ -159,19 +161,28 @@ export function BookStudio({ userId }: { userId: string }) {
     <div className="space-y-4">
       <LevelUpCelebration info={levelUp} onClose={() => setLevelUp(null)} />
       {isLoading && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> {t("book.loadingLibrary")}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
+          <Loader2 className="size-4 animate-spin" aria-hidden /> {t("book.loadingLibrary")}
         </div>
       )}
       {isError && (
-        <div className="surface-card p-6 text-sm text-destructive">{t("book.libraryError")}</div>
+        <div className="surface-card p-6 text-sm text-destructive" role="alert">
+          {t("book.libraryError")}
+        </div>
       )}
 
       {books && books.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div
+          className="flex flex-wrap gap-2"
+          role="listbox"
+          aria-label={t("a11y.bookListAria")}
+        >
           {books.map((book) => (
             <button
               key={book.id}
+              type="button"
+              role="option"
+              aria-selected={selected?.id === book.id}
               onClick={() => setSelectedId(book.id)}
               className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                 selected?.id === book.id
@@ -189,7 +200,7 @@ export function BookStudio({ userId }: { userId: string }) {
         {/* Reader */}
         <div className="surface-card flex min-h-[26rem] flex-col overflow-hidden">
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-            <BookOpen className="size-4 text-reading" />
+            <BookOpen className="size-4 text-reading" aria-hidden />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold">
                 {selected?.title ?? t("book.noBookSelected")}
@@ -209,15 +220,15 @@ export function BookStudio({ userId }: { userId: string }) {
                 aria-label={t("book.removeAria", { title: selected.title })}
                 title={t("book.removeTitle")}
               >
-                <Trash2 className="size-4" />
+                <Trash2 className="size-4" aria-hidden />
               </button>
             )}
           </div>
           {signedUrl ? (
             <Suspense
               fallback={
-                <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" /> {t("pdf.loadingReader")}
+                <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
+                  <Loader2 className="size-4 animate-spin" aria-hidden /> {t("pdf.loadingReader")}
                 </div>
               }
             >
@@ -239,45 +250,54 @@ export function BookStudio({ userId }: { userId: string }) {
         {/* Report form */}
         <div className="surface-card flex flex-col gap-3 p-4">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <label
+              htmlFor={chapterId}
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            >
               {t("book.chapterLabel")}
             </label>
             <input
+              id={chapterId}
               value={chapter}
               onChange={(e) => setChapter(e.target.value)}
               placeholder={t("book.chapterPlaceholder")}
-              className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              className="input-base mt-1"
             />
           </div>
           <div className="flex flex-1 flex-col">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <label
+              htmlFor={reportId}
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            >
               {t("book.reportLabel")}
             </label>
             <textarea
+              id={reportId}
               value={reportText}
               onChange={(e) => setReportText(e.target.value)}
               rows={12}
               placeholder={t("book.reportPlaceholder")}
-              className="mt-1 min-h-48 w-full flex-1 resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm leading-relaxed outline-none focus:border-primary"
+              className="input-base mt-1 min-h-48 w-full flex-1 resize-y leading-relaxed"
             />
-            <p className="mt-1 text-end text-[11px] text-muted-foreground">
+            <p className="mt-1 text-end text-[11px] text-muted-foreground" aria-live="polite">
               {t("book.wordCount", {
                 count: reportText.trim().split(/\s+/).filter(Boolean).length,
               })}
             </p>
           </div>
           <button
+            type="button"
             onClick={() => grade.mutate()}
             disabled={grade.isPending || reportText.trim().length < 40}
             className="glow-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {grade.isPending ? (
               <>
-                <Loader2 className="size-4 animate-spin" /> {t("book.grading")}
+                <Loader2 className="size-4 animate-spin" aria-hidden /> {t("book.grading")}
               </>
             ) : (
               <>
-                <Sparkles className="size-4" /> {t("book.submit")}
+                <Sparkles className="size-4" aria-hidden /> {t("book.submit")}
               </>
             )}
           </button>
@@ -297,10 +317,13 @@ export function FeedbackCard({ feedback }: { feedback: Feedback }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       className="surface-card overflow-hidden"
+      role="region"
+      aria-label={t("a11y.feedbackLive")}
+      aria-live="polite"
     >
       <div className="hero-gradient flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div className="flex items-center gap-2 text-sm font-bold">
-          <Sparkles className="size-4 text-primary" /> {t("book.feedback.title")}
+          <Sparkles className="size-4 text-primary" aria-hidden /> {t("book.feedback.title")}
         </div>
         <div className="text-2xl font-black text-xp">
           {t("book.feedback.score", { score: formatNumber(feedback.score) })}
@@ -308,41 +331,46 @@ export function FeedbackCard({ feedback }: { feedback: Feedback }) {
       </div>
       <div className="grid gap-4 p-5 md:grid-cols-2">
         <div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-success">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-success">
             {t("book.feedback.strengths")}
-          </h4>
+          </h3>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{feedback.strengths}</p>
         </div>
         <div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-ela">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-ela">
             {t("book.feedback.improvements")}
-          </h4>
+          </h3>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             {feedback.improvements}
           </p>
         </div>
         <div className="md:col-span-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-primary">
             {t("book.feedback.checklistTitle")}
-          </h4>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          </h3>
+          <ul className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {RACECE_KEYS.map((key) => {
               const ok = Boolean(feedback.racece_checklist?.[key]);
               return (
-                <div
+                <li
                   key={key}
                   className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 text-xs"
                 >
                   {ok ? (
-                    <CheckCircle2 className="size-4 shrink-0 text-success" />
+                    <CheckCircle2 className="size-4 shrink-0 text-success" aria-hidden />
                   ) : (
-                    <XCircle className="size-4 shrink-0 text-destructive" />
+                    <XCircle className="size-4 shrink-0 text-destructive" aria-hidden />
                   )}
-                  {t(`book.feedback.racece.${key}`)}
-                </div>
+                  <span>
+                    {t(`book.feedback.racece.${key}`)}
+                    <span className="sr-only">
+                      {ok ? t("a11y.choiceCorrect") : t("a11y.choiceIncorrect")}
+                    </span>
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
         {feedback.teacher_note && (
           <p className="md:col-span-2 rounded-lg border border-border bg-background/60 px-4 py-3 text-sm italic text-foreground">

@@ -15,14 +15,14 @@ export function GamificationHeader({ name, xp, streak }: Props) {
   const { into, needed, percent } = levelProgress(xp);
 
   return (
-    <section className="surface-card hero-gradient relative overflow-hidden p-5 sm:p-7">
+    <section className="surface-card hero-gradient relative overflow-hidden p-5 sm:p-7" aria-labelledby="quest-welcome-heading">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            <Sparkles className="size-3.5 text-primary" />
+            <Sparkles className="size-3.5 text-primary" aria-hidden />
             {t("app.school")}
           </p>
-          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
+          <h1 id="quest-welcome-heading" className="mt-2 text-2xl font-bold sm:text-3xl">
             {t("gamification.welcomeBack", { name })}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("gamification.subtitle")}</p>
@@ -30,17 +30,17 @@ export function GamificationHeader({ name, xp, streak }: Props) {
 
         <div className="flex flex-wrap items-center gap-2.5">
           <Badge
-            icon={<Trophy className="size-4 text-xp" />}
+            icon={<Trophy className="size-4 text-xp" aria-hidden />}
             label={t("gamification.level")}
             value={formatNumber(level)}
           />
           <Badge
-            icon={<Zap className="size-4 text-primary" />}
+            icon={<Zap className="size-4 text-primary" aria-hidden />}
             label={t("gamification.totalXp")}
             value={formatNumber(xp)}
           />
           <Badge
-            icon={<Flame className="size-4 text-streak" />}
+            icon={<Flame className="size-4 text-streak" aria-hidden />}
             label={t("gamification.dayStreak")}
             value={t("gamification.streakValue", { days: formatNumber(streak) })}
           />
@@ -49,7 +49,9 @@ export function GamificationHeader({ name, xp, streak }: Props) {
 
       <div className="mt-6">
         <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">
-          <span>{t("gamification.progressToLevel", { level: formatNumber(level + 1) })}</span>
+          <span id="level-progress-label">
+            {t("gamification.progressToLevel", { level: formatNumber(level + 1) })}
+          </span>
           <span>
             {t("gamification.xpOfNeeded", {
               into: formatNumber(into),
@@ -57,7 +59,15 @@ export function GamificationHeader({ name, xp, streak }: Props) {
             })}
           </span>
         </div>
-        <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">
+        <div
+          className="h-3 w-full overflow-hidden rounded-full bg-secondary"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(percent)}
+          aria-labelledby="level-progress-label"
+          aria-valuetext={t("a11y.levelProgressAria", { percent: formatNumber(Math.round(percent)) })}
+        >
           <motion.div
             className="xp-gradient h-full rounded-full"
             initial={{ width: 0 }}

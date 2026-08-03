@@ -32,14 +32,17 @@ export function DailyLeaderboard({ userId }: { userId: string }) {
   const unavailable = data?.unavailable ?? false;
 
   return (
-    <section className="surface-card overflow-hidden">
+    <section className="surface-card overflow-hidden" aria-labelledby="leaderboard-heading">
       <div className="border-b border-border px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              <Trophy className="size-3.5 text-xp" />
+            <h2
+              id="leaderboard-heading"
+              className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+            >
+              <Trophy className="size-3.5 text-xp" aria-hidden />
               {t("leaderboard.title")}
-            </p>
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">{t("leaderboard.resetNote")}</p>
           </div>
           <span className="rounded-md border border-border bg-background/60 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -50,34 +53,37 @@ export function DailyLeaderboard({ userId }: { userId: string }) {
 
       <div className="p-3 sm:p-4">
         {isLoading ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-sm text-muted-foreground" role="status">
             {t("leaderboard.loading")}
           </p>
         ) : unavailable || isError ? (
           <EmptyState
-            icon={<Users className="size-5 text-muted-foreground" />}
+            icon={<Users className="size-5 text-muted-foreground" aria-hidden />}
             title={t("leaderboard.unavailableTitle")}
             body={t("leaderboard.unavailableBody")}
           />
         ) : rows.length === 0 ? (
           <EmptyState
-            icon={<Medal className="size-5 text-xp" />}
+            icon={<Medal className="size-5 text-xp" aria-hidden />}
             title={t("leaderboard.emptyTitle")}
             body={t("leaderboard.emptyBody")}
           />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[28rem] text-start text-sm">
+              <caption className="sr-only">{t("leaderboard.title")}</caption>
               <thead>
                 <tr className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <th className="px-2 py-2 font-bold">{t("leaderboard.rank")}</th>
-                  <th className="px-2 py-2 font-bold">{t("leaderboard.name")}</th>
-                  <th className="px-2 py-2 font-bold">
+                  <th scope="col" className="px-2 py-2 font-bold">{t("leaderboard.rank")}</th>
+                  <th scope="col" className="px-2 py-2 font-bold">{t("leaderboard.name")}</th>
+                  <th scope="col" className="px-2 py-2 font-bold">
                     <span className="inline-flex items-center gap-1">
-                      <Clock3 className="size-3" /> {t("leaderboard.timeToday")}
+                      <Clock3 className="size-3" aria-hidden /> {t("leaderboard.timeToday")}
                     </span>
                   </th>
-                  <th className="px-2 py-2 font-bold text-end">{t("leaderboard.bestScore")}</th>
+                  <th scope="col" className="px-2 py-2 font-bold text-end">
+                    {t("leaderboard.bestScore")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -135,7 +141,7 @@ function RankBadge({ rank }: { rank: number }) {
   if (rank <= 3) {
     return (
       <span className="inline-flex items-center gap-1 text-xp">
-        <Medal className="size-3.5" />
+        <Medal className="size-3.5" aria-hidden />
         {rank}
       </span>
     );

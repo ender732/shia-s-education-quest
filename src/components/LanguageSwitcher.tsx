@@ -23,7 +23,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
         id={selectId}
         value={locale}
         onChange={(e) => setLocale(e.target.value as Locale)}
-        className="cursor-pointer bg-transparent pe-1 text-xs font-semibold text-foreground outline-none"
+        className="cursor-pointer bg-transparent pe-1 text-xs font-semibold text-foreground"
       >
         {options.map((option) => (
           <option key={option.code} value={option.code} className="bg-surface text-foreground">

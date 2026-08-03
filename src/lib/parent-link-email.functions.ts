@@ -54,9 +54,14 @@ export const sendParentLinkCodeEmail = createServerFn({ method: "POST" })
     const { sendTransactionalEmail, parentLinkCodeEmailContent } = await import(
       "./send-email.server"
     );
+    // Prefer profile display_name over client-supplied studentName (spoofable).
+    const studentName =
+      (typeof profile.display_name === "string" && profile.display_name.trim()) ||
+      data.studentName.trim() ||
+      "Your student";
     const content = parentLinkCodeEmailContent({
       linkCode: data.linkCode,
-      studentName: data.studentName || profile.display_name || "Your student",
+      studentName: studentName.slice(0, 120),
     });
 
     const result = await sendTransactionalEmail({

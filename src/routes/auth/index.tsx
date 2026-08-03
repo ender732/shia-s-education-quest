@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
 import { clearAuthIntent, saveAuthIntent, type AuthSignupIntent } from "@/lib/auth-intent";
 import { getAuthRedirectUrl } from "@/lib/auth-redirect";
@@ -35,6 +35,12 @@ function AuthPage() {
   const navigate = useNavigate();
   const { session } = useSession();
   const { t, tError } = useTranslation();
+  const ids = {
+    displayName: useId(),
+    parentEmail: useId(),
+    email: useId(),
+    password: useId(),
+  };
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [path, setPath] = useState<"student" | "parent">("student");
   const [displayName, setDisplayName] = useState("");
@@ -190,11 +196,11 @@ function AuthPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-12">
+    <main id="main-content" tabIndex={-1} className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="surface-card w-full max-w-md p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            <Sparkles className="size-3.5" /> {t("app.name")}
+            <Sparkles className="size-3.5" aria-hidden /> {t("app.name")}
           </p>
           <LanguageSwitcher />
         </div>
@@ -204,7 +210,11 @@ function AuthPage() {
         <p className="mt-1 text-sm text-muted-foreground">{t("app.tagline")}</p>
 
         {checkEmail ? (
-          <div className="mt-6 rounded-xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
+          <div
+            className="mt-6 rounded-xl border border-border bg-background/60 p-4 text-sm text-muted-foreground"
+            role="status"
+            aria-live="polite"
+          >
             {t("auth.checkEmailNotice")}
           </div>
         ) : (
@@ -212,20 +222,32 @@ function AuthPage() {
             <form onSubmit={handleSubmit} className="mt-6 space-y-3">
               {mode === "signup" && (
                 <>
-                  <input
-                    className="input-base"
-                    placeholder={t("auth.displayNamePlaceholder")}
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                  />
+                  <div>
+                    <label className="sr-only" htmlFor={ids.displayName}>
+                      {t("auth.displayNameLabel")}
+                    </label>
+                    <input
+                      id={ids.displayName}
+                      className="input-base"
+                      placeholder={t("auth.displayNamePlaceholder")}
+                      autoComplete="nickname"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                    />
+                  </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div
+                    className="grid grid-cols-2 gap-2"
+                    role="group"
+                    aria-label={t("auth.accountPathAria")}
+                  >
                     <button
                       type="button"
                       onClick={() => {
                         setPath("student");
                         setConfirmAdult(false);
                       }}
+                      aria-pressed={path === "student"}
                       className={`rounded-lg border px-3 py-2 text-xs font-bold transition ${
                         path === "student"
                           ? "border-primary bg-primary/15 text-primary"
@@ -237,6 +259,7 @@ function AuthPage() {
                     <button
                       type="button"
                       onClick={() => setPath("parent")}
+                      aria-pressed={path === "parent"}
                       className={`rounded-lg border px-3 py-2 text-xs font-bold transition ${
                         path === "parent"
                           ? "border-primary bg-primary/15 text-primary"
@@ -249,14 +272,21 @@ function AuthPage() {
 
                   {path === "student" ? (
                     <>
-                      <input
-                        className="input-base"
-                        type="email"
-                        placeholder={t("auth.parentEmailPlaceholder")}
-                        value={parentContactEmail}
-                        onChange={(e) => setParentContactEmail(e.target.value)}
-                        required
-                      />
+                      <div>
+                        <label className="sr-only" htmlFor={ids.parentEmail}>
+                          {t("auth.parentEmailLabel")}
+                        </label>
+                        <input
+                          id={ids.parentEmail}
+                          className="input-base"
+                          type="email"
+                          placeholder={t("auth.parentEmailPlaceholder")}
+                          autoComplete="email"
+                          value={parentContactEmail}
+                          onChange={(e) => setParentContactEmail(e.target.value)}
+                          required
+                        />
+                      </div>
                       <p className="text-[11px] leading-relaxed text-muted-foreground">
                         {t("auth.studentPathNote")}
                       </p>
@@ -290,36 +320,50 @@ function AuthPage() {
                   )}
                 </>
               )}
-              <input
-                className="input-base"
-                type="email"
-                placeholder={t("auth.emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <input
-                className="input-base"
-                type="password"
-                placeholder={t("auth.passwordPlaceholder")}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={6}
-                required
-              />
+              <div>
+                <label className="sr-only" htmlFor={ids.email}>
+                  {t("auth.emailLabel")}
+                </label>
+                <input
+                  id={ids.email}
+                  className="input-base"
+                  type="email"
+                  placeholder={t("auth.emailPlaceholder")}
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="sr-only" htmlFor={ids.password}>
+                  {t("auth.passwordLabel")}
+                </label>
+                <input
+                  id={ids.password}
+                  className="input-base"
+                  type="password"
+                  placeholder={t("auth.passwordPlaceholder")}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={6}
+                  required
+                />
+              </div>
               <button
                 type="submit"
                 disabled={busy}
                 className="glow-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
               >
-                {busy && <Loader2 className="size-4 animate-spin" />}
+                {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
                 {mode === "signin" ? t("auth.submitSignIn") : t("auth.submitSignUp")}
               </button>
             </form>
 
             <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-              <span className="h-px flex-1 bg-border" /> {t("common.or")}{" "}
-              <span className="h-px flex-1 bg-border" />
+              <span className="h-px flex-1 bg-border" aria-hidden /> {t("common.or")}{" "}
+              <span className="h-px flex-1 bg-border" aria-hidden />
             </div>
 
             <button

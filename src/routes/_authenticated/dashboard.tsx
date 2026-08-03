@@ -146,9 +146,15 @@ function Dashboard() {
 
   if (profileLoading || subjectsLoading || !userId) {
     return (
-      <div className="flex min-h-screen items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin" /> {t("dashboard.loading")}
-      </div>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex min-h-screen items-center justify-center gap-2 text-muted-foreground"
+        aria-busy="true"
+        aria-live="polite"
+      >
+        <Loader2 className="size-5 animate-spin" aria-hidden /> {t("dashboard.loading")}
+      </main>
     );
   }
 
@@ -156,17 +162,20 @@ function Dashboard() {
   const subjectArcade = arcadeForSubjectTitle(current?.title);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+    <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold">
           {parentMode && isParent ? (
-            <ShieldCheck className="size-3.5 text-accent" />
+            <ShieldCheck className="size-3.5 text-accent" aria-hidden />
           ) : (
-            <GraduationCap className="size-3.5 text-primary" />
+            <GraduationCap className="size-3.5 text-primary" aria-hidden />
           )}
           {parentMode && isParent ? t("dashboard.parentBadge") : t("dashboard.studentBadge")}
         </span>
-        <div className="flex flex-wrap items-center gap-2">
+        <nav
+          className="flex flex-wrap items-center gap-2"
+          aria-label={t("a11y.mainNavAria")}
+        >
           <LanguageSwitcher />
           {userId && (
             <HowToHelpMenu
@@ -180,11 +189,12 @@ function Dashboard() {
               to="/admin/analytics"
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
             >
-              <BarChart3 className="size-3.5 text-primary" /> {t("dashboard.analytics")}
+              <BarChart3 className="size-3.5 text-primary" aria-hidden /> {t("dashboard.analytics")}
             </Link>
           )}
           {isParent ? (
             <button
+              type="button"
               onClick={() => setParentMode((v) => !v)}
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
             >
@@ -192,6 +202,7 @@ function Dashboard() {
             </button>
           ) : !isAdmin ? (
             <button
+              type="button"
               onClick={() => setShowParentUpgrade((v) => !v)}
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
             >
@@ -201,12 +212,13 @@ function Dashboard() {
             </button>
           ) : null}
           <button
+            type="button"
             onClick={signOut}
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-destructive"
           >
-            <LogOut className="size-3.5" /> {t("dashboard.signOut")}
+            <LogOut className="size-3.5" aria-hidden /> {t("dashboard.signOut")}
           </button>
-        </div>
+        </nav>
       </div>
 
       {userId && (
@@ -253,7 +265,7 @@ function Dashboard() {
             disabled={upgradeBusy}
             className="glow-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
           >
-            {upgradeBusy && <Loader2 className="size-3.5 animate-spin" />}
+            {upgradeBusy && <Loader2 className="size-3.5 animate-spin" aria-hidden />}
             {t("dashboard.upgrade.submit")}
           </button>
         </form>

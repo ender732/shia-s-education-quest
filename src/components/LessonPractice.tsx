@@ -12,7 +12,7 @@ import {
   Sparkles,
   XCircle,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { LessonCoach } from "@/components/LessonCoach";
 import { LessonVideo } from "@/components/LessonVideo";
@@ -442,10 +442,11 @@ export function LessonPractice({
     return (
       <div className="surface-card space-y-4 p-6">
         <button
+          type="button"
           onClick={onClose}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="size-3.5" /> {t("lesson.backToLessons")}
+          <ArrowLeft className="size-3.5" aria-hidden /> {t("lesson.backToLessons")}
         </button>
         <h2 className="text-lg font-bold">{tDb("tasks.title", task.title)}</h2>
         <p className="text-sm text-muted-foreground">
@@ -472,10 +473,11 @@ export function LessonPractice({
       />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
+          type="button"
           onClick={onClose}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="size-3.5" /> {t("lesson.backToLessons")}
+          <ArrowLeft className="size-3.5" aria-hidden /> {t("lesson.backToLessons")}
         </button>
         <span
           className="rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider"
@@ -513,7 +515,7 @@ export function LessonPractice({
                 className="space-y-4"
               >
                 <div className="flex items-start gap-2 rounded-xl border border-border bg-background/50 p-3 text-sm">
-                  <BookOpen className="mt-0.5 size-4 shrink-0 text-primary" />
+                  <BookOpen className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
                   <div className="space-y-2">
                     {lesson.teach.map((line) => (
                       <p key={line} className="leading-relaxed text-muted-foreground">
@@ -539,17 +541,18 @@ export function LessonPractice({
                   </details>
                 )}
                 <div className="flex items-start gap-2 rounded-xl border border-xp/30 bg-xp/10 p-3 text-sm">
-                  <Lightbulb className="mt-0.5 size-4 shrink-0 text-xp" />
+                  <Lightbulb className="mt-0.5 size-4 shrink-0 text-xp" aria-hidden />
                   <p>
                     <span className="font-bold text-xp">{t("lesson.coachTipPrefix")}</span>
                     {lesson.tip}
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setPhase("quiz")}
                   className="glow-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
                 >
-                  {t("lesson.startQuiz")} <ArrowRight className="size-4" />
+                  {t("lesson.startQuiz")} <ArrowRight className="size-4" aria-hidden />
                 </button>
                 {needsWorksheet && (
                   <p className="text-center text-xs text-muted-foreground">
@@ -608,7 +611,17 @@ export function LessonPractice({
                       : t("lesson.needToEarnXp", { pass: formatNumber(lesson.passPercent) })}
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-2 overflow-hidden rounded-full bg-secondary"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={total}
+                  aria-valuenow={index + (revealed ? 1 : 0)}
+                  aria-label={t("a11y.quizProgressAria", {
+                    index: formatNumber(index + 1),
+                    total: formatNumber(total),
+                  })}
+                >
                   <div
                     className="h-full rounded-full transition-all"
                     style={{
@@ -635,15 +648,18 @@ export function LessonPractice({
                         ? "border-success/40 bg-success/10 text-success"
                         : "border-destructive/40 bg-destructive/10 text-destructive"
                     }`}
+                    role="status"
+                    aria-live="polite"
+                    aria-label={t("a11y.answerFeedback")}
                   >
                     <p className="flex items-center gap-2 font-bold">
                       {records.find((r) => r.questionId === question.id)?.correct ? (
                         <>
-                          <CheckCircle2 className="size-4" /> {t("lesson.correct")}
+                          <CheckCircle2 className="size-4" aria-hidden /> {t("lesson.correct")}
                         </>
                       ) : (
                         <>
-                          <XCircle className="size-4" /> {t("lesson.notYet")}
+                          <XCircle className="size-4" aria-hidden /> {t("lesson.notYet")}
                         </>
                       )}
                     </p>
@@ -654,6 +670,7 @@ export function LessonPractice({
                 <div className="flex gap-2">
                   {!revealed ? (
                     <button
+                      type="button"
                       onClick={submitCurrent}
                       className="inline-flex flex-1 items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
                     >
@@ -661,6 +678,7 @@ export function LessonPractice({
                     </button>
                   ) : (
                     <button
+                      type="button"
                       onClick={goNext}
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
                     >
@@ -673,7 +691,7 @@ export function LessonPractice({
                           ? t("lesson.continueToWorksheet")
                           : t("lesson.seeResults")
                         : t("lesson.nextQuestion")}
-                      <ArrowRight className="size-4" />
+                      <ArrowRight className="size-4" aria-hidden />
                     </button>
                   )}
                 </div>
@@ -738,11 +756,11 @@ export function LessonPractice({
                   >
                     {submitWorksheet.isPending ? (
                       <>
-                        <Loader2 className="size-4 animate-spin" /> {t("lesson.worksheet.grading")}
+                        <Loader2 className="size-4 animate-spin" aria-hidden /> {t("lesson.worksheet.grading")}
                       </>
                     ) : (
                       <>
-                        <Sparkles className="size-4" /> {t("lesson.worksheet.submit")}
+                        <Sparkles className="size-4" aria-hidden /> {t("lesson.worksheet.submit")}
                       </>
                     )}
                   </button>
@@ -762,10 +780,13 @@ export function LessonPractice({
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-4 text-center"
+                role="status"
+                aria-live="polite"
+                aria-label={t("a11y.resultsStatus")}
               >
                 {(saveQuizProgress.isPending || submitWorksheet.isPending) && (
                   <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin" /> {t("lesson.savingProgress")}
+                    <Loader2 className="size-4 animate-spin" aria-hidden /> {t("lesson.savingProgress")}
                   </p>
                 )}
                 <p className="font-display text-4xl font-black text-xp">
@@ -849,29 +870,33 @@ export function LessonPractice({
                 <div className="flex flex-wrap justify-center gap-2">
                   {needsWorksheet && passedQuiz && !passedWorksheet ? (
                     <button
+                      type="button"
                       onClick={resetWorksheetOnly}
                       className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
                     >
-                      <RotateCcw className="size-4" /> {t("lesson.retryWorksheet")}
+                      <RotateCcw className="size-4" aria-hidden /> {t("lesson.retryWorksheet")}
                     </button>
                   ) : (
                     <button
+                      type="button"
                       onClick={resetQuiz}
                       className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
                     >
-                      <RotateCcw className="size-4" />{" "}
+                      <RotateCcw className="size-4" aria-hidden />{" "}
                       {passed && bestScore != null && bestScore < 100
                         ? t("lesson.retryFor100")
                         : t("lesson.tryAgain")}
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => setPhase("teach")}
                     className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
                   >
-                    <BookOpen className="size-4" /> {t("lesson.reviewLesson")}
+                    <BookOpen className="size-4" aria-hidden /> {t("lesson.reviewLesson")}
                   </button>
                   <button
+                    type="button"
                     onClick={onClose}
                     className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
                   >
@@ -913,11 +938,20 @@ function QuestionPrompt({
   onShortChange: (v: string) => void;
   fallbackPlaceholder: string;
 }) {
+  const { t } = useTranslation();
+  const shortAnswerId = useId();
+
   return (
     <div className="space-y-3 text-start">
-      <h3 className="text-base font-bold leading-snug">{question.prompt}</h3>
+      <h3 className="text-base font-bold leading-snug" id={`${shortAnswerId}-prompt`}>
+        {question.prompt}
+      </h3>
       {question.type === "choice" ? (
-        <div className="grid gap-2">
+        <div
+          className="grid gap-2"
+          role="radiogroup"
+          aria-labelledby={`${shortAnswerId}-prompt`}
+        >
           {question.choices.map((choice, i) => {
             const isSelected = selected === i;
             const showCorrect = revealed && i === question.correctIndex;
@@ -926,6 +960,8 @@ function QuestionPrompt({
               <button
                 key={choice}
                 type="button"
+                role="radio"
+                aria-checked={isSelected}
                 disabled={revealed}
                 onClick={() => onSelect(i)}
                 className={`rounded-xl border px-3 py-3 text-start text-sm transition ${
@@ -938,22 +974,31 @@ function QuestionPrompt({
                         : "border-border bg-background/60 hover:bg-secondary"
                 }`}
               >
-                <span className="me-2 font-bold text-muted-foreground">
+                <span className="me-2 font-bold text-muted-foreground" aria-hidden>
                   {String.fromCharCode(65 + i)}.
                 </span>
                 {choice}
+                {showCorrect && <span className="sr-only"> — {t("a11y.choiceCorrect")}</span>}
+                {showWrong && <span className="sr-only"> — {t("a11y.choiceIncorrect")}</span>}
               </button>
             );
           })}
         </div>
       ) : (
-        <input
-          className="input-base"
-          value={shortValue}
-          disabled={revealed}
-          onChange={(e) => onShortChange(e.target.value)}
-          placeholder={question.placeholder ?? fallbackPlaceholder}
-        />
+        <>
+          <label className="sr-only" htmlFor={shortAnswerId}>
+            {question.prompt}
+          </label>
+          <input
+            id={shortAnswerId}
+            className="input-base"
+            value={shortValue}
+            disabled={revealed}
+            onChange={(e) => onShortChange(e.target.value)}
+            placeholder={question.placeholder ?? fallbackPlaceholder}
+            aria-labelledby={`${shortAnswerId}-prompt`}
+          />
+        </>
       )}
     </div>
   );
@@ -1062,7 +1107,7 @@ function WorksheetFeedbackCard({ feedback }: { feedback: WorksheetAiFeedback }) 
     <div className="overflow-hidden rounded-xl border border-border text-start">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary/40 px-4 py-3">
         <div className="flex items-center gap-2 text-sm font-bold">
-          <Sparkles className="size-4 text-primary" /> {t("lesson.worksheet.feedbackTitle")}
+          <Sparkles className="size-4 text-primary" aria-hidden /> {t("lesson.worksheet.feedbackTitle")}
         </div>
         <div className="text-xl font-black text-xp">
           {t("lesson.worksheet.score", { score: formatNumber(feedback.score) })}

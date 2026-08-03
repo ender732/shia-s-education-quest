@@ -105,9 +105,13 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={t("pdf.previousPage")}
           >
-            <ChevronLeft className="size-5" />
+            <ChevronLeft className="size-5" aria-hidden />
           </button>
-          <span className="min-w-[5.5rem] px-1 text-center text-xs font-semibold tabular-nums text-foreground sm:text-sm">
+          <span
+            className="min-w-[5.5rem] px-1 text-center text-xs font-semibold tabular-nums text-foreground sm:text-sm"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {numPages > 0
               ? t("pdf.pageOf", {
                   page: formatNumber(pageNumber),
@@ -122,7 +126,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={t("pdf.nextPage")}
           >
-            <ChevronRight className="size-5" />
+            <ChevronRight className="size-5" aria-hidden />
           </button>
         </div>
 
@@ -134,9 +138,13 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={t("pdf.zoomOut")}
           >
-            <ZoomOut className="size-4" />
+            <ZoomOut className="size-4" aria-hidden />
           </button>
-          <span className="min-w-[3.25rem] text-center text-xs font-semibold tabular-nums text-muted-foreground">
+          <span
+            className="min-w-[3.25rem] text-center text-xs font-semibold tabular-nums text-muted-foreground"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {Math.round(zoom * 100)}%
           </span>
           <button
@@ -146,7 +154,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label={t("pdf.zoomIn")}
           >
-            <ZoomIn className="size-4" />
+            <ZoomIn className="size-4" aria-hidden />
           </button>
         </div>
       </div>

@@ -110,15 +110,15 @@ export function TaskBoard({
 
   if (loading || progressLoading) {
     return (
-      <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> {t("taskboard.loading")}
+      <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground" role="status">
+        <Loader2 className="size-4 animate-spin" aria-hidden /> {t("taskboard.loading")}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="surface-card p-8 text-center text-sm text-destructive">
+      <div className="surface-card p-8 text-center text-sm text-destructive" role="alert">
         {t("taskboard.loadError")}
       </div>
     );
@@ -164,13 +164,13 @@ export function TaskBoard({
   });
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-4" aria-labelledby="taskboard-heading">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-        <p className="inline-flex items-center gap-1.5 font-semibold">
-          <BookOpenCheck className="size-3.5 text-primary" />
+        <p id="taskboard-heading" className="inline-flex items-center gap-1.5 font-semibold">
+          <BookOpenCheck className="size-3.5 text-primary" aria-hidden />
           {t("taskboard.standardsNote")}
         </p>
-        <p>
+        <p aria-live="polite">
           {t("taskboard.masteredCount", {
             done: formatNumber(doneCount),
             total: formatNumber(tasks.length),
@@ -187,9 +187,15 @@ export function TaskBoard({
             const attempts = row?.attempt_count ?? 0;
             const resolved = resolveTaskLesson(task);
             const lesson = resolved?.lesson;
+            const statusLabel = perfect
+              ? t("a11y.taskStatusPerfect")
+              : done
+                ? t("a11y.taskStatusMastered")
+                : t("a11y.taskStatusIncomplete");
             return (
               <motion.button
                 key={task.id}
+                type="button"
                 layout
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -204,17 +210,21 @@ export function TaskBoard({
                 <span
                   className="absolute inset-y-0 start-0 w-1"
                   style={{ backgroundColor: `var(--${accent})` }}
+                  aria-hidden
                 />
                 <div className="flex items-start gap-3 ps-2">
                   {perfect ? (
-                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-xp" />
+                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-xp" aria-hidden />
                   ) : done ? (
-                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" />
+                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden />
                   ) : (
-                    <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+                    <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
                   )}
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold">{tDb("tasks.title", task.title)}</h3>
+                    <h3 className="text-sm font-bold">
+                      {tDb("tasks.title", task.title)}
+                      <span className="sr-only"> — {statusLabel}</span>
+                    </h3>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {lesson
                         ? resolved?.payload?.worksheet
@@ -226,12 +236,12 @@ export function TaskBoard({
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {task.unit_tag && (
                         <span className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-[10px] font-semibold tracking-wide text-secondary-foreground">
-                          <Tag className="size-3" />
+                          <Tag className="size-3" aria-hidden />
                           {task.unit_tag}
                         </span>
                       )}
                       <span className="inline-flex items-center gap-1 rounded-md bg-background/70 px-2 py-1 text-[10px] font-bold text-xp">
-                        <Zap className="size-3" />
+                        <Zap className="size-3" aria-hidden />
                         {t("taskboard.xpReward", { xp: formatNumber(task.xp_reward) })}
                       </span>
                       {attempts > 0 && (
@@ -254,8 +264,8 @@ export function TaskBoard({
                           {perfect ? t("taskboard.bestPerfect") : ""}
                         </span>
                       )}
-                      <span className="ms-auto inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-1 text-[10px] font-bold text-primary opacity-0 transition group-hover:opacity-100">
-                        <Play className="size-3" />{" "}
+                      <span className="ms-auto inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-1 text-[10px] font-bold text-primary opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
+                        <Play className="size-3" aria-hidden />{" "}
                         {perfect
                           ? t("taskboard.actionReview")
                           : done
@@ -270,6 +280,6 @@ export function TaskBoard({
           })}
         </AnimatePresence>
       </div>
-    </div>
+    </section>
   );
 }
