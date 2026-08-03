@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { BookUp, FileUp, Link2, Loader2, Plus, RefreshCw, Trash2, Unlink } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CANCELLED, I18nError, isCancelled, useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import { CURRICULUM_UNIT_TAGS } from "@/lib/curriculum";
@@ -102,10 +103,13 @@ function WorksheetLessonUploader({
   const publishFn = useServerFn(publishLessonDraft);
   const discardFn = useServerFn(discardLessonDraft);
   const { data: tasks } = useTasks();
+  const { t, tDb, tError, formatNumber } = useTranslation();
 
   const [subjectId, setSubjectId] = useState("");
   const [titleHint, setTitleHint] = useState("");
-  const [sourceCredit, setSourceCredit] = useState("Worksheet uploaded by parent");
+  const [sourceCredit, setSourceCredit] = useState(
+    t("parent.worksheetUploader.sourceCreditDefault"),
+  );
   const [file, setFile] = useState<File | null>(null);
   const [reviewTaskId, setReviewTaskId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -139,24 +143,24 @@ function WorksheetLessonUploader({
 
   const generate = useMutation({
     mutationFn: async () => {
-      if (!file) throw new Error("Choose a PDF first.");
-      if (!isPdfFile(file)) throw new Error("Only PDF files are allowed.");
-      if (file.size > MAX_PDF_BYTES) throw new Error("PDF must be 15 MB or smaller.");
+      if (!file) throw new I18nError("parent.worksheetUploader.choosePdfError");
+      if (!isPdfFile(file)) throw new I18nError("parent.worksheetUploader.pdfOnlyError");
+      if (file.size > MAX_PDF_BYTES) {
+        throw new I18nError("parent.worksheetUploader.pdfTooLargeError");
+      }
       const sid = subjectId || subjects[0]?.id;
-      if (!sid) throw new Error("Choose a subject.");
+      if (!sid) throw new I18nError("parent.worksheetUploader.chooseSubjectError");
 
       const key = `${userId}/${crypto.randomUUID()}.pdf`;
       const { error: uploadError } = await supabase.storage
         .from(LESSON_WORKSHEETS_BUCKET)
         .upload(key, file, { contentType: "application/pdf", upsert: false });
       if (uploadError) {
-        const msg = uploadError.message || "Upload failed.";
-        if (/bucket not found/i.test(msg)) {
-          throw new Error(
-            "Storage bucket “lesson-worksheets” is missing. Ask an admin to run the lesson_drafts_from_pdf migration.",
-          );
+        const msg = uploadError.message;
+        if (msg && /bucket not found/i.test(msg)) {
+          throw new I18nError("parent.worksheetUploader.missingWorksheetBucket");
         }
-        throw new Error(msg);
+        throw msg ? new Error(msg) : new I18nError("parent.worksheetUploader.uploadFailed");
       }
 
       const subjectTitle = subjects.find((s) => s.id === sid)?.title ?? "";
@@ -172,13 +176,13 @@ function WorksheetLessonUploader({
       });
     },
     onSuccess: (result) => {
-      toast.success("AI draft ready — review before publishing.");
+      toast.success(t("parent.worksheetUploader.draftReady"));
       setFile(null);
       setTitleHint("");
       setReviewTaskId(result.task.id);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (err: Error) => toast.error(err.message || "Could not draft lesson from PDF."),
+    onError: (err: Error) => toast.error(tError(err, "parent.worksheetUploader.draftFailed")),
   });
 
   const publish = useMutation({
@@ -192,28 +196,28 @@ function WorksheetLessonUploader({
         },
       }),
     onSuccess: () => {
-      toast.success("Lesson published — students can practice it now.");
+      toast.success(t("parent.worksheetUploader.published"));
       setReviewTaskId(null);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (err: Error) => toast.error(err.message || "Could not publish."),
+    onError: (err: Error) => toast.error(tError(err, "parent.worksheetUploader.publishFailed")),
   });
 
   const discard = useMutation({
     mutationFn: async (taskId: string) => {
-      if (!window.confirm("Discard this draft and delete the uploaded PDF?")) {
-        throw new Error("cancelled");
+      if (!window.confirm(t("parent.worksheetUploader.confirmDiscard"))) {
+        throw new Error(CANCELLED);
       }
       return discardFn({ data: { taskId } });
     },
     onSuccess: () => {
-      toast.success("Draft discarded.");
+      toast.success(t("parent.worksheetUploader.discarded"));
       setReviewTaskId(null);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
     onError: (err: Error) => {
-      if (err.message === "cancelled") return;
-      toast.error(err.message || "Could not discard draft.");
+      if (isCancelled(err)) return;
+      toast.error(tError(err, "parent.worksheetUploader.discardFailed"));
     },
   });
 
@@ -232,65 +236,61 @@ function WorksheetLessonUploader({
         className="surface-card space-y-3 p-5"
       >
         <h3 className="flex items-center gap-2 text-sm font-bold">
-          <FileUp className="size-4 text-primary" /> Upload worksheet → AI lesson draft
+          <FileUp className="size-4 text-primary" /> {t("parent.worksheetUploader.title")}
         </h3>
-        <p className="text-xs text-muted-foreground">
-          Upload a PDF you are allowed to use. The AI drafts a lesson with 5 quiz questions and
-          fillable on-site worksheet fields (students write their own answers; answer keys stay hidden for grading/coaching). The app also attaches a matching curriculum YouTube video + reading transcript when it finds a strong topic match. Students never see drafts until you publish. No
-          scraping — upload only.
-        </p>
-        <Field label="Subject">
+        <p className="text-xs text-muted-foreground">{t("parent.worksheetUploader.body")}</p>
+        <Field label={t("parent.field.subject")}>
           <select
             value={subjectId}
             onChange={(e) => setSubjectId(e.target.value)}
             className="input-base"
             required
           >
-            <option value="">Choose a subject…</option>
+            <option value="">{t("parent.field.chooseSubject")}</option>
             {subjects.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.title}
+                {tDb("subjects.title", s.title)}
               </option>
             ))}
           </select>
         </Field>
-        <Field label="Title hint (optional)">
+        <Field label={t("parent.worksheetUploader.titleHintLabel")}>
           <input
             className="input-base"
             value={titleHint}
             onChange={(e) => setTitleHint(e.target.value)}
-            placeholder="Fractions practice — unlike denominators"
+            placeholder={t("parent.worksheetUploader.titleHintPlaceholder")}
           />
         </Field>
-        <Field label="Source credit (optional)">
+        <Field label={t("parent.worksheetUploader.sourceCreditLabel")}>
           <input
             className="input-base"
             value={sourceCredit}
             onChange={(e) => setSourceCredit(e.target.value)}
-            placeholder="Worksheet uploaded by parent"
+            placeholder={t("parent.worksheetUploader.sourceCreditPlaceholder")}
           />
         </Field>
-        <Field label="Worksheet PDF (required · max 15 MB · text-based)">
+        <Field label={t("parent.worksheetUploader.fileLabel")}>
           <input
             type="file"
             accept="application/pdf,.pdf"
             onChange={(e) => {
               const next = e.target.files?.[0] ?? null;
               if (next && !isPdfFile(next)) {
-                toast.error("Only PDF files are allowed.");
+                toast.error(t("parent.worksheetUploader.pdfOnlyError"));
                 e.target.value = "";
                 setFile(null);
                 return;
               }
               if (next && next.size > MAX_PDF_BYTES) {
-                toast.error("PDF must be 15 MB or smaller.");
+                toast.error(t("parent.worksheetUploader.pdfTooLargeError"));
                 e.target.value = "";
                 setFile(null);
                 return;
               }
               setFile(next);
             }}
-            className="input-base file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-secondary-foreground"
+            className="input-base file:me-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-secondary-foreground"
             required
           />
         </Field>
@@ -301,23 +301,21 @@ function WorksheetLessonUploader({
         >
           {generate.isPending ? (
             <span className="inline-flex items-center justify-center gap-2">
-              <Loader2 className="size-4 animate-spin" /> Drafting with AI…
+              <Loader2 className="size-4 animate-spin" /> {t("parent.worksheetUploader.drafting")}
             </span>
           ) : (
-            "Generate draft lesson"
+            t("parent.worksheetUploader.submit")
           )}
         </button>
       </form>
 
       <div className="surface-card space-y-3 p-5">
-        <h3 className="text-sm font-bold">Review drafts</h3>
+        <h3 className="text-sm font-bold">{t("parent.worksheetUploader.reviewTitle")}</h3>
         {drafts.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No drafts yet. Upload a PDF to generate one.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("parent.worksheetUploader.noDrafts")}</p>
         )}
         {drafts.length > 1 && (
-          <Field label="Draft">
+          <Field label={t("parent.field.draft")}>
             <select
               className="input-base"
               value={reviewTask?.id ?? ""}
@@ -333,21 +331,21 @@ function WorksheetLessonUploader({
         )}
         {reviewTask && reviewPayload && (
           <div className="space-y-3">
-            <Field label="Title">
+            <Field label={t("parent.field.title")}>
               <input
                 className="input-base"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
               />
             </Field>
-            <Field label="Description">
+            <Field label={t("parent.field.description")}>
               <textarea
                 className="input-base min-h-16"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
               />
             </Field>
-            <Field label="Source credit">
+            <Field label={t("parent.field.sourceCredit")}>
               <input
                 className="input-base"
                 value={editCredit}
@@ -357,24 +355,29 @@ function WorksheetLessonUploader({
             <div className="rounded-lg border border-border bg-background/50 p-3 text-xs">
               <p className="font-semibold">{reviewPayload.title}</p>
               <p className="mt-1 text-muted-foreground">
-                {reviewPayload.questions.length} quiz questions ·{" "}
-                {reviewPayload.worksheet?.fields.length ?? 0} fillable fields · pass{" "}
-                {reviewPayload.passPercent}%
+                {t("parent.worksheetUploader.draftSummary", {
+                  questions: formatNumber(reviewPayload.questions.length),
+                  fields: formatNumber(reviewPayload.worksheet?.fields.length ?? 0),
+                  pass: formatNumber(reviewPayload.passPercent),
+                })}
               </p>
               {reviewPayload.youtubeVideoId ? (
                 <p className="mt-2 text-muted-foreground">
-                  Video: {reviewPayload.youtubeTitle ?? reviewPayload.youtubeVideoId}
+                  {t("parent.worksheetUploader.videoLine", {
+                    title: reviewPayload.youtubeTitle ?? reviewPayload.youtubeVideoId,
+                  })}
                   {reviewPayload.youtubeChannel ? ` · ${reviewPayload.youtubeChannel}` : ""}
                 </p>
               ) : (
                 <p className="mt-2 text-amber-700 dark:text-amber-300">
-                  No matching curriculum video found for this topic — students will still get reading
-                  text.
+                  {t("parent.worksheetUploader.noVideoMatch")}
                 </p>
               )}
               {reviewPayload.transcript ? (
                 <p className="mt-1 text-muted-foreground">
-                  Transcript ready ({reviewPayload.transcript.length} chars)
+                  {t("parent.worksheetUploader.transcriptReady", {
+                    chars: formatNumber(reviewPayload.transcript.length),
+                  })}
                 </p>
               ) : null}
               <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
@@ -384,14 +387,17 @@ function WorksheetLessonUploader({
               </ul>
               {reviewPayload.worksheet?.fields?.length ? (
                 <>
-                  <p className="mt-3 font-semibold">Fillable worksheet (student blanks)</p>
+                  <p className="mt-3 font-semibold">
+                    {t("parent.worksheetUploader.fillableTitle")}
+                  </p>
                   <ul className="mt-1 list-inside list-disc space-y-1 text-muted-foreground">
                     {reviewPayload.worksheet.fields.map((f) => (
                       <li key={f.id}>
                         [{f.type}] {f.prompt}
                         {f.gradingHint ? (
-                          <span className="block pl-4 text-[11px] text-muted-foreground/80">
-                            Answer key (hidden from students): {f.gradingHint.slice(0, 160)}
+                          <span className="block ps-4 text-[11px] text-muted-foreground/80">
+                            {t("parent.worksheetUploader.answerKeyPrefix")}
+                            {f.gradingHint.slice(0, 160)}
                             {f.gradingHint.length > 160 ? "…" : ""}
                           </span>
                         ) : null}
@@ -408,7 +414,7 @@ function WorksheetLessonUploader({
                 onClick={() => publish.mutate(reviewTask.id)}
                 className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-60"
               >
-                {publish.isPending ? "Publishing…" : "Publish"}
+                {publish.isPending ? t("common.publishing") : t("common.publish")}
               </button>
               <button
                 type="button"
@@ -416,7 +422,7 @@ function WorksheetLessonUploader({
                 onClick={() => discard.mutate(reviewTask.id)}
                 className="rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-destructive disabled:opacity-60"
               >
-                Discard
+                {t("common.discard")}
               </button>
             </div>
           </div>
@@ -436,6 +442,7 @@ function TaskCreator({
   howtoEnabled?: boolean;
 }) {
   const queryClient = useQueryClient();
+  const { t, tDb, tError } = useTranslation();
   const [form, setForm] = useState({
     subject_id: "",
     title: "",
@@ -459,11 +466,11 @@ function TaskCreator({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Built-in lesson assigned to the student portal.");
+      toast.success(t("parent.taskCreator.assigned"));
       setForm({ subject_id: form.subject_id, title: "", description: "", unit_tag: "", xp_reward: 100 });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (err: Error) => toast.error(err.message || "Could not assign that lesson."),
+    onError: (err: Error) => toast.error(tError(err, "parent.taskCreator.assignFailed")),
   });
 
   return (
@@ -479,20 +486,21 @@ function TaskCreator({
             <div className="min-w-0">
               <h3 className="flex items-center gap-2 text-sm font-bold">
                 <Plus className="size-4 shrink-0 text-muted-foreground" />
-                Advanced: assign a built-in curriculum lesson
+                {t("parent.taskCreator.title")}
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Optional. Use this only to assign an existing Grade 5 unit already in the library
-                (by unit tag). For custom worksheets, use{" "}
-                <span className="font-medium text-foreground/80">AI lesson draft from PDF</span>{" "}
-                above instead.
+                {t("parent.taskCreator.bodyBefore")}{" "}
+                <span className="font-medium text-foreground/80">
+                  {t("parent.taskCreator.bodyLink")}
+                </span>{" "}
+                {t("parent.taskCreator.bodyAfter")}
               </p>
             </div>
             <span className="mt-0.5 shrink-0 text-xs font-semibold text-muted-foreground group-open:hidden">
-              Show
+              {t("common.show")}
             </span>
             <span className="mt-0.5 hidden shrink-0 text-xs font-semibold text-muted-foreground group-open:inline">
-              Hide
+              {t("common.hide")}
             </span>
           </div>
         </summary>
@@ -504,45 +512,45 @@ function TaskCreator({
           }}
           className="space-y-3 border-t border-border px-5 pb-5 pt-4"
         >
-          <Field label="Subject">
+          <Field label={t("parent.field.subject")}>
             <select
               value={form.subject_id}
               onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
               className="input-base"
               required
             >
-              <option value="">Choose a subject…</option>
+              <option value="">{t("parent.field.chooseSubject")}</option>
               {subjects.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.title}
+                  {tDb("subjects.title", s.title)}
                 </option>
               ))}
             </select>
           </Field>
-          <Field label="Task title">
+          <Field label={t("parent.taskCreator.taskTitleLabel")}>
             <input
               className="input-base"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Extra practice: unlike denominators"
+              placeholder={t("parent.taskCreator.taskTitlePlaceholder")}
               required
             />
           </Field>
-          <Field label="Description">
+          <Field label={t("parent.field.description")}>
             <textarea
               className="input-base min-h-20"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Optional note for the student"
+              placeholder={t("parent.taskCreator.descriptionPlaceholder")}
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Built-in unit tag">
+            <Field label={t("parent.taskCreator.unitTagLabel")}>
               <input
                 className="input-base"
                 value={form.unit_tag}
                 onChange={(e) => setForm({ ...form, unit_tag: e.target.value })}
-                placeholder="187_MATH_FRACTIONS"
+                placeholder={t("parent.taskCreator.unitTagPlaceholder")}
                 list="hudson-cliffs-unit-tags"
                 required
               />
@@ -552,7 +560,7 @@ function TaskCreator({
                 ))}
               </datalist>
             </Field>
-            <Field label="XP reward">
+            <Field label={t("parent.taskCreator.xpRewardLabel")}>
               <input
                 type="number"
                 min={10}
@@ -564,15 +572,14 @@ function TaskCreator({
             </Field>
           </div>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Links the student to a pre-made lesson quiz/video (not a new PDF worksheet). Tags:{" "}
-            {CURRICULUM_UNIT_TAGS.join(", ")}.
+            {t("parent.taskCreator.tagsNote", { tags: CURRICULUM_UNIT_TAGS.join(", ") })}
           </p>
           <button
             type="submit"
             disabled={create.isPending}
             className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-bold transition hover:bg-secondary disabled:opacity-60"
           >
-            {create.isPending ? "Assigning…" : "Assign built-in lesson"}
+            {create.isPending ? t("parent.taskCreator.assigning") : t("parent.taskCreator.submit")}
           </button>
         </form>
       </details>
@@ -589,6 +596,7 @@ function BookUploader({
 }) {
   const queryClient = useQueryClient();
   const { data: books } = useBooks();
+  const { t, tError } = useTranslation();
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -605,10 +613,10 @@ function BookUploader({
       let path: string | null = null;
       if (file) {
         if (!isPdfFile(file)) {
-          throw new Error("Only PDF files are allowed.");
+          throw new I18nError("parent.worksheetUploader.pdfOnlyError");
         }
         if (file.size > MAX_PDF_BYTES) {
-          throw new Error("PDF must be 15 MB or smaller.");
+          throw new I18nError("parent.worksheetUploader.pdfTooLargeError");
         }
         // Path: {uploader_user_id}/{uuid}.pdf — RLS scopes by folder prefix
         const key = `${userId}/${crypto.randomUUID()}.pdf`;
@@ -619,13 +627,11 @@ function BookUploader({
             upsert: false,
           });
         if (uploadError) {
-          const msg = uploadError.message || "Upload failed.";
-          if (/bucket not found/i.test(msg)) {
-            throw new Error(
-              "Storage bucket “assigned-books” is missing. Ask an admin to run the secure_assigned_books_storage migration.",
-            );
+          const msg = uploadError.message;
+          if (msg && /bucket not found/i.test(msg)) {
+            throw new I18nError("parent.bookUploader.missingBooksBucket");
           }
-          throw new Error(msg);
+          throw msg ? new Error(msg) : new I18nError("parent.worksheetUploader.uploadFailed");
         }
         path = key;
       }
@@ -640,7 +646,7 @@ function BookUploader({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Book assigned.");
+      toast.success(t("parent.bookUploader.assigned"));
       void trackEvent("book_assign");
       setTitle("");
       setAuthor("");
@@ -649,7 +655,7 @@ function BookUploader({
       setAllowStudentDelete(false);
       queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
     },
-    onError: (err: Error) => toast.error(err.message || "Upload failed."),
+    onError: (err: Error) => toast.error(tError(err, "parent.worksheetUploader.uploadFailed")),
   });
 
   const toggleStudentDelete = useMutation({
@@ -662,33 +668,29 @@ function BookUploader({
         .select("id");
       if (error) throw error;
       if (!data?.length) {
-        throw new Error("Could not update permission. You may not own this book.");
+        throw new I18nError("parent.bookUploader.permissionUpdateDenied");
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
     },
-    onError: (err: Error) => toast.error(err.message || "Could not update permission."),
+    onError: (err: Error) => toast.error(tError(err, "parent.bookUploader.permissionUpdateFailed")),
   });
 
   const removeBook = useMutation({
     mutationFn: async (book: AssignedBook) => {
-      if (
-        !window.confirm(
-          `Remove “${book.title}” permanently? The PDF will be deleted from storage.`,
-        )
-      ) {
-        throw new Error("cancelled");
+      if (!window.confirm(t("parent.bookUploader.confirmRemove", { title: book.title }))) {
+        throw new Error(CANCELLED);
       }
       await removeAssignedBook(book);
     },
     onSuccess: () => {
-      toast.success("Book removed.");
+      toast.success(t("book.removed"));
       queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
     },
     onError: (err: Error) => {
-      if (err.message === "cancelled") return;
-      toast.error(err.message || "Could not remove book.");
+      if (isCancelled(err)) return;
+      toast.error(tError(err, "book.removeFailed"));
     },
   });
 
@@ -707,9 +709,9 @@ function BookUploader({
         className="surface-card space-y-3 p-5"
       >
         <h3 className="flex items-center gap-2 text-sm font-bold">
-          <BookUp className="size-4 text-reading" /> Book Upload Manager
+          <BookUp className="size-4 text-reading" /> {t("parent.bookUploader.title")}
         </h3>
-        <Field label="Book title">
+        <Field label={t("parent.bookUploader.bookTitleLabel")}>
           <input
             className="input-base"
             value={title}
@@ -717,38 +719,38 @@ function BookUploader({
             required
           />
         </Field>
-        <Field label="Author">
+        <Field label={t("parent.bookUploader.authorLabel")}>
           <input className="input-base" value={author} onChange={(e) => setAuthor(e.target.value)} />
         </Field>
-        <Field label="Reading prompt">
+        <Field label={t("parent.bookUploader.promptLabel")}>
           <textarea
             className="input-base min-h-20"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="How does the narrator change after the storm? Use RACECE."
+            placeholder={t("parent.bookUploader.promptPlaceholder")}
           />
         </Field>
-        <Field label="PDF file (required · max 15 MB)">
+        <Field label={t("parent.bookUploader.fileLabel")}>
           <input
             type="file"
             accept="application/pdf,.pdf"
             onChange={(e) => {
               const next = e.target.files?.[0] ?? null;
               if (next && !isPdfFile(next)) {
-                toast.error("Only PDF files are allowed.");
+                toast.error(t("parent.worksheetUploader.pdfOnlyError"));
                 e.target.value = "";
                 setFile(null);
                 return;
               }
               if (next && next.size > MAX_PDF_BYTES) {
-                toast.error("PDF must be 15 MB or smaller.");
+                toast.error(t("parent.worksheetUploader.pdfTooLargeError"));
                 e.target.value = "";
                 setFile(null);
                 return;
               }
               setFile(next);
             }}
-            className="input-base file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-secondary-foreground"
+            className="input-base file:me-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-secondary-foreground"
             required
           />
         </Field>
@@ -759,21 +761,21 @@ function BookUploader({
             checked={allowStudentDelete}
             onChange={(e) => setAllowStudentDelete(e.target.checked)}
           />
-          <span>Allow student to remove this book once they are done</span>
+          <span>{t("parent.bookUploader.allowStudentDelete")}</span>
         </label>
         <button
           type="submit"
           disabled={upload.isPending || !file}
           className="w-full rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-accent-foreground transition hover:brightness-110 disabled:opacity-60"
         >
-          {upload.isPending ? "Uploading…" : "Assign book"}
+          {upload.isPending ? t("parent.bookUploader.uploading") : t("parent.bookUploader.submit")}
         </button>
       </form>
 
       {myBooks.length > 0 && (
         <div className="surface-card space-y-3 p-5">
-          <h3 className="text-sm font-bold">Assigned books</h3>
-          <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+          <h3 className="text-sm font-bold">{t("parent.bookUploader.assignedBooksTitle")}</h3>
+          <div className="max-h-64 space-y-2 overflow-y-auto pe-1">
             {myBooks.map((book) => (
               <div
                 key={book.id}
@@ -782,8 +784,10 @@ function BookUploader({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-semibold">{book.title}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {book.author ?? "Unknown author"}
-                    {book.pdf_url ? " · PDF attached" : " · no PDF"}
+                    {book.author ?? t("book.unknownAuthor")}
+                    {book.pdf_url
+                      ? t("parent.bookUploader.pdfAttached")
+                      : t("parent.bookUploader.noPdf")}
                   </p>
                   <label className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
                     <input
@@ -797,7 +801,7 @@ function BookUploader({
                         })
                       }
                     />
-                    Allow student to remove
+                    {t("parent.bookUploader.allowStudentRemove")}
                   </label>
                 </div>
                 <button
@@ -805,7 +809,7 @@ function BookUploader({
                   onClick={() => removeBook.mutate(book)}
                   disabled={removeBook.isPending}
                   className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
-                  aria-label={`Delete ${book.title}`}
+                  aria-label={t("parent.bookUploader.deleteAria", { title: book.title })}
                 >
                   <Trash2 className="size-4" />
                 </button>
@@ -830,6 +834,7 @@ function ProgressMonitor({
   const { data: tasks } = useTasks();
   const queryClient = useQueryClient();
   const rematchFn = useServerFn(rematchLessonVideos);
+  const { t, tDb, tError, formatNumber, formatDateTime } = useTranslation();
   const [linkCode, setLinkCode] = useState("");
   const [selectedId, setSelectedId] = useState<string | "all">("all");
   const [schemaMissing, setSchemaMissing] = useState(false);
@@ -929,26 +934,24 @@ function ProgressMonitor({
     mutationFn: async (code: string) => {
       const trimmed = code.trim();
       if (!UUID_RE.test(trimmed)) {
-        throw new Error("Enter a valid parent link code (UUID).");
+        throw new I18nError("parent.progress.linkCodeInvalid");
       }
       const { data, error } = await supabase.rpc("link_student_by_code", { _code: trimmed });
       if (error) {
         if (isMissingLinksSchema(error.message)) {
           setSchemaMissing(true);
-          throw new Error(
-            "Parent–student linking is not set up yet. Run the parent_student_links migration in Supabase, then try again.",
-          );
+          throw new I18nError("parent.progress.linkSchemaMissing");
         }
         throw error;
       }
       return data as string;
     },
     onSuccess: () => {
-      toast.success("Student linked.");
+      toast.success(t("parent.progress.studentLinked"));
       setLinkCode("");
       queryClient.invalidateQueries({ queryKey: ["linked-students", parentId] });
     },
-    onError: (err: Error) => toast.error(err.message || "Could not link that student."),
+    onError: (err: Error) => toast.error(tError(err, "parent.progress.linkFailed")),
   });
 
   const unlinkStudent = useMutation({
@@ -961,10 +964,10 @@ function ProgressMonitor({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Student unlinked.");
+      toast.success(t("parent.progress.studentUnlinked"));
       queryClient.invalidateQueries({ queryKey: ["linked-students", parentId] });
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: (err: Error) => toast.error(tError(err, "common.somethingWentWrong")),
   });
 
   const remove = useMutation({
@@ -973,14 +976,14 @@ function ProgressMonitor({
       if (error) throw error;
       const removed = data as { id?: string } | null;
       if (!removed?.id) {
-        throw new Error("Could not remove task. Curriculum lessons stay in the library.");
+        throw new I18nError("parent.progress.taskRemoveDenied");
       }
     },
     onSuccess: () => {
-      toast.success("Task removed.");
+      toast.success(t("parent.progress.taskRemoved"));
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (err: Error) => toast.error(err.message || "Could not remove task."),
+    onError: (err: Error) => toast.error(tError(err, "parent.progress.taskRemoveFailed")),
   });
 
   const rematchVideos = useMutation({
@@ -992,17 +995,20 @@ function ProgressMonitor({
       if (updated === 0) {
         toast.success(
           scanned
-            ? `Checked ${scanned} worksheet lesson${scanned === 1 ? "" : "s"} — videos already look right.`
-            : "No worksheet lessons found to update.",
+            ? t("parent.progress.videosAlreadyRight", { count: scanned })
+            : t("parent.progress.noWorksheetLessons"),
         );
         return;
       }
       toast.success(
-        `Updated videos on ${updated} of ${scanned} worksheet lesson${scanned === 1 ? "" : "s"}.`,
+        t("parent.progress.videosUpdated", {
+          count: scanned,
+          updated: formatNumber(updated),
+          scanned: formatNumber(scanned),
+        }),
       );
     },
-    onError: (err: Error) =>
-      toast.error(err.message || "Could not refresh lesson videos."),
+    onError: (err: Error) => toast.error(tError(err, "parent.progress.videosRefreshFailed")),
   });
 
   const worksheetLessonCount = (tasks ?? []).filter(
@@ -1081,17 +1087,15 @@ function ProgressMonitor({
         className="surface-card space-y-3 p-5"
       >
         <h3 className="flex items-center gap-2 text-sm font-bold">
-          <Link2 className="size-4 text-primary" /> Link a student
+          <Link2 className="size-4 text-primary" /> {t("parent.progress.linkTitle")}
         </h3>
-        <p className="text-xs text-muted-foreground">
-          Ask your child for their Parent link code (shown on their dashboard), then paste it here.
-        </p>
-        <Field label="Parent link code">
+        <p className="text-xs text-muted-foreground">{t("parent.progress.linkBody")}</p>
+        <Field label={t("parent.progress.linkCodeLabel")}>
           <input
             className="input-base font-mono text-sm"
             value={linkCode}
             onChange={(e) => setLinkCode(e.target.value)}
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            placeholder={t("parent.progress.linkCodePlaceholder")}
             autoComplete="off"
             spellCheck={false}
             required
@@ -1102,28 +1106,30 @@ function ProgressMonitor({
           disabled={linkStudent.isPending}
           className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
         >
-          {linkStudent.isPending ? "Linking…" : "Link student"}
+          {linkStudent.isPending
+            ? t("parent.progress.linking")
+            : t("parent.progress.linkSubmit")}
         </button>
         {(schemaMissing || (loadError && isMissingLinksSchema(loadError))) && (
           <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-            Database migration required: run{" "}
-            <code className="font-mono">supabase/migrations/*_parent_student_links.sql</code> in the
-            Supabase SQL editor (or <code className="font-mono">supabase db push</code>), then
-            refresh.
+            {t("parent.progress.migrationRequiredBefore")}{" "}
+            <code className="font-mono">supabase/migrations/*_parent_student_links.sql</code>{" "}
+            {t("parent.progress.migrationRequiredAfter", { command: "supabase db push" })}
           </p>
         )}
       </form>
 
       {studentsLoading && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Loading linked students…
+          <Loader2 className="size-4 animate-spin" /> {t("parent.progress.loadingStudents")}
         </p>
       )}
 
       {!studentsLoading && !hasLinks && !schemaMissing && (
         <div className="surface-card p-5 text-sm text-muted-foreground">
-          No students linked yet. Ask your child for their <strong>Parent link code</strong> on their
-          dashboard, then paste it above.
+          {t("parent.progress.noStudentsBefore")}{" "}
+          <strong>{t("parent.progress.noStudentsLinkCode")}</strong>{" "}
+          {t("parent.progress.noStudentsAfter")}
         </div>
       )}
 
@@ -1131,17 +1137,17 @@ function ProgressMonitor({
         <>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Viewing
+              {t("parent.progress.viewing")}
             </span>
             <select
               className="input-base max-w-xs text-sm"
               value={selectedId}
               onChange={(e) => setSelectedId(e.target.value as string | "all")}
             >
-              <option value="all">All linked students</option>
+              <option value="all">{t("parent.progress.allStudents")}</option>
               {(students ?? []).map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.display_name ?? "Student"}
+                  {s.display_name ?? t("common.student")}
                 </option>
               ))}
             </select>
@@ -1157,66 +1163,91 @@ function ProgressMonitor({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Student</p>
-                    <p className="text-sm font-bold">{s.display_name ?? "Student"}</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {t("common.student")}
+                    </p>
+                    <p className="text-sm font-bold">{s.display_name ?? t("common.student")}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => unlinkStudent.mutate(s.id)}
                     disabled={unlinkStudent.isPending}
                     className="rounded-md p-1.5 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
-                    aria-label={`Unlink ${s.display_name ?? "student"}`}
-                    title="Unlink"
+                    aria-label={t("parent.progress.unlinkAria", {
+                      name: s.display_name ?? t("common.student"),
+                    })}
+                    title={t("parent.progress.unlinkTitle")}
                   >
                     <Unlink className="size-3.5" />
                   </button>
                 </div>
-                <p className="mt-2 text-2xl font-black text-xp">{s.xp_points.toLocaleString()} XP</p>
+                <p className="mt-2 text-2xl font-black text-xp">
+                  {t("parent.progress.xpTotal", { xp: formatNumber(s.xp_points) })}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Level {s.level} · {s.streak_days} day streak
+                  {t("parent.progress.levelAndStreak", {
+                    level: formatNumber(s.level),
+                    days: formatNumber(s.streak_days),
+                  })}
                 </p>
               </div>
             ))}
           </div>
 
           <div className="surface-card p-5">
-            <h3 className="text-sm font-bold">Lesson mastery by subject</h3>
+            <h3 className="text-sm font-bold">{t("parent.progress.masteryTitle")}</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Based on practice quizzes scored at {MASTERY_SCORE_MIN}% or higher
-              {selectedId === "all" ? " (all linked students)." : "."}
+              {selectedId === "all"
+                ? t("parent.progress.masteryBasisAll", {
+                    pass: formatNumber(MASTERY_SCORE_MIN),
+                  })
+                : t("parent.progress.masteryBasisOne", {
+                    pass: formatNumber(MASTERY_SCORE_MIN),
+                  })}
             </p>
             {(studyMinutes > 0 || attemptDisplay > 0) && (
               <p className="mt-2 text-xs text-muted-foreground">
-                Study time: <span className="font-semibold text-foreground">{studyMinutes} min</span>
+                {t("parent.progress.studyTimePrefix")}{" "}
+                <span className="font-semibold text-foreground">
+                  {t("parent.progress.studyMinutes", { minutes: formatNumber(studyMinutes) })}
+                </span>
                 {attemptDisplay > 0
-                  ? ` · ${attemptDisplay} quiz attempt${attemptDisplay === 1 ? "" : "s"} recorded`
-                  : " · no quiz submitted yet"}
+                  ? t("parent.progress.quizAttempts", { count: attemptDisplay })
+                  : t("parent.progress.noQuizYet")}
               </p>
             )}
             {progressLoading && (
               <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> Loading mastery…
+                <Loader2 className="size-4 animate-spin" /> {t("parent.progress.loadingMastery")}
               </p>
             )}
             {progressLoadError && (
               <p className="mt-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                Could not load lesson progress: {progressLoadError}
+                {t("parent.progress.masteryLoadError", { message: progressLoadError })}
               </p>
             )}
             {!progressLoading && !progressLoadError && !hasMasteryData && (
               <p className="mt-3 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs text-muted-foreground">
                 {studyMinutes > 0
-                  ? "This student has opened lessons, but has not completed a practice quiz at 70% or higher yet. XP and mastery update when a quiz is passed."
-                  : "No completed practice quizzes yet. When your student finishes a lesson quiz at 70% or higher, XP and mastery will show up here."}
+                  ? t("parent.progress.noMasteryOpened", {
+                      pass: formatNumber(MASTERY_SCORE_MIN),
+                    })
+                  : t("parent.progress.noMasteryAtAll", {
+                      pass: formatNumber(MASTERY_SCORE_MIN),
+                    })}
               </p>
             )}
             <div className="mt-3 space-y-3">
               {bySubject.map((s) => (
                 <div key={s.id}>
                   <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                    <span>{s.title}</span>
+                    <span>{tDb("subjects.title", s.title)}</span>
                     <span>
-                      {s.done}/{s.total} · {s.pct}%
+                      {t("parent.progress.subjectProgress", {
+                        done: formatNumber(s.done),
+                        total: formatNumber(s.total),
+                        pct: formatNumber(s.pct),
+                      })}
                     </span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-secondary">
@@ -1228,11 +1259,8 @@ function ProgressMonitor({
           </div>
 
           <div className="surface-card p-5">
-            <h3 className="text-sm font-bold">Manage published lessons</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Curriculum lessons stay in the library. You can only remove tasks you published
-              yourself.
-            </p>
+            <h3 className="text-sm font-bold">{t("parent.progress.manageTitle")}</h3>
+            <p className="mt-1 text-xs text-muted-foreground">{t("parent.progress.manageBody")}</p>
             {worksheetLessonCount > 0 && (
               <button
                 type="button"
@@ -1245,55 +1273,74 @@ function ProgressMonitor({
                 ) : (
                   <RefreshCw className="size-3.5" />
                 )}
-                Fix worksheet videos
+                {t("parent.progress.fixVideos")}
               </button>
             )}
             <p className="mt-1 text-[11px] text-muted-foreground">
-              Re-matches YouTube explainers for your uploaded worksheets (for example magnetism →
-              magnets, not ecosystems).
+              {t("parent.progress.fixVideosNote")}
             </p>
-            <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pr-1">
+            <div className="mt-3 max-h-64 space-y-2 overflow-y-auto pe-1">
               {(tasks ?? [])
-                .filter((t: Task) => !t.is_draft)
-                .map((t: Task) => {
-                const row = progress?.find((p) => p.task_id === t.id);
+                .filter((item: Task) => !item.is_draft)
+                .map((task: Task) => {
+                const row = progress?.find((p) => p.task_id === task.id);
                 const mastered = row && row.score >= MASTERY_SCORE_MIN;
                 const attempts = row?.attempt_count ?? 0;
                 const attempt = (studyActivity ?? [])
-                  .filter((a) => a.task_id === t.id)
+                  .filter((a) => a.task_id === task.id)
                   .sort((a, b) => (b.best_score ?? -1) - (a.best_score ?? -1))[0];
+                const attemptsLabel = t("common.attempts", { count: attempts });
                 const status = mastered
                   ? row!.score >= 100
-                    ? `perfect ${row!.score}% · ${attempts} attempt${attempts === 1 ? "" : "s"}`
-                    : `mastered at ${row!.score}% · ${attempts} attempt${attempts === 1 ? "" : "s"} · retry for 100%`
+                    ? t("parent.progress.status.perfect", {
+                        score: formatNumber(row!.score),
+                        attempts: attemptsLabel,
+                      })
+                    : t("parent.progress.status.mastered", {
+                        score: formatNumber(row!.score),
+                        attempts: attemptsLabel,
+                      })
                   : row
-                    ? `best ${row.score}% · ${attempts} attempt${attempts === 1 ? "" : "s"} (needs ${MASTERY_SCORE_MIN}%+)`
+                    ? t("parent.progress.status.best", {
+                        score: formatNumber(row.score),
+                        attempts: attemptsLabel,
+                        pass: formatNumber(MASTERY_SCORE_MIN),
+                      })
                     : attempt?.best_score != null
-                      ? `best attempt ${attempt.best_score}% (needs ${MASTERY_SCORE_MIN}%+)`
+                      ? t("parent.progress.status.bestAttempt", {
+                          score: formatNumber(attempt.best_score),
+                          pass: formatNumber(MASTERY_SCORE_MIN),
+                        })
                       : attempt && attempt.seconds_spent > 0
-                        ? "opened — quiz not finished"
-                        : "not mastered yet";
-                const canRemove = t.created_by === parentId;
+                        ? t("parent.progress.status.openedNotFinished")
+                        : t("parent.progress.status.notMastered");
+                const canRemove = task.created_by === parentId;
                 return (
                   <div
-                    key={t.id}
+                    key={task.id}
                     className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/50 px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold">{t.title}</p>
+                      <p className="truncate text-xs font-semibold">
+                        {tDb("tasks.title", task.title)}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">
-                        {t.unit_tag ?? "—"} · {t.xp_reward} XP · {status}
-                        {!canRemove ? " · curriculum" : ""}
-                        {t.lesson_payload ? " · worksheet lesson" : ""}
+                        {t("parent.progress.taskMeta", {
+                          tag: task.unit_tag ?? t("common.none"),
+                          xp: formatNumber(task.xp_reward),
+                          status,
+                        })}
+                        {!canRemove ? t("parent.progress.curriculumSuffix") : ""}
+                        {task.lesson_payload ? t("parent.progress.worksheetSuffix") : ""}
                       </p>
                     </div>
                     {canRemove && (
                       <button
                         type="button"
-                        onClick={() => remove.mutate(t.id)}
+                        onClick={() => remove.mutate(task.id)}
                         disabled={remove.isPending}
                         className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
-                        aria-label={`Delete ${t.title}`}
+                        aria-label={t("parent.progress.deleteTaskAria", { title: task.title })}
                       >
                         <Trash2 className="size-4" />
                       </button>
@@ -1305,22 +1352,26 @@ function ProgressMonitor({
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-sm font-bold">Recent AI-graded book reports</h3>
+            <h3 className="text-sm font-bold">{t("parent.progress.reportsTitle")}</h3>
             {reportsLoading && (
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> Loading reports…
+                <Loader2 className="size-4 animate-spin" /> {t("parent.progress.loadingReports")}
               </p>
             )}
             {!reportsLoading && reports?.length === 0 && (
-              <p className="surface-card p-5 text-sm text-muted-foreground">No submissions yet.</p>
+              <p className="surface-card p-5 text-sm text-muted-foreground">
+                {t("parent.progress.noReports")}
+              </p>
             )}
             {(reports ?? []).map((r) => (
               <details key={r.id} className="surface-card p-4">
                 <summary className="cursor-pointer text-sm font-semibold">
                   {r.chapter_or_topic} —{" "}
-                  <span className="text-xp">{r.ai_score ?? "ungraded"}</span>{" "}
+                  <span className="text-xp">
+                    {r.ai_score ?? t("parent.progress.ungraded")}
+                  </span>{" "}
                   <span className="text-xs font-normal text-muted-foreground">
-                    ({new Date(r.submitted_at).toLocaleString()})
+                    ({formatDateTime(r.submitted_at)})
                   </span>
                 </summary>
                 <div className="mt-3 space-y-3">

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Flame, Sparkles, Trophy, Zap } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import { levelForXp, levelProgress } from "@/lib/gamification";
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function GamificationHeader({ name, xp, streak }: Props) {
+  const { t, formatNumber } = useTranslation();
   const level = levelForXp(xp);
   const { into, needed, percent } = levelProgress(xp);
 
@@ -18,30 +20,41 @@ export function GamificationHeader({ name, xp, streak }: Props) {
         <div>
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             <Sparkles className="size-3.5 text-primary" />
-            P.S./I.S. 187 Hudson Cliffs · Grade 5 Quest
+            {t("app.school")}
           </p>
-          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Welcome back, {name}!</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Finish tasks, write strong RACECE responses, and level up.
-          </p>
+          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
+            {t("gamification.welcomeBack", { name })}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("gamification.subtitle")}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <Badge icon={<Trophy className="size-4 text-xp" />} label="Level" value={String(level)} />
-          <Badge icon={<Zap className="size-4 text-primary" />} label="Total XP" value={xp.toLocaleString()} />
+          <Badge
+            icon={<Trophy className="size-4 text-xp" />}
+            label={t("gamification.level")}
+            value={formatNumber(level)}
+          />
+          <Badge
+            icon={<Zap className="size-4 text-primary" />}
+            label={t("gamification.totalXp")}
+            value={formatNumber(xp)}
+          />
           <Badge
             icon={<Flame className="size-4 text-streak" />}
-            label="Day streak"
-            value={`${streak} 🔥`}
+            label={t("gamification.dayStreak")}
+            value={t("gamification.streakValue", { days: formatNumber(streak) })}
           />
         </div>
       </div>
 
       <div className="mt-6">
         <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">
-          <span>Progress to level {level + 1}</span>
+          <span>{t("gamification.progressToLevel", { level: formatNumber(level + 1) })}</span>
           <span>
-            {into} / {needed} XP
+            {t("gamification.xpOfNeeded", {
+              into: formatNumber(into),
+              needed: formatNumber(needed),
+            })}
           </span>
         </div>
         <div className="h-3 w-full overflow-hidden rounded-full bg-secondary">

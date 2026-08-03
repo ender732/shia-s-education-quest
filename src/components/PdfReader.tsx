@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Loader2, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "@/i18n";
 
 const ZOOM_MIN = 0.75;
 const ZOOM_MAX = 2.5;
@@ -25,8 +26,9 @@ export function PdfReader({ url, title }: PdfReaderProps) {
   const [numPages, setNumPages] = useState(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [zoom, setZoom] = useState(1);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [pdf, setPdf] = useState<ReactPdfApi | null>(null);
+  const { t, formatNumber } = useTranslation();
 
   useEffect(() => {
     let cancelled = false;
@@ -47,7 +49,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
         if (!cancelled) setPdf({ Document, Page });
       } catch (err) {
         console.error("[PdfReader] failed to load react-pdf", err);
-        if (!cancelled) setLoadError("We couldn’t open this PDF in the reader.");
+        if (!cancelled) setLoadError(true);
       }
     })();
 
@@ -60,7 +62,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
     setPageNumber(1);
     setZoom(1);
     setNumPages(0);
-    setLoadError(null);
+    setLoadError(false);
   }, [url]);
 
   useEffect(() => {
@@ -92,7 +94,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
     <div
       className="flex min-h-0 flex-1 flex-col"
       role="region"
-      aria-label={title ? `Reading: ${title}` : "PDF reader"}
+      aria-label={title ? t("pdf.readingAria", { title }) : t("pdf.regionAria")}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-background/60 px-2 py-2 sm:px-3">
         <div className="flex items-center gap-1">
@@ -101,19 +103,24 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             onClick={goPrev}
             disabled={pageNumber <= 1}
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Previous page"
+            aria-label={t("pdf.previousPage")}
           >
             <ChevronLeft className="size-5" />
           </button>
           <span className="min-w-[5.5rem] px-1 text-center text-xs font-semibold tabular-nums text-foreground sm:text-sm">
-            {numPages > 0 ? `${pageNumber} of ${numPages}` : "—"}
+            {numPages > 0
+              ? t("pdf.pageOf", {
+                  page: formatNumber(pageNumber),
+                  total: formatNumber(numPages),
+                })
+              : t("common.none")}
           </span>
           <button
             type="button"
             onClick={goNext}
             disabled={!numPages || pageNumber >= numPages}
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Next page"
+            aria-label={t("pdf.nextPage")}
           >
             <ChevronRight className="size-5" />
           </button>
@@ -125,7 +132,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             onClick={zoomOut}
             disabled={zoom <= ZOOM_MIN}
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Zoom out"
+            aria-label={t("pdf.zoomOut")}
           >
             <ZoomOut className="size-4" />
           </button>
@@ -137,7 +144,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
             onClick={zoomIn}
             disabled={zoom >= ZOOM_MAX}
             className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Zoom in"
+            aria-label={t("pdf.zoomIn")}
           >
             <ZoomIn className="size-4" />
           </button>
@@ -150,35 +157,35 @@ export function PdfReader({ url, title }: PdfReaderProps) {
       >
         {loadError ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center text-sm text-muted-foreground">
-            <p>{loadError}</p>
+            <p>{t("pdf.loadFailed")}</p>
             <a
               href={url}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold text-primary underline-offset-2 hover:underline"
             >
-              Open PDF in a new tab
+              {t("pdf.openInNewTab")}
             </a>
           </div>
         ) : !Document || !Page ? (
           <div className="flex flex-1 items-center justify-center gap-2 self-center text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" /> Loading reader…
+            <Loader2 className="size-4 animate-spin" /> {t("pdf.loadingReader")}
           </div>
         ) : (
           <Document
             file={url}
             loading={
               <div className="flex flex-1 items-center justify-center gap-2 self-center text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> Loading pages…
+                <Loader2 className="size-4 animate-spin" /> {t("pdf.loadingPages")}
               </div>
             }
             onLoadSuccess={({ numPages: pages }) => {
               setNumPages(pages);
-              setLoadError(null);
+              setLoadError(false);
             }}
             onLoadError={(err) => {
               console.error("[PdfReader]", err);
-              setLoadError("We couldn’t open this PDF in the reader.");
+              setLoadError(true);
             }}
             className="flex justify-center"
           >
@@ -188,7 +195,7 @@ export function PdfReader({ url, title }: PdfReaderProps) {
                 width={pageWidth}
                 loading={
                   <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 size-4 animate-spin" /> Rendering page…
+                    <Loader2 className="me-2 size-4 animate-spin" /> {t("pdf.renderingPage")}
                   </div>
                 }
                 className="shadow-sm"

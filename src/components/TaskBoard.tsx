@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 import { LessonPractice } from "@/components/LessonPractice";
 import { HowToContextual } from "@/components/howto/HowToContextual";
+import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { lessonForUnit } from "@/lib/curriculum";
 import { lessonFromPayload, parseLessonPayload } from "@/lib/lesson-payload";
@@ -96,6 +97,7 @@ export function TaskBoard({
   userId: string;
   howtoEnabled?: boolean;
 }) {
+  const { t, tDb, formatNumber } = useTranslation();
   const { data: progress, isLoading: progressLoading } = useTaskProgress(userId);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
@@ -109,7 +111,7 @@ export function TaskBoard({
   if (loading || progressLoading) {
     return (
       <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" /> Loading lessons…
+        <Loader2 className="size-4 animate-spin" /> {t("taskboard.loading")}
       </div>
     );
   }
@@ -117,7 +119,7 @@ export function TaskBoard({
   if (error) {
     return (
       <div className="surface-card p-8 text-center text-sm text-destructive">
-        We couldn&apos;t load your lessons. Please refresh and try again.
+        {t("taskboard.loadError")}
       </div>
     );
   }
@@ -130,10 +132,8 @@ export function TaskBoard({
           shortId="student-subjects"
           enabled={howtoEnabled}
         />
-        <p className="text-sm font-semibold">No lessons here yet</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          A parent can add assignments from the Parent Portal.
-        </p>
+        <p className="text-sm font-semibold">{t("taskboard.emptyTitle")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("taskboard.emptyBody")}</p>
       </div>
     );
   }
@@ -168,10 +168,13 @@ export function TaskBoard({
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <p className="inline-flex items-center gap-1.5 font-semibold">
           <BookOpenCheck className="size-3.5 text-primary" />
-          Aligned to NYC Grade 5 standards (Hudson Cliffs) — learn, then quiz for XP.
+          {t("taskboard.standardsNote")}
         </p>
         <p>
-          {doneCount}/{tasks.length} mastered
+          {t("taskboard.masteredCount", {
+            done: formatNumber(doneCount),
+            total: formatNumber(tasks.length),
+          })}
         </p>
       </div>
 
@@ -194,15 +197,15 @@ export function TaskBoard({
                 whileHover={{ y: -3 }}
                 onClick={() => setActiveTaskId(task.id)}
                 style={{ borderColor: `var(--${accent})` }}
-                className={`surface-card group relative overflow-hidden p-4 text-left transition ${
+                className={`surface-card group relative overflow-hidden p-4 text-start transition ${
                   done ? "opacity-90" : ""
                 }`}
               >
                 <span
-                  className="absolute inset-y-0 left-0 w-1"
+                  className="absolute inset-y-0 start-0 w-1"
                   style={{ backgroundColor: `var(--${accent})` }}
                 />
-                <div className="flex items-start gap-3 pl-2">
+                <div className="flex items-start gap-3 ps-2">
                   {perfect ? (
                     <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-xp" />
                   ) : done ? (
@@ -211,13 +214,14 @@ export function TaskBoard({
                     <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold">{task.title}</h3>
+                    <h3 className="text-sm font-bold">{tDb("tasks.title", task.title)}</h3>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {lesson
                         ? resolved?.payload?.worksheet
-                          ? `${lesson.questions.length} quiz questions + fillable worksheet`
-                          : `${lesson.questions.length} practice questions · learn first, then quiz`
-                        : task.description || "Practice coming soon for this unit."}
+                          ? t("taskboard.quizPlusWorksheet", { count: lesson.questions.length })
+                          : t("taskboard.practiceQuestions", { count: lesson.questions.length })
+                        : tDb("tasks.description", task.description) ||
+                          t("taskboard.practiceComingSoon")}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {task.unit_tag && (
@@ -227,11 +231,12 @@ export function TaskBoard({
                         </span>
                       )}
                       <span className="inline-flex items-center gap-1 rounded-md bg-background/70 px-2 py-1 text-[10px] font-bold text-xp">
-                        <Zap className="size-3" />+{task.xp_reward} XP
+                        <Zap className="size-3" />
+                        {t("taskboard.xpReward", { xp: formatNumber(task.xp_reward) })}
                       </span>
                       {attempts > 0 && (
                         <span className="rounded-md bg-secondary px-2 py-1 text-[10px] font-bold text-secondary-foreground">
-                          {attempts} attempt{attempts === 1 ? "" : "s"}
+                          {t("common.attempts", { count: attempts })}
                         </span>
                       )}
                       {row && (
@@ -244,14 +249,18 @@ export function TaskBoard({
                                 : "bg-background/70 text-muted-foreground"
                           }`}
                         >
-                          Best {row.score}%
-                          {done && !perfect ? " · retry for 100%" : ""}
-                          {perfect ? " · perfect" : ""}
+                          {t("taskboard.best", { score: formatNumber(row.score) })}
+                          {done && !perfect ? t("taskboard.bestRetry") : ""}
+                          {perfect ? t("taskboard.bestPerfect") : ""}
                         </span>
                       )}
-                      <span className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-1 text-[10px] font-bold text-primary opacity-0 transition group-hover:opacity-100">
+                      <span className="ms-auto inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-1 text-[10px] font-bold text-primary opacity-0 transition group-hover:opacity-100">
                         <Play className="size-3" />{" "}
-                        {perfect ? "Review" : done ? "Retry for 100%" : "Start"}
+                        {perfect
+                          ? t("taskboard.actionReview")
+                          : done
+                            ? t("taskboard.actionRetry")
+                            : t("taskboard.actionStart")}
                       </span>
                     </div>
                   </div>

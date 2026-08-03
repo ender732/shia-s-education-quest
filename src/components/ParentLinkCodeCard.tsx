@@ -2,6 +2,7 @@ import { Check, Copy, Link2, Mail, Loader2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n";
 import { trackEvent } from "@/lib/analytics";
 import { sendParentLinkCodeEmail } from "@/lib/parent-link-email.functions";
 
@@ -13,6 +14,7 @@ type Props = {
 
 /** Shows the student's shareable parent link code with copy + email resend. */
 export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }: Props) {
+  const { t, tError } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [emailDraft, setEmailDraft] = useState(parentContactEmail ?? "");
   const [sending, setSending] = useState(false);
@@ -25,9 +27,7 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
   if (!linkCode) {
     return (
       <div className="surface-card border-dashed p-4 text-sm text-muted-foreground">
-        Parent link code is not available yet. Ask an adult to run the latest database migration
-        (<code className="text-xs">parent_age_and_contact</code> /{" "}
-        <code className="text-xs">parent_student_links</code>), then refresh.
+        {t("linkCode.missing", { migrations: "parent_age_and_contact / parent_student_links" })}
       </div>
     );
   }
@@ -37,17 +37,17 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
       await navigator.clipboard.writeText(linkCode!);
       setCopied(true);
       void trackEvent("copy_link", { kind: "parent_link_code" });
-      toast.success("Parent link code copied.");
+      toast.success(t("linkCode.copied"));
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Could not copy — select and copy the code manually.");
+      toast.error(t("linkCode.copyFailed"));
     }
   }
 
   async function emailParent() {
     const to = emailDraft.trim();
     if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
-      toast.error("Enter a valid parent/guardian email.");
+      toast.error(t("linkCode.emailInvalid"));
       return;
     }
     setSending(true);
@@ -56,18 +56,18 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
         data: {
           parentEmail: to,
           linkCode: linkCode!,
-          studentName: studentName || "Your student",
+          studentName: studentName || t("linkCode.defaultStudentName"),
         },
       });
       if (result.status === "sent") {
-        toast.success("Link code emailed to your parent/guardian.");
+        toast.success(t("linkCode.emailSent"));
       } else if (result.status === "not_configured") {
-        toast.message(result.message || "Email not configured; copy the code instead");
+        toast.message(result.message || t("linkCode.emailNotConfigured"));
       } else {
-        toast.error(result.message || "Could not send email.");
+        toast.error(result.message || t("linkCode.emailFailed"));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not send email.");
+      toast.error(tError(err, "linkCode.emailFailed"));
     } finally {
       setSending(false);
     }
@@ -79,13 +79,10 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <Link2 className="size-3.5 text-primary" />
-            Parent link code
+            {t("linkCode.label")}
           </p>
           <p className="mt-1 break-all font-mono text-sm font-semibold tracking-tight">{linkCode}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Share this code with a parent so they can follow your progress. Only they can see your
-            quest after linking.
-          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("linkCode.shareNote")}</p>
         </div>
         <button
           type="button"
@@ -93,7 +90,7 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
           className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold transition hover:bg-secondary"
         >
           {copied ? <Check className="size-3.5 text-primary" /> : <Copy className="size-3.5" />}
-          {copied ? "Copied" : "Copy"}
+          {copied ? t("common.copied") : t("common.copy")}
         </button>
       </div>
 
@@ -101,7 +98,7 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
         <input
           className="input-base flex-1"
           type="email"
-          placeholder="Parent/guardian email"
+          placeholder={t("linkCode.emailPlaceholder")}
           value={emailDraft}
           onChange={(e) => setEmailDraft(e.target.value)}
         />
@@ -112,7 +109,7 @@ export function ParentLinkCodeCard({ linkCode, parentContactEmail, studentName }
           className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-xs font-bold transition hover:bg-secondary disabled:opacity-60"
         >
           {sending ? <Loader2 className="size-3.5 animate-spin" /> : <Mail className="size-3.5" />}
-          Email my parent the link code
+          {t("linkCode.emailButton")}
         </button>
       </div>
     </div>

@@ -110,6 +110,13 @@ export function modeForUnitTag(
   return match ?? modeById(subject, subject.defaultModeId);
 }
 
+export type RecommendedMode = {
+  mode: ArcadeMode;
+  unitTag: string | null;
+  /** Catalog key under `arcade.hub.reason.*`; the UI supplies `mode`/`subject` vars. */
+  reasonKey: "openUnit" | "subjectUnit" | "default";
+};
+
 /**
  * Prefer incomplete unit tasks for this subject; else any matching unit; else default.
  */
@@ -117,7 +124,7 @@ export function pickRecommendedMode(
   subject: ArcadeSubjectDef,
   tasks: Array<{ id: string; unit_tag?: string | null }>,
   masteredIds: Set<string>,
-): { mode: ArcadeMode; reason: string; unitTag: string | null } {
+): RecommendedMode {
   const tagged = tasks.filter(
     (t) =>
       t.unit_tag?.startsWith(subject.unitPrefix) ||
@@ -125,26 +132,23 @@ export function pickRecommendedMode(
   );
   const incomplete = tagged.find((t) => t.unit_tag && !masteredIds.has(t.id));
   if (incomplete?.unit_tag) {
-    const mode = modeForUnitTag(subject, incomplete.unit_tag);
     return {
-      mode,
+      mode: modeForUnitTag(subject, incomplete.unit_tag),
       unitTag: incomplete.unit_tag,
-      reason: `Matched to your open unit · ${mode.title}`,
+      reasonKey: "openUnit",
     };
   }
   const any = tagged.find((t) => t.unit_tag);
   if (any?.unit_tag) {
-    const mode = modeForUnitTag(subject, any.unit_tag);
     return {
-      mode,
+      mode: modeForUnitTag(subject, any.unit_tag),
       unitTag: any.unit_tag,
-      reason: `Based on your ${subject.hubTitle.replace(" Arcade", "")} unit · ${mode.title}`,
+      reasonKey: "subjectUnit",
     };
   }
-  const mode = modeById(subject, subject.defaultModeId);
   return {
-    mode,
+    mode: modeById(subject, subject.defaultModeId),
     unitTag: null,
-    reason: `Default ${mode.title} — practice while you wait for assignments`,
+    reasonKey: "default",
   };
 }

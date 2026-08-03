@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
+import { useTranslation } from "@/i18n";
 import type { HowToShort, HowToScene } from "@/lib/howto-shorts";
 
 const ICON_MAP: Record<HowToScene["icon"], LucideIcon> = {
@@ -43,7 +44,7 @@ type HowToShortPlayerProps = {
   short: HowToShort;
   open: boolean;
   onClose: (reason: "done" | "skip") => void;
-  /** Extra footer action, e.g. Skip all tour */
+  /** Extra footer action, e.g. Skip all tour. Already-translated label. */
   onSkipAll?: () => void;
   skipAllLabel?: string;
   /** Persistently hide all auto tips app-wide. */
@@ -56,11 +57,12 @@ export function HowToShortPlayer({
   open,
   onClose,
   onSkipAll,
-  skipAllLabel = "Skip all tips",
+  skipAllLabel,
   onHideAll,
-  hideAllLabel = "Hide all tips",
+  hideAllLabel,
 }: HowToShortPlayerProps) {
   const titleId = useId();
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -81,6 +83,7 @@ export function HowToShortPlayer({
   const scene = short.scenes[index];
   const Icon = ICON_MAP[scene.icon] ?? Sparkles;
   const isLast = index >= short.scenes.length - 1;
+  const sceneKey = `howto.shorts.${short.id}.scenes.${index + 1}`;
 
   return (
     <div
@@ -97,17 +100,17 @@ export function HowToShortPlayer({
         <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-              How-to short
+              {t("howto.player.eyebrow")}
             </p>
             <h2 id={titleId} className="mt-0.5 text-base font-bold text-foreground">
-              {short.title}
+              {t(`howto.shorts.${short.id}.title`)}
             </h2>
           </div>
           <button
             type="button"
             onClick={() => onClose("skip")}
             className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
-            aria-label="Close tip"
+            aria-label={t("howto.player.closeAria")}
           >
             <X className="size-5" />
           </button>
@@ -133,11 +136,11 @@ export function HowToShortPlayer({
               </motion.div>
               {scene.emphasis && (
                 <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                  {scene.emphasis}
+                  {t(`${sceneKey}.emphasis`)}
                 </p>
               )}
               <p className="max-w-sm text-lg font-semibold leading-snug text-foreground sm:text-xl">
-                {scene.caption}
+                {t(`${sceneKey}.caption`)}
               </p>
             </motion.div>
           </AnimatePresence>
@@ -162,7 +165,7 @@ export function HowToShortPlayer({
               onClick={() => setIndex((i) => Math.max(0, i - 1))}
               className="min-h-11 rounded-xl border border-border bg-background px-3 text-sm font-semibold disabled:opacity-40"
             >
-              Back
+              {t("howto.player.back")}
             </button>
             {onSkipAll && (
               <button
@@ -170,7 +173,7 @@ export function HowToShortPlayer({
                 onClick={onSkipAll}
                 className="min-h-11 rounded-xl px-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
               >
-                {skipAllLabel}
+                {skipAllLabel ?? t("howto.player.skipAllTips")}
               </button>
             )}
             {onHideAll && (
@@ -179,7 +182,7 @@ export function HowToShortPlayer({
                 onClick={onHideAll}
                 className="min-h-11 rounded-xl px-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
               >
-                {hideAllLabel}
+                {hideAllLabel ?? t("howto.player.hideAllTips")}
               </button>
             )}
           </div>
@@ -191,7 +194,7 @@ export function HowToShortPlayer({
             }}
             className="glow-ring min-h-11 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground"
           >
-            {isLast ? "Got it" : "Next"}
+            {isLast ? t("howto.player.gotIt") : t("howto.player.next")}
           </button>
         </div>
       </motion.div>

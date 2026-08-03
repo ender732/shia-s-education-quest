@@ -8,6 +8,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { useTranslation } from "@/i18n";
 
 export type ScribblePadHandle = {
   /** JPEG data URL, or null if the pad is blank. */
@@ -46,6 +47,7 @@ export const ScribblePad = forwardRef<ScribblePadHandle, Props>(function Scribbl
   { disabled = false, className = "", heightPx = 200, onInkChange, label },
   ref,
 ) {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef(false);
@@ -247,11 +249,11 @@ export const ScribblePad = forwardRef<ScribblePadHandle, Props>(function Scribbl
     <div className={`space-y-2 ${className}`}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-semibold text-muted-foreground">
-          {label ?? "Write or draw your answer"}
+          {label ?? t("scribble.defaultLabel")}
           {hasInk ? (
-            <span className="ml-2 font-normal text-success">· ink saved</span>
+            <span className="ms-2 font-normal text-success">{t("scribble.inkSaved")}</span>
           ) : (
-            <span className="ml-2 font-normal">· finger or Pencil</span>
+            <span className="ms-2 font-normal">{t("scribble.fingerOrPencil")}</span>
           )}
         </p>
         <div className="flex gap-1.5">
@@ -260,20 +262,20 @@ export const ScribblePad = forwardRef<ScribblePadHandle, Props>(function Scribbl
             disabled={disabled || !canUndo}
             onClick={undoPad}
             className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-xl border border-border bg-background px-3 text-xs font-semibold disabled:opacity-40"
-            aria-label="Undo stroke"
+            aria-label={t("scribble.undoAria")}
           >
             <Undo2 className="size-4" />
-            <span className="hidden sm:inline">Undo</span>
+            <span className="hidden sm:inline">{t("scribble.undo")}</span>
           </button>
           <button
             type="button"
             disabled={disabled || !hasInk}
             onClick={clearPad}
             className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-xl border border-border bg-background px-3 text-xs font-semibold disabled:opacity-40"
-            aria-label="Clear drawing"
+            aria-label={t("scribble.clearAria")}
           >
             <Eraser className="size-4" />
-            <span className="hidden sm:inline">Clear</span>
+            <span className="hidden sm:inline">{t("scribble.clear")}</span>
           </button>
         </div>
       </div>
@@ -284,7 +286,7 @@ export const ScribblePad = forwardRef<ScribblePadHandle, Props>(function Scribbl
         <canvas
           ref={canvasRef}
           role="img"
-          aria-label={label ?? "Drawing answer area"}
+          aria-label={label ?? t("scribble.canvasAria")}
           className="block w-full touch-none select-none"
           style={{
             touchAction: "none",

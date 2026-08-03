@@ -1,5 +1,6 @@
 import { ChevronDown, FileText } from "lucide-react";
 import { useId, useState } from "react";
+import { useTranslation } from "@/i18n";
 import { youtubeEmbedUrl } from "@/lib/youtube";
 
 export function LessonVideo({
@@ -16,14 +17,15 @@ export function LessonVideo({
 }) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  const { t } = useTranslation();
 
   if (!youtubeVideoId) return null;
 
   const embedSrc = youtubeEmbedUrl(youtubeVideoId);
   if (!embedSrc) return null;
 
-  const label = youtubeTitle ?? "Lesson explainer video";
-  const channel = youtubeChannel ?? "Crash Course Kids";
+  const label = youtubeTitle ?? t("lesson.video.defaultTitle");
+  const channel = youtubeChannel ?? t("lesson.video.defaultChannel");
   const youtubeWatchUrl = `https://www.youtube.com/watch?v=${youtubeVideoId}`;
   const hasTranscript = Boolean(transcript?.trim());
 
@@ -54,7 +56,7 @@ export function LessonVideo({
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold transition hover:bg-secondary"
         >
           <FileText className="size-4 shrink-0 text-primary" aria-hidden />
-          {open ? "Hide transcript" : "Read transcript"}
+          {open ? t("lesson.video.hideTranscript") : t("lesson.video.readTranscript")}
           <ChevronDown
             className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
             aria-hidden
@@ -66,7 +68,7 @@ export function LessonVideo({
             id={panelId}
             className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-border bg-background/50 p-3 text-sm leading-relaxed sm:max-h-80"
             role="region"
-            aria-label="Video transcript"
+            aria-label={t("lesson.video.transcriptAria")}
           >
             {hasTranscript ? (
               transcript!
@@ -78,10 +80,7 @@ export function LessonVideo({
                   </p>
                 ))
             ) : (
-              <p className="text-muted-foreground">
-                Transcript not available yet. You can still follow along with captions on YouTube
-                when they are offered.
-              </p>
+              <p className="text-muted-foreground">{t("lesson.video.transcriptUnavailable")}</p>
             )}
             <a
               href={youtubeWatchUrl}
@@ -89,7 +88,7 @@ export function LessonVideo({
               rel="noopener noreferrer"
               className="inline-flex text-xs font-semibold text-primary underline-offset-2 hover:underline"
             >
-              Open video on YouTube (captions)
+              {t("lesson.video.openOnYouTube")}
             </a>
           </div>
         )}

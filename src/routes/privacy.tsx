@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "@/i18n";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -15,59 +16,47 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function PrivacyPage() {
+  const { t } = useTranslation();
+
   return (
     <main className="mx-auto min-h-screen max-w-2xl px-5 py-16">
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-        Shia&apos;s 5th Grade Quest
+        {t("app.name")}
       </p>
-      <h1 className="mt-3 text-3xl font-bold">Privacy Policy</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Last updated: July 31, 2026</p>
+      <h1 className="mt-3 text-3xl font-bold">{t("privacy.title")}</h1>
+      <p className="mt-2 text-sm text-muted-foreground">{t("privacy.lastUpdated")}</p>
 
       <div className="mt-8 space-y-5 text-sm leading-relaxed text-foreground/90">
-        <p>
-          Shia&apos;s 5th Grade Quest (&quot;the App&quot;) helps students prepare for 5th grade at
-          P.S./I.S. 187 and lets parents monitor progress. This page explains what information we
-          collect and how we use it.
-        </p>
+        <p>{t("privacy.intro")}</p>
 
         <section>
-          <h2 className="text-base font-semibold">Information we collect</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
-            <li>Account details (email, name if provided by your sign-in provider)</li>
-            <li>Role (student or parent) and age verification for parent accounts</li>
-            <li>Learning activity (tasks, XP, streaks, book reports, and related progress)</li>
-            <li>Files parents upload (for example assigned reading PDFs)</li>
+          <h2 className="text-base font-semibold">{t("privacy.collectTitle")}</h2>
+          <ul className="mt-2 list-disc space-y-1 ps-5 text-muted-foreground">
+            <li>{t("privacy.collect.account")}</li>
+            <li>{t("privacy.collect.role")}</li>
+            <li>{t("privacy.collect.activity")}</li>
+            <li>{t("privacy.collect.files")}</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-base font-semibold">How we use information</h2>
-          <p className="mt-2 text-muted-foreground">
-            We use this information to run accounts, save progress, grade writing with AI where
-            enabled, and let linked parents review student work. We do not sell personal information.
-          </p>
+          <h2 className="text-base font-semibold">{t("privacy.useTitle")}</h2>
+          <p className="mt-2 text-muted-foreground">{t("privacy.useBody")}</p>
         </section>
 
         <section>
-          <h2 className="text-base font-semibold">Sign-in with Google</h2>
-          <p className="mt-2 text-muted-foreground">
-            If you choose Google sign-in, Google shares basic profile information (such as email)
-            with our authentication provider so we can create or open your account. Authentication is
-            handled by Supabase Auth.
-          </p>
+          <h2 className="text-base font-semibold">{t("privacy.googleTitle")}</h2>
+          <p className="mt-2 text-muted-foreground">{t("privacy.googleBody")}</p>
         </section>
 
         <section>
-          <h2 className="text-base font-semibold">Contact</h2>
-          <p className="mt-2 text-muted-foreground">
-            Questions about this policy: use the contact email configured on the Google OAuth
-            consent screen for this app, or reach the parent/guardian who manages the App.
-          </p>
+          <h2 className="text-base font-semibold">{t("privacy.contactTitle")}</h2>
+          <p className="mt-2 text-muted-foreground">{t("privacy.contactBody")}</p>
         </section>
       </div>
 
       <Link to="/" className="mt-10 inline-block text-sm font-medium text-primary hover:underline">
-        ← Back home
+        {t("privacy.backHome")}
       </Link>
     </main>
   );

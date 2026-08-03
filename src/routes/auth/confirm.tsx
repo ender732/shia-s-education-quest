@@ -7,6 +7,7 @@ import { getAuthRedirectUrl } from "@/lib/auth-redirect";
 import { ensureProfileRole } from "@/lib/ensure-role";
 import { trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/i18n";
 
 export const Route = createFileRoute("/auth/confirm")({
   head: () => ({
@@ -23,13 +24,15 @@ export const Route = createFileRoute("/auth/confirm")({
 
 type ConfirmState = "working" | "error";
 
+/** Either a catalog key we own, or a message handed to us by Supabase. */
+type ConfirmMessage = { key: string } | { text: string };
+
 function AuthConfirmPage() {
   const navigate = useNavigate();
   const ran = useRef(false);
+  const { t, tError } = useTranslation();
   const [state, setState] = useState<ConfirmState>("working");
-  const [message, setMessage] = useState(
-    "This confirmation link is invalid or has expired. Request a new one from the sign-in page.",
-  );
+  const [message, setMessage] = useState<ConfirmMessage>({ key: "auth.confirm.invalidLink" });
   const [resendEmail, setResendEmail] = useState("");
   const [resending, setResending] = useState(false);
 
@@ -42,7 +45,7 @@ function AuthConfirmPage() {
         const result = await establishSessionFromUrl();
 
         if (result.error) {
-          setMessage(result.error);
+          setMessage({ text: result.error });
           setState("error");
           return;
         }
@@ -59,39 +62,31 @@ function AuthConfirmPage() {
               provider: isGoogle ? "google" : "email",
             });
             if (roleResult.forcedStudentReason === "under_18") {
-              toast.message("Parents must be 18+. Your account was set up as a student.");
+              toast.message(t("auth.toast.forcedStudent"));
             } else if (roleResult.forcedStudentReason === "missing_confirmation") {
-              toast.message(
-                "Parent confirmation was incomplete — account set up as student. You can verify as a parent from the dashboard.",
-              );
+              toast.message(t("auth.toast.parentConfirmationIncomplete"));
             }
             if (roleResult.role === "parent") {
-              toast.success("Parent account ready — welcome to Parent Portal.");
+              toast.success(t("auth.toast.parentReady"));
             }
             if (roleResult.emailStatus === "sent") {
-              toast.success("We emailed your parent/guardian the link code.");
+              toast.success(t("auth.toast.linkCodeEmailed"));
             } else if (
               roleResult.emailStatus === "not_configured" &&
               roleResult.parentContactEmail
             ) {
-              toast.message("Email not configured — copy your link code from the dashboard.");
+              toast.message(t("auth.toast.emailNotConfiguredDashboard"));
             }
           } catch (err) {
             console.error(err);
-            toast.error(
-              err instanceof Error
-                ? err.message
-                : "Signed in, but we couldn't finish role setup. Try refreshing or verify from the dashboard.",
-            );
+            toast.error(tError(err, "auth.toast.roleSetupFailed"));
           }
           navigate({ to: "/dashboard", replace: true });
           return;
         }
 
         if (!result.hadAuthParams) {
-          setMessage(
-            "No confirmation details found. Open the link from your email, or request a new one below.",
-          );
+          setMessage({ key: "auth.confirm.noParams" });
           setState("error");
           return;
         }
@@ -100,17 +95,19 @@ function AuthConfirmPage() {
         navigate({ to: "/auth/confirmed", replace: true });
       } catch (err) {
         setMessage(
-          err instanceof Error ? err.message : "Something went wrong confirming your email.",
+          err instanceof Error && err.message
+            ? { text: err.message }
+            : { key: "auth.confirm.genericFailure" },
         );
         setState("error");
       }
     })();
-  }, [navigate]);
+  }, [navigate, t, tError]);
 
   async function handleResend(e: React.FormEvent) {
     e.preventDefault();
     if (!resendEmail.trim()) {
-      toast.error("Enter the email you used to sign up.");
+      toast.error(t("auth.confirm.resendMissingEmail"));
       return;
     }
     setResending(true);
@@ -123,9 +120,9 @@ function AuthConfirmPage() {
         },
       });
       if (error) throw error;
-      toast.success("Check your inbox for a new confirmation link.");
+      toast.success(t("auth.confirm.resendSent"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not resend confirmation email.");
+      toast.error(tError(err, "auth.confirm.resendFailed"));
     } finally {
       setResending(false);
     }
@@ -136,13 +133,11 @@ function AuthConfirmPage() {
       <main className="flex min-h-screen items-center justify-center px-5 py-12">
         <div className="surface-card w-full max-w-md p-6 text-center sm:p-8">
           <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            <Sparkles className="size-3.5" /> Shia&apos;s 5th Grade Quest
+            <Sparkles className="size-3.5" /> {t("app.name")}
           </p>
           <Loader2 className="mx-auto mt-6 size-8 animate-spin text-primary" />
-          <h1 className="mt-4 text-xl font-bold">Confirming your email…</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Hang tight — we&apos;re finishing your signup so you can jump into the quest.
-          </p>
+          <h1 className="mt-4 text-xl font-bold">{t("auth.confirm.workingTitle")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirm.workingBody")}</p>
         </div>
       </main>
     );
@@ -152,23 +147,25 @@ function AuthConfirmPage() {
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="surface-card w-full max-w-md p-6 sm:p-8">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          <Sparkles className="size-3.5" /> Shia&apos;s 5th Grade Quest
+          <Sparkles className="size-3.5" /> {t("app.name")}
         </p>
         <div className="mt-4 flex items-start gap-3">
           <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" />
           <div>
-            <h1 className="text-xl font-bold">Link didn&apos;t work</h1>
-            <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+            <h1 className="text-xl font-bold">{t("auth.confirm.errorTitle")}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {"key" in message ? t(message.key) : message.text}
+            </p>
           </div>
         </div>
 
         <form onSubmit={handleResend} className="mt-6 space-y-3">
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Request a new confirmation link
+            {t("auth.confirm.resendLabel")}
             <input
               className="input-base mt-1"
               type="email"
-              placeholder="Your signup email"
+              placeholder={t("auth.confirm.resendPlaceholder")}
               value={resendEmail}
               onChange={(e) => setResendEmail(e.target.value)}
               required
@@ -180,7 +177,7 @@ function AuthConfirmPage() {
             className="glow-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
           >
             {resending ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
-            Send new link
+            {t("auth.confirm.resendSubmit")}
           </button>
         </form>
 
@@ -188,7 +185,7 @@ function AuthConfirmPage() {
           to="/auth"
           className="mt-5 block w-full text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
         >
-          Back to sign in
+          {t("auth.confirm.backToSignIn")}
         </Link>
       </div>
     </main>

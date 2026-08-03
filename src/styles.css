@@ -139,6 +139,17 @@
   }
 }
 
+/*
+ * Arabic is cursive: letter-spacing pulls the glyphs apart at their joins, so
+ * `tracking-*` labels and the tightened headings above render as disconnected
+ * letters. Left unlayered on purpose — Tailwind utilities live in a cascade
+ * layer, and an unlayered rule is what outranks them.
+ */
+html[lang="ar"],
+html[lang="ar"] * {
+  letter-spacing: normal;
+}
+
 @utility surface-card {
   background-color: var(--surface);
   border: 1px solid var(--border);

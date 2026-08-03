@@ -1,14 +1,20 @@
 import { Link } from "@tanstack/react-router";
+import { useTranslation } from "@/i18n";
 
 const REPO = "https://github.com/ender732/shia-s-education-quest";
 
 /** Site-wide credit required for Netlify Open Source plan eligibility. */
 export function SiteFooter() {
+  const { t } = useTranslation();
+
   return (
     <footer className="mt-auto border-t border-border/60 bg-background/80 px-5 py-6 text-center text-xs text-muted-foreground">
-      <nav className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1" aria-label="Legal">
+      <nav
+        className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+        aria-label={t("footer.legalNavAria")}
+      >
         <Link to="/privacy" className="underline-offset-2 hover:underline hover:text-foreground">
-          Privacy Policy
+          {t("footer.privacy")}
         </Link>
         <span aria-hidden className="text-border">
           ·
@@ -19,7 +25,7 @@ export function SiteFooter() {
           rel="noopener noreferrer"
           className="underline-offset-2 hover:underline hover:text-foreground"
         >
-          Code of Conduct
+          {t("footer.codeOfConduct")}
         </a>
         <span aria-hidden className="text-border">
           ·
@@ -30,18 +36,18 @@ export function SiteFooter() {
           rel="noopener noreferrer"
           className="underline-offset-2 hover:underline hover:text-foreground"
         >
-          MIT License
+          {t("footer.license")}
         </a>
       </nav>
       <p className="mt-3">
-        This site is powered by{" "}
+        {t("footer.poweredByPrefix")}{" "}
         <a
           href="https://www.netlify.com"
           target="_blank"
           rel="noopener noreferrer"
           className="font-medium text-foreground underline-offset-2 hover:underline"
         >
-          Netlify
+          {t("footer.netlify")}
         </a>
         .
       </p>
@@ -54,7 +60,7 @@ export function SiteFooter() {
         >
           <img
             src="https://www.netlify.com/v3/img/components/netlify-color-accent.svg"
-            alt="Deploys by Netlify"
+            alt={t("footer.netlifyBadgeAlt")}
             width={114}
             height={50}
             className="mx-auto h-8 w-auto"

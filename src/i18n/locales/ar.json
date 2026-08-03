@@ -1,0 +1,1211 @@
+{
+  "app": {
+    "name": "رحلة شيا في الصف الخامس",
+    "school": "مدرسة P.S./I.S. 187 هدسون كليفس · رحلة الصف الخامس",
+    "tagline": "إعداد للصف الخامس في مدرسة P.S./I.S. 187 — للطلاب وأولياء الأمور."
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "back": "رجوع",
+    "next": "التالي",
+    "cancel": "إلغاء",
+    "tryAgain": "حاول مرة أخرى",
+    "goHome": "الصفحة الرئيسية",
+    "backHome": "العودة إلى الرئيسية",
+    "copy": "نسخ",
+    "copied": "تم النسخ",
+    "show": "إظهار",
+    "hide": "إخفاء",
+    "publish": "نشر",
+    "publishing": "جارٍ النشر…",
+    "discard": "تجاهل",
+    "or": "أو",
+    "you": "أنت",
+    "student": "طالب",
+    "locked": "مقفل",
+    "xp": "XP",
+    "none": "—",
+    "percent": "{value}%",
+    "somethingWentWrong": "حدث خطأ ما.",
+    "attempts_zero": "{count} محاولة",
+    "attempts_one": "{count} محاولة",
+    "attempts_two": "محاولتان",
+    "attempts_few": "{count} محاولات",
+    "attempts_many": "{count} محاولة",
+    "attempts_other": "{count} محاولة"
+  },
+  "language": {
+    "label": "اللغة",
+    "chooseAria": "اختر لغة"
+  },
+  "footer": {
+    "legalNavAria": "روابط قانونية",
+    "privacy": "سياسة الخصوصية",
+    "codeOfConduct": "قواعد السلوك",
+    "license": "رخصة MIT",
+    "poweredByPrefix": "هذا الموقع مدعوم بواسطة",
+    "netlify": "Netlify",
+    "netlifyBadgeAlt": "النشر عبر Netlify"
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "الصفحة غير موجودة",
+      "body": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها."
+    },
+    "boundary": {
+      "title": "لم يتم تحميل هذه الصفحة",
+      "body": "حدث خطأ من جهتنا. يمكنك تحديث الصفحة أو العودة إلى الرئيسية."
+    }
+  },
+  "landing": {
+    "eyebrow": "منطقة نيويورك التعليمية 6 · الصف الخامس",
+    "titleLead": "رحلة شيا في",
+    "titleAccent": "الصف الخامس",
+    "body": "جسر صيفي مُمتِع لمدرسة P.S./I.S. 187. أتقِن الرياضيات واللغة الإنجليزية والعلوم والدراسات الاجتماعية، واقرأ الكتب الإلكترونية المقررة، واحصل على ملاحظات فورية من الذكاء الاصطناعي على كتابة RACECE.",
+    "cta": "ابدأ الرحلة",
+    "cards": {
+      "xp": {
+        "title": "اجمع نقاط XP وارتقِ بمستواك",
+        "body": "كل مهمة تُنجزها تضيف نقاط XP. كل مستوى يحتاج 500 XP، مع احتفال ملوّن عند كل فوز."
+      },
+      "streak": {
+        "title": "حافظ على سلسلة أيامك",
+        "body": "التدريب اليومي يبني سلسلة نارية تظهر في أعلى الصفحة مباشرة."
+      },
+      "grading": {
+        "title": "تصحيح المعلّم الذكي",
+        "body": "أرسل تقرير كتاب واحصل على درجة ونقاط قوة وقائمة تحقق RACECE."
+      }
+    }
+  },
+  "auth": {
+    "signInTitle": "مرحبًا بعودتك",
+    "signUpTitle": "أنشئ حسابك",
+    "checkEmailNotice": "تحقّق من بريدك الإلكتروني واضغط على رابط التأكيد. ستعود إلى هنا في صفحة «تم تأكيد البريد الإلكتروني»، ثم يمكنك تسجيل الدخول. إذا سجّلت كطالب، فسنُكمل إرسال رمز الربط إلى وليّ أمرك بعد التأكيد.",
+    "displayNamePlaceholder": "الاسم الظاهر",
+    "emailPlaceholder": "البريد الإلكتروني",
+    "passwordPlaceholder": "كلمة المرور",
+    "pathStudent": "طالب",
+    "pathParent": "أنا وليّ أمر",
+    "parentEmailPlaceholder": "بريد وليّ الأمر الإلكتروني",
+    "studentPathNote": "سنرسل إليه رمز ربط وليّ الأمر بالبريد الإلكتروني ليتمكّن من الاتصال عبر بوابة وليّ الأمر. يُفضَّل أن يكون إعداد المتعلّمين دون سن 13 عامًا بإدارة وليّ الأمر.",
+    "dateOfBirthLabel": "تاريخ الميلاد",
+    "confirmAdultLabel": "أُقرّ بأنني وليّ أمر يبلغ 18 عامًا أو أكثر.",
+    "parentPathNote": "تتطلّب حسابات أولياء الأمور تحقّقًا من سن الرشد. ستربط طفلك برمز الربط القابل للمشاركة بعد التسجيل.",
+    "submitSignIn": "تسجيل الدخول",
+    "submitSignUp": "إنشاء حساب",
+    "googleSignIn": "تسجيل الدخول عبر Google",
+    "googleSignUpParent": "المتابعة عبر Google كوليّ أمر",
+    "googleSignUpStudent": "المتابعة عبر Google كطالب",
+    "googleParentNote": "التحقّق من سن الرشد (تاريخ الميلاد + الإقرار أعلاه) مطلوب قبل المتابعة عبر Google — مثل التسجيل بالبريد الإلكتروني.",
+    "needParentAccountNote": "تحتاج إلى حساب وليّ أمر؟ اختر «إنشاء حساب» ثم حدّد وليّ أمر لنتحقّق من أنك تبلغ 18 عامًا أو أكثر (يعمل مع Google أيضًا).",
+    "toggleToSignUp": "جديد هنا؟ أنشئ حسابًا",
+    "toggleToSignIn": "لديك حساب بالفعل؟ سجّل الدخول",
+    "validation": {
+      "parentEmailRequired": "بريد وليّ الأمر الإلكتروني مطلوب لحسابات الطلاب.",
+      "parentEmailInvalid": "أدخل بريدًا إلكترونيًا صحيحًا لوليّ الأمر.",
+      "dobRequired": "تاريخ الميلاد مطلوب لحسابات أولياء الأمور.",
+      "dobInvalid": "أدخل تاريخ ميلاد صحيحًا.",
+      "mustBeAdult": "يجب أن يكون عمر وليّ الأمر 18 عامًا أو أكثر. اختر مسار الطالب إذا كان عمرك أقل من 18 عامًا.",
+      "confirmAdult": "أقرّ بأنك وليّ أمر يبلغ 18 عامًا أو أكثر."
+    },
+    "toast": {
+      "forcedStudent": "يجب أن يكون عمر وليّ الأمر 18 عامًا أو أكثر. تم إعداد حسابك كطالب.",
+      "linkCodeEmailed": "أرسلنا رمز الربط إلى وليّ أمرك بالبريد الإلكتروني.",
+      "emailNotConfiguredDashboard": "البريد الإلكتروني غير مُهيّأ — انسخ رمز الربط من لوحة التحكم.",
+      "emailNotConfiguredShare": "البريد الإلكتروني غير مُهيّأ — انسخ رمز الربط من لوحة التحكم لمشاركته.",
+      "confirmThenSignIn": "أكّد بريدك الإلكتروني، ثم سجّل الدخول لإكمال الإعداد.",
+      "googleFailed": "فشل تسجيل الدخول عبر Google. يُرجى المحاولة مرة أخرى.",
+      "parentReady": "حساب وليّ الأمر جاهز — مرحبًا بك في بوابة وليّ الأمر.",
+      "parentConfirmationIncomplete": "لم يكتمل إقرار وليّ الأمر — تم إعداد الحساب كطالب. يمكنك التحقّق كوليّ أمر من لوحة التحكم.",
+      "roleSetupFailed": "تم تسجيل الدخول، لكن لم نتمكّن من إكمال إعداد الدور. حدّث الصفحة أو تحقّق من لوحة التحكم."
+    },
+    "confirm": {
+      "workingTitle": "جارٍ تأكيد بريدك الإلكتروني…",
+      "workingBody": "انتظر قليلًا — نُكمل تسجيلك لتبدأ رحلتك.",
+      "errorTitle": "الرابط لم يعمل",
+      "invalidLink": "رابط التأكيد هذا غير صالح أو انتهت صلاحيته. اطلب رابطًا جديدًا من صفحة تسجيل الدخول.",
+      "noParams": "لم نجد تفاصيل التأكيد. افتح الرابط من بريدك الإلكتروني، أو اطلب رابطًا جديدًا أدناه.",
+      "genericFailure": "حدث خطأ أثناء تأكيد بريدك الإلكتروني.",
+      "resendLabel": "اطلب رابط تأكيد جديدًا",
+      "resendPlaceholder": "البريد الإلكتروني الذي سجّلت به",
+      "resendSubmit": "إرسال رابط جديد",
+      "resendMissingEmail": "أدخل البريد الإلكتروني الذي استخدمته للتسجيل.",
+      "resendSent": "تحقّق من بريدك الإلكتروني للحصول على رابط تأكيد جديد.",
+      "resendFailed": "لم نتمكّن من إعادة إرسال بريد التأكيد.",
+      "backToSignIn": "العودة إلى تسجيل الدخول"
+    },
+    "confirmed": {
+      "redirecting": "جارٍ نقلك إلى لوحة التحكم…",
+      "title": "تم تأكيد البريد الإلكتروني!",
+      "body": "كل شيء جاهز. سجّل الدخول لفتح لوحة التحكم، واجمع XP، وواصل رحلتك. إذا سجّلت كطالب، فسنُكمل إرسال رمز الربط إلى وليّ أمرك بعد تسجيل الدخول.",
+      "cta": "سجّل الدخول للمتابعة"
+    }
+  },
+  "dashboard": {
+    "loading": "جارٍ تحميل رحلتك…",
+    "parentBadge": "بوابة وليّ الأمر",
+    "studentBadge": "بوابة الطالب",
+    "analytics": "التحليلات",
+    "switchToStudent": "التبديل إلى عرض الطالب",
+    "switchToParent": "التبديل إلى بوابة وليّ الأمر",
+    "hideParentUpgrade": "إخفاء ترقية وليّ الأمر",
+    "showParentUpgrade": "أنا في الحقيقة وليّ أمر",
+    "signOut": "تسجيل الخروج",
+    "upgrade": {
+      "title": "الترقية إلى حساب وليّ أمر",
+      "body": "تحتاج بوابة وليّ الأمر إلى حساب بالغ مُتحقَّق منه ومنفصل (18 عامًا أو أكثر). أكّد تاريخ ميلادك مرة واحدة — يبقى الطلاب في هذه البوابة ويشاركون رمز ربط مع أولياء أمورهم بدلًا من ذلك.",
+      "dobLabel": "تاريخ الميلاد",
+      "confirmLabel": "أُقرّ بأنني وليّ أمر يبلغ 18 عامًا أو أكثر.",
+      "submit": "تحقّق وافتح بوابة وليّ الأمر",
+      "dobRequired": "أدخل تاريخ ميلادك.",
+      "dobInvalid": "أدخل تاريخ ميلاد صحيحًا.",
+      "mustBeAdult": "يجب أن يكون عمر وليّ الأمر 18 عامًا أو أكثر.",
+      "confirmRequired": "أقرّ بأنك وليّ أمر يبلغ 18 عامًا أو أكثر.",
+      "failed": "لم نتمكّن من الترقية.",
+      "failedAccount": "لم نتمكّن من ترقية الحساب.",
+      "success": "تم التحقّق من أنك وليّ أمر — بوابة وليّ الأمر مفتوحة الآن."
+    }
+  },
+  "gamification": {
+    "welcomeBack": "مرحبًا بعودتك، {name}!",
+    "defaultName": "المستكشف",
+    "subtitle": "أنجِز المهام، واكتب إجابات RACECE قوية، وارتقِ بمستواك.",
+    "level": "المستوى",
+    "totalXp": "إجمالي XP",
+    "dayStreak": "سلسلة الأيام",
+    "streakValue": "{days} 🔥",
+    "progressToLevel": "التقدّم إلى المستوى {level}",
+    "xpOfNeeded": "{into} / {needed} XP",
+    "levelTitles": {
+      "1": "مبتدئ الرحلة",
+      "2": "مستكشف فضولي",
+      "3": "كشّاف المهارات",
+      "4": "محترف التدريب",
+      "5": "أسطورة الدروس",
+      "6": "نجم المواصلة",
+      "7": "بانِي العقول",
+      "8": "بطل التركيز",
+      "9": "فارس المعرفة",
+      "10": "عالِم متمكّن",
+      "11": "بطل الرحلة",
+      "12": "نجم المنطقة التعليمية",
+      "beyond": "بطل الرحلة · الرتبة {level}"
+    },
+    "levelUp": {
+      "eyebrow": "ارتقاء المستوى",
+      "level": "المستوى {level}",
+      "earnedTitle": "لقد حصلت على لقب",
+      "multiLevel_zero": "قفزت {count} مستوى في مرة واحدة",
+      "multiLevel_one": "قفزت {count} مستوى في مرة واحدة",
+      "multiLevel_two": "قفزت مستويين في مرة واحدة",
+      "multiLevel_few": "قفزت {count} مستويات في مرة واحدة",
+      "multiLevel_many": "قفزت {count} مستوى في مرة واحدة",
+      "multiLevel_other": "قفزت {count} مستوى في مرة واحدة",
+      "was": "كان",
+      "now": "الآن",
+      "xpThisWin": "+{xp} XP في هذا الفوز",
+      "totalXp": "{xp} إجمالًا",
+      "towardNextLevel": "{into} / {needed} XP للوصول إلى المستوى {level}",
+      "dismiss": "واصل الرحلة",
+      "dismissAria": "إغلاق الاحتفال"
+    }
+  },
+  "leaderboard": {
+    "title": "تحدّي رحلة اليوم",
+    "resetNote": "يُعاد التصفير في منتصف الليل بالتوقيت الشرقي (America/New_York)",
+    "loading": "جارٍ تحميل ترتيب اليوم…",
+    "unavailableTitle": "لوحة المتصدرين غير جاهزة بعد",
+    "unavailableBody": "اطلب من وليّ أمرك تشغيل ترحيل لوحة المتصدرين اليومية، ثم تدرَّب على درس لتظهر هنا.",
+    "emptyTitle": "لا يوجد متنافسون اليوم بعد",
+    "emptyBody": "افتح درسًا وتدرَّب — يُحتسب وقتك وأفضل نتيجة اختبار لك في تحدّي اليوم.",
+    "rank": "الترتيب",
+    "name": "الاسم",
+    "timeToday": "وقت اليوم",
+    "bestScore": "أفضل نتيجة",
+    "duration": {
+      "hours": "{hours} س {minutes} د {seconds} ث",
+      "minutes": "{minutes} د {seconds} ث",
+      "seconds": "{seconds} ث"
+    }
+  },
+  "linkCode": {
+    "missing": "رمز ربط وليّ الأمر غير متاح بعد. اطلب من شخص بالغ تشغيل أحدث ترحيل لقاعدة البيانات ({migrations})، ثم حدّث الصفحة.",
+    "label": "رمز ربط وليّ الأمر",
+    "shareNote": "شارك هذا الرمز مع وليّ أمرك ليتابع تقدّمك. لا يمكن لأحد غيره رؤية رحلتك بعد الربط.",
+    "emailPlaceholder": "بريد وليّ الأمر الإلكتروني",
+    "emailButton": "أرسل رمز الربط إلى وليّ أمري بالبريد",
+    "defaultStudentName": "طالبك",
+    "copied": "تم نسخ رمز ربط وليّ الأمر.",
+    "copyFailed": "لم نتمكّن من النسخ — حدّد الرمز وانسخه يدويًا.",
+    "emailInvalid": "أدخل بريدًا إلكترونيًا صحيحًا لوليّ الأمر.",
+    "emailSent": "تم إرسال رمز الربط إلى وليّ أمرك بالبريد الإلكتروني.",
+    "emailNotConfigured": "البريد الإلكتروني غير مُهيّأ؛ انسخ الرمز بدلًا من ذلك",
+    "emailFailed": "لم نتمكّن من إرسال البريد الإلكتروني."
+  },
+  "subjects": {
+    "navAria": "المواد الدراسية",
+    "title": {
+      "math": "الرياضيات",
+      "ela_reading": "اللغة الإنجليزية / القراءة",
+      "science_nyssls": "العلوم (معايير NYSSLS)",
+      "social_studies_western_hemisphere": "الدراسات الاجتماعية (نصف الكرة الغربي)",
+      "assigned_reading": "القراءة المقررة"
+    },
+    "description": {
+      "multi_digit_numbers_decimals_fractions_and_volume": "الأعداد متعددة الأرقام، والأعداد العشرية، والكسور، والحجم",
+      "narrative_analysis_root_words_and_racece_writing": "تحليل النصوص السردية، وجذور الكلمات، والكتابة بطريقة RACECE",
+      "matter_conservation_of_mass_and_earth_s_spheres": "المادة، وحفظ الكتلة، وأغلفة الأرض",
+      "geography_history_and_map_reading": "الجغرافيا، والتاريخ، وقراءة الخرائط",
+      "ebook_reading_and_ai_graded_book_reports": "قراءة الكتب الإلكترونية وتقارير الكتب المصحّحة بالذكاء الاصطناعي"
+    }
+  },
+  "tasks": {
+    "title": {
+      "multi_digit_multiplication_drill": "تدريب على ضرب الأعداد متعددة الأرقام",
+      "decimal_place_value_to_thousandths": "القيمة المكانية للأعداد العشرية حتى أجزاء الألف",
+      "fractions_with_unlike_denominators": "الكسور ذات المقامات غير المتشابهة",
+      "volume_of_rectangular_prisms": "حجم المنشورات المستطيلة",
+      "narrative_analysis_character_change": "تحليل النص السردي: تغيّر الشخصية",
+      "greek_latin_root_words": "جذور الكلمات اليونانية واللاتينية",
+      "racece_constructed_response": "الإجابة المُركَّبة بطريقة RACECE",
+      "properties_of_matter_lab": "تجربة خصائص المادة",
+      "conservation_of_mass": "حفظ الكتلة",
+      "earth_s_four_spheres": "أغلفة الأرض الأربعة",
+      "mapping_the_western_hemisphere": "رسم خرائط نصف الكرة الغربي",
+      "indigenous_civilizations": "حضارات السكان الأصليين",
+      "weekly_reading_log": "سجل القراءة الأسبوعي"
+    },
+    "description": {
+      "solve_10_problems_multiplying_3_digit_by_2_digit_whole_numbers_using_the_standard_algorithm": "حل 10 مسائل في ضرب عدد صحيح من ثلاث خانات في عدد صحيح من خانتين باستخدام الخوارزمية القياسية.",
+      "compare_round_add_and_subtract_decimals_to_the_thousandths_place": "قارن الأعداد العشرية وقرّبها واجمعها واطرحها حتى منزلة أجزاء الألف.",
+      "add_and_subtract_fractions_by_finding_common_denominators_show_all_work": "اجمع الكسور واطرحها بإيجاد مقامات مشتركة. اعرض جميع خطوات الحل.",
+      "use_v_l_x_w_x_h_to_find_the_volume_of_6_solid_figures_including_composite_shapes": "استخدم القانون الحجم = الطول × العرض × الارتفاع لإيجاد حجم 6 مجسمات، بما فيها الأشكال المركّبة.",
+      "read_the_assigned_chapter_and_explain_how_the_main_character_changes_with_two_pieces_of_evidence": "اقرأ الفصل المقرر واشرح كيف تتغيّر الشخصية الرئيسية، مع دليلين من النص.",
+      "define_12_root_words_and_use_each_in_an_original_sentence": "عرّف 12 جذرًا من جذور الكلمات، واستخدم كل واحد منها في جملة من إنشائك.",
+      "answer_the_prompt_using_restate_answer_cite_explain_cite_explain": "أجب عن السؤال باتباع الخطوات: أعد الصياغة، أجب، استشهد، اشرح، استشهد، اشرح.",
+      "classify_five_materials_by_their_measurable_properties_and_record_observations": "صنّف خمس مواد حسب خصائصها القابلة للقياس، وسجّل ملاحظاتك.",
+      "explain_why_mass_stays_the_same_when_substances_mix_with_a_real_example": "اشرح لماذا تبقى الكتلة ثابتة عند خلط المواد، مع مثال من الواقع.",
+      "describe_geosphere_hydrosphere_atmosphere_and_biosphere_and_how_they_interact": "صِف الغلاف الصخري والغلاف المائي والغلاف الجوي والغلاف الحيوي، وكيف تتفاعل معًا.",
+      "label_the_major_countries_rivers_and_mountain_ranges_of_north_and_south_america": "حدّد أسماء أهم الدول والأنهار والسلاسل الجبلية في أمريكا الشمالية والجنوبية.",
+      "compare_the_maya_aztec_and_inca_civilizations_in_a_short_chart": "قارن بين حضارات المايا والأزتك والإنكا في جدول قصير.",
+      "read_30_minutes_a_day_for_five_days_and_log_the_pages_covered": "اقرأ 30 دقيقة يوميًا لمدة خمسة أيام، وسجّل الصفحات التي قرأتها."
+    }
+  },
+  "taskboard": {
+    "loading": "جارٍ تحميل الدروس…",
+    "loadError": "لم نتمكّن من تحميل دروسك. يُرجى تحديث الصفحة والمحاولة مرة أخرى.",
+    "emptyTitle": "لا توجد دروس هنا بعد",
+    "emptyBody": "يمكن لوليّ الأمر إضافة مهام من بوابة وليّ الأمر.",
+    "standardsNote": "متوافق مع معايير الصف الخامس في نيويورك (هدسون كليفس) — تعلَّم، ثم اختبر نفسك لتجمع XP.",
+    "masteredCount": "{done}/{total} مُتقَن",
+    "quizPlusWorksheet_zero": "ورقة عمل قابلة للتعبئة بدون أسئلة اختبار",
+    "quizPlusWorksheet_one": "{count} سؤال اختبار + ورقة عمل قابلة للتعبئة",
+    "quizPlusWorksheet_two": "سؤالا اختبار + ورقة عمل قابلة للتعبئة",
+    "quizPlusWorksheet_few": "{count} أسئلة اختبار + ورقة عمل قابلة للتعبئة",
+    "quizPlusWorksheet_many": "{count} سؤال اختبار + ورقة عمل قابلة للتعبئة",
+    "quizPlusWorksheet_other": "{count} سؤال اختبار + ورقة عمل قابلة للتعبئة",
+    "practiceQuestions_zero": "لا أسئلة تدريبية بعد",
+    "practiceQuestions_one": "{count} سؤال تدريبي · تعلَّم أولًا، ثم اختبر نفسك",
+    "practiceQuestions_two": "سؤالان تدريبيان · تعلَّم أولًا، ثم اختبر نفسك",
+    "practiceQuestions_few": "{count} أسئلة تدريبية · تعلَّم أولًا، ثم اختبر نفسك",
+    "practiceQuestions_many": "{count} سؤالًا تدريبيًا · تعلَّم أولًا، ثم اختبر نفسك",
+    "practiceQuestions_other": "{count} سؤال تدريبي · تعلَّم أولًا، ثم اختبر نفسك",
+    "practiceComingSoon": "التدريب على هذه الوحدة قريبًا.",
+    "xpReward": "+{xp} XP",
+    "best": "أفضل نتيجة {score}%",
+    "bestRetry": " · أعد المحاولة للوصول إلى 100%",
+    "bestPerfect": " · ممتاز",
+    "actionReview": "مراجعة",
+    "actionRetry": "أعد المحاولة للوصول إلى 100%",
+    "actionStart": "ابدأ"
+  },
+  "lesson": {
+    "backToLessons": "العودة إلى الدروس",
+    "notReadyBody": "أسئلة التدريب لهذه المهمة غير جاهزة بعد. اطلب من وليّ الأمر وسمها برمز وحدة معروف (مثل {example}) أو رفع ورقة عمل بصيغة PDF.",
+    "phase": {
+      "teach": "تعلَّم",
+      "quiz": "تدرَّب",
+      "worksheet": "ورقة العمل",
+      "results": "النتائج"
+    },
+    "coachTipPrefix": "نصيحة المدرّب: ",
+    "readingText": "نص القراءة",
+    "startQuiz": "ابدأ أسئلة التدريب",
+    "worksheetHeadsUp": "بعد الاختبار، ستكتب على ورقة العمل (بإصبعك أو بالقلم) وتحصل على ملاحظات من الذكاء الاصطناعي. تحتاج إلى {pass}% أو أكثر في كليهما لتجمع XP.",
+    "noAttemptsYet": "لا توجد محاولات بعد",
+    "bestScoreSuffix": " · أفضل نتيجة {score}%",
+    "perfectSuffix": " · ممتاز!",
+    "retrySuffix": " · أعد المحاولة في أي وقت للوصول إلى 100%",
+    "masteredRetryFor100": "أتقنته بنسبة {score}% — أعد الاختبار للوصول إلى 100% كاملة.",
+    "perfectUnlocked": "حصلت على النتيجة الكاملة. ويمكنك التدرّب مرة أخرى في أي وقت.",
+    "alreadyMastered": "لقد أتقنت هذا الدرس بالفعل. ويمكنك التدرّب مرة أخرى.",
+    "questionCounter": "السؤال {index} من {total}",
+    "needToContinue": "تحتاج إلى {pass}% للمتابعة",
+    "needToEarnXp": "تحتاج إلى {pass}% لتجمع XP",
+    "correct": "صحيح",
+    "notYet": "ليس بعد",
+    "checkAnswer": "تحقّق من الإجابة",
+    "continueToWorksheet": "المتابعة إلى ورقة العمل",
+    "seeResults": "عرض النتائج",
+    "nextQuestion": "السؤال التالي",
+    "pickAnswerFirst": "اختر إجابة أولًا.",
+    "typeAnswerFirst": "اكتب إجابتك أولًا.",
+    "answerPlaceholder": "اكتب إجابتك",
+    "savingProgress": "جارٍ حفظ التقدّم…",
+    "correctOfTotal": "{correct} من {total} صحيحة",
+    "quizAndWorksheetScore": "الاختبار {quiz}% · ورقة العمل {worksheet}%",
+    "perfectScore": "نتيجة كاملة!",
+    "mastered": "تم إتقان الدرس",
+    "masteredReviewBest": "عمل رائع — أفضل نتيجة حتى الآن {score}%. أعد المحاولة للوصول إلى 100%.",
+    "masteredReviewAlready": "مراجعة جيدة — تم احتساب XP سابقًا.",
+    "masteredEarned": "حصلت على +{xp} XP لتعلّمك هذه المهارة.",
+    "attemptsLine": "المحاولات: {count}",
+    "attemptsBestSuffix": " · الأفضل: {score}%",
+    "keepPracticing": "واصل التدريب",
+    "keepPracticingWorksheet": "تحتاج إلى {pass}% على الأقل في ورقة العمل. راجع ملاحظات الذكاء الاصطناعي وحاول مرة أخرى — سيبقى الدرس متاحًا.",
+    "keepPracticingQuiz": "تحتاج إلى {pass}% على الأقل لإكمال هذا الدرس وجمع XP. راجع ملاحظات الشرح وحاول مرة أخرى.",
+    "retryWorksheet": "أعد ورقة العمل",
+    "retryFor100": "أعد المحاولة للوصول إلى 100%",
+    "tryAgain": "حاول مرة أخرى",
+    "reviewLesson": "راجع الدرس",
+    "backToBoard": "العودة إلى اللوحة",
+    "toast": {
+      "masteredXp": "تم إتقان الدرس! +{xp} XP",
+      "perfect": "نتيجة كاملة — 100%! مثابرة رائعة.",
+      "newBest": "أفضل نتيجة جديدة: {score}%",
+      "newBestKeepGoing": "أفضل نتيجة جديدة: {score}% — واصل للوصول إلى 100%.",
+      "reviewNoXp": "مراجعة جيدة — تم احتساب XP سابقًا.",
+      "saveFailed": "لم نتمكّن من حفظ تقدّمك.",
+      "worksheetMasteredXp": "تم إتقان ورقة العمل! +{xp} XP",
+      "worksheetKeepPracticing": "واصل التدريب — احصل على 70% على الأقل في ورقة العمل لإتقان هذا الدرس.",
+      "worksheetGradeFailed": "لم نتمكّن من تصحيح ورقة عملك."
+    },
+    "worksheet": {
+      "defaultTitle": "ورقة عمل",
+      "statusLine": "الاختبار {quiz}% · اكتب بإصبعك أو بالقلم · تحتاج إلى {pass}% أو أكثر للإتقان",
+      "quizFirst": "اجتَز اختبار التدريب أولًا، ثم أرسل ورقة العمل.",
+      "answerRequired": "يُرجى كتابة أو رسم إجابة لـ: {prompt}",
+      "partRequired": "يُرجى إكمال: {prompt} — {part}",
+      "submit": "أرسل ورقة العمل إلى المعلّم الذكي",
+      "grading": "المعلّم الذكي يصحّح…",
+      "inkProgress": "{filled} من {total} حقول تحتوي على رسم",
+      "writeHere": "اكتب حلّك هنا",
+      "optionalTypedBlanks": "فراغات مكتوبة اختيارية (أو ارسم كل شيء أعلاه)",
+      "optionalTypedNotes": "ملاحظات مكتوبة اختيارية",
+      "typeIfYouWant": "اكتب إن أردت",
+      "typeNumber": "أو اكتب الرقم",
+      "typeAnswer": "أو اكتب إجابتك",
+      "feedbackTitle": "ملاحظات المعلّم الذكي",
+      "score": "{score}/100",
+      "strengths": "نقاط القوة",
+      "improvements": "نقاط التحسين",
+      "perQuestionNotes": "ملاحظات لكل سؤال"
+    },
+    "coach": {
+      "open": "اسأل المدرّب الذكي",
+      "tapToOpen": "اضغط للفتح",
+      "regionAria": "محادثة المدرّب الذكي",
+      "intro": "اطلب المساعدة أثناء تعبئة ورقة العمل بنفسك. يعطيك المدرّب تلميحات — لا إجابات جاهزة.",
+      "emptyExample": "مثال: «لم أفهم النصيحة — أيمكنك شرحها بطريقة أخرى؟»",
+      "you": "أنت",
+      "coach": "المدرّب",
+      "failed": "لم نتمكّن من الوصول إلى المدرّب الذكي. حاول مرة أخرى.",
+      "inputLabel": "سؤالك للمدرّب الذكي",
+      "inputPlaceholder": "اسأل سؤالًا عن هذا الدرس…",
+      "sendAria": "إرسال السؤال إلى المدرّب الذكي"
+    },
+    "video": {
+      "defaultTitle": "فيديو شرح الدرس",
+      "defaultChannel": "Crash Course Kids",
+      "readTranscript": "اقرأ النص المكتوب",
+      "hideTranscript": "إخفاء النص المكتوب",
+      "transcriptAria": "النص المكتوب للفيديو",
+      "transcriptUnavailable": "النص المكتوب غير متاح بعد. لا يزال بإمكانك المتابعة مع الترجمة المصاحبة على YouTube عندما تكون متوفرة.",
+      "openOnYouTube": "افتح الفيديو على YouTube (مع الترجمة)"
+    }
+  },
+  "scribble": {
+    "defaultLabel": "اكتب إجابتك أو ارسمها",
+    "inkSaved": "· تم حفظ الرسم",
+    "fingerOrPencil": "· بالإصبع أو بالقلم",
+    "undo": "تراجع",
+    "undoAria": "التراجع عن الخط الأخير",
+    "clear": "محو",
+    "clearAria": "محو الرسم",
+    "canvasAria": "منطقة الإجابة بالرسم"
+  },
+  "pdf": {
+    "regionAria": "قارئ PDF",
+    "readingAria": "تقرأ: {title}",
+    "previousPage": "الصفحة السابقة",
+    "nextPage": "الصفحة التالية",
+    "pageOf": "{page} من {total}",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "loadFailed": "لم نتمكّن من فتح ملف PDF هذا في القارئ.",
+    "openInNewTab": "افتح ملف PDF في تبويب جديد",
+    "loadingReader": "جارٍ تحميل القارئ…",
+    "loadingPages": "جارٍ تحميل الصفحات…",
+    "renderingPage": "جارٍ عرض الصفحة…"
+  },
+  "book": {
+    "loadingLibrary": "جارٍ تحميل مكتبتك…",
+    "libraryError": "لم نتمكّن من تحميل مكتبة القراءة.",
+    "noBookSelected": "لم يتم اختيار كتاب",
+    "byAuthor": "بقلم {author}",
+    "unknownAuthor": "مؤلف غير معروف",
+    "removeAria": "إزالة {title}",
+    "removeTitle": "إزالة الكتاب",
+    "noPdfAttached": "لا يوجد ملف PDF مرفق بهذا الكتاب بعد.",
+    "noBooksYet": "لا توجد كتب من أولياء الأمور المرتبطين بك بعد. اطلب منهم رفع كتاب من بوابة وليّ الأمر.",
+    "readingPromptPrefix": "سؤال القراءة: ",
+    "defaultBookTitle": "الكتاب المقرر",
+    "chapterLabel": "عنوان الكتاب / الفصل",
+    "chapterPlaceholder": "الفصل 4 — العاصفة",
+    "reportLabel": "التلخيص والتحليل (استخدم RACECE)",
+    "reportPlaceholder": "أعد صياغة السؤال، وأجب عنه، واستشهد بدليلين من النص، واشرح كلًّا منهما…",
+    "wordCount": "{count} كلمة",
+    "wordCount_two": "كلمتان",
+    "wordCount_few": "{count} كلمات",
+    "submit": "أرسل إلى المعلّم الذكي للتصحيح",
+    "grading": "المعلّم الذكي يقرأ…",
+    "gradedToast": "تم التصحيح! حصلت على +{xp} XP",
+    "gradeFailed": "فشل التصحيح. حاول مرة أخرى.",
+    "confirmRemoveStudent": "إزالة «{title}»؟ اسأل وليّ أمرك إن كنت غير متأكد — سيؤدي هذا إلى حذف ملف PDF.",
+    "removeNotAllowed": "لم يسمح لك وليّ أمرك بإزالة هذا الكتاب.",
+    "removeDenied": "لم نتمكّن من إزالة الكتاب. قد لا تكون لديك الصلاحية.",
+    "removeFailed": "لم نتمكّن من إزالة الكتاب.",
+    "removed": "تمت إزالة الكتاب.",
+    "feedback": {
+      "title": "بطاقة تقييم المعلّم الذكي",
+      "score": "{score}/100",
+      "strengths": "نقاط القوة",
+      "improvements": "نقاط التحسين للمرة القادمة",
+      "checklistTitle": "قائمة تحقق RACECE",
+      "racece": {
+        "restate": "أعاد صياغة السؤال",
+        "answer": "أجاب مباشرة",
+        "cite_1": "استشهد بالدليل الأول",
+        "explain_1": "شرح الدليل الأول",
+        "cite_2": "استشهد بالدليل الثاني",
+        "explain_2": "شرح الدليل الثاني"
+      }
+    }
+  },
+  "parent": {
+    "field": {
+      "subject": "المادة",
+      "chooseSubject": "اختر مادة…",
+      "draft": "مسودة",
+      "title": "العنوان",
+      "description": "الوصف",
+      "sourceCredit": "نسبة المصدر"
+    },
+    "worksheetUploader": {
+      "title": "ارفع ورقة عمل ← مسودة درس بالذكاء الاصطناعي",
+      "body": "ارفع ملف PDF يُسمح لك باستخدامه. يُعِدّ الذكاء الاصطناعي مسودة درس بخمسة أسئلة اختبار وحقول ورقة عمل قابلة للتعبئة داخل الموقع (يكتب الطلاب إجاباتهم بأنفسهم، وتبقى مفاتيح الإجابات مخفية لأغراض التصحيح والتدريب). ويُرفق التطبيق أيضًا فيديو YouTube مناهجيًا مطابقًا مع نص قراءة عندما يجد تطابقًا قويًا في الموضوع. لا يرى الطلاب المسودات حتى تنشرها. لا يوجد استخراج من الويب — الرفع فقط.",
+      "titleHintLabel": "تلميح للعنوان (اختياري)",
+      "titleHintPlaceholder": "تدريب على الكسور — مقامات غير متشابهة",
+      "sourceCreditLabel": "نسبة المصدر (اختياري)",
+      "sourceCreditPlaceholder": "ورقة عمل مرفوعة من وليّ الأمر",
+      "sourceCreditDefault": "ورقة عمل مرفوعة من وليّ الأمر",
+      "fileLabel": "ورقة عمل PDF (مطلوبة · بحد أقصى 15 ميغابايت · نصية)",
+      "submit": "أنشئ مسودة الدرس",
+      "drafting": "جارٍ الإعداد بالذكاء الاصطناعي…",
+      "reviewTitle": "مراجعة المسودات",
+      "noDrafts": "لا توجد مسودات بعد. ارفع ملف PDF لإنشاء واحدة.",
+      "draftSummary": "{questions} أسئلة اختبار · {fields} حقول قابلة للتعبئة · النجاح {pass}%",
+      "videoLine": "الفيديو: {title}",
+      "noVideoMatch": "لم نجد فيديو مناهجيًا مطابقًا لهذا الموضوع — سيحصل الطلاب على نص القراءة رغم ذلك.",
+      "transcriptReady": "النص المكتوب جاهز ({chars} حرفًا)",
+      "fillableTitle": "ورقة عمل قابلة للتعبئة (فراغات الطالب)",
+      "answerKeyPrefix": "مفتاح الإجابة (مخفي عن الطلاب): ",
+      "confirmDiscard": "تجاهل هذه المسودة وحذف ملف PDF المرفوع؟",
+      "draftReady": "مسودة الذكاء الاصطناعي جاهزة — راجعها قبل النشر.",
+      "published": "تم نشر الدرس — يمكن للطلاب التدرّب عليه الآن.",
+      "discarded": "تم تجاهل المسودة.",
+      "chooseSubjectError": "اختر مادة.",
+      "choosePdfError": "اختر ملف PDF أولًا.",
+      "pdfOnlyError": "الملفات بصيغة PDF فقط مسموح بها.",
+      "pdfTooLargeError": "يجب أن يكون حجم ملف PDF 15 ميغابايت أو أقل.",
+      "uploadFailed": "فشل الرفع.",
+      "missingWorksheetBucket": "حزمة التخزين «lesson-worksheets» غير موجودة. اطلب من المسؤول تشغيل ترحيل lesson_drafts_from_pdf.",
+      "draftFailed": "لم نتمكّن من إعداد درس من ملف PDF.",
+      "publishFailed": "لم نتمكّن من النشر.",
+      "discardFailed": "لم نتمكّن من تجاهل المسودة."
+    },
+    "taskCreator": {
+      "title": "متقدّم: تعيين درس من المناهج المدمجة",
+      "bodyBefore": "اختياري. استخدم هذا فقط لتعيين وحدة موجودة للصف الخامس في المكتبة (بوسم الوحدة). أمّا لأوراق العمل المخصّصة، فاستخدم",
+      "bodyLink": "مسودة درس بالذكاء الاصطناعي من ملف PDF",
+      "bodyAfter": "أعلاه بدلًا من ذلك.",
+      "taskTitleLabel": "عنوان المهمة",
+      "taskTitlePlaceholder": "تدريب إضافي: مقامات غير متشابهة",
+      "descriptionPlaceholder": "ملاحظة اختيارية للطالب",
+      "unitTagLabel": "وسم الوحدة المدمجة",
+      "unitTagPlaceholder": "187_MATH_FRACTIONS",
+      "xpRewardLabel": "مكافأة XP",
+      "tagsNote": "يربط الطالب باختبار أو فيديو درس جاهز (وليس بورقة عمل PDF جديدة). الأوسمة: {tags}.",
+      "submit": "عيّن الدرس المدمج",
+      "assigning": "جارٍ التعيين…",
+      "assigned": "تم تعيين الدرس المدمج في بوابة الطالب.",
+      "assignFailed": "لم نتمكّن من تعيين ذلك الدرس."
+    },
+    "bookUploader": {
+      "title": "مدير رفع الكتب",
+      "bookTitleLabel": "عنوان الكتاب",
+      "authorLabel": "المؤلف",
+      "promptLabel": "سؤال القراءة",
+      "promptPlaceholder": "كيف يتغيّر الراوي بعد العاصفة؟ استخدم RACECE.",
+      "fileLabel": "ملف PDF (مطلوب · بحد أقصى 15 ميغابايت)",
+      "allowStudentDelete": "السماح للطالب بإزالة هذا الكتاب بعد الانتهاء منه",
+      "submit": "عيّن الكتاب",
+      "uploading": "جارٍ الرفع…",
+      "assigned": "تم تعيين الكتاب.",
+      "assignedBooksTitle": "الكتب المعيَّنة",
+      "pdfAttached": " · ملف PDF مرفق",
+      "noPdf": " · بدون ملف PDF",
+      "allowStudentRemove": "السماح للطالب بالإزالة",
+      "deleteAria": "حذف {title}",
+      "confirmRemove": "إزالة «{title}» نهائيًا؟ سيُحذف ملف PDF من التخزين.",
+      "missingBooksBucket": "حزمة التخزين «assigned-books» غير موجودة. اطلب من المسؤول تشغيل ترحيل secure_assigned_books_storage.",
+      "permissionUpdateDenied": "لم نتمكّن من تحديث الصلاحية. قد لا تكون مالك هذا الكتاب.",
+      "permissionUpdateFailed": "لم نتمكّن من تحديث الصلاحية."
+    },
+    "progress": {
+      "linkTitle": "ربط طالب",
+      "linkBody": "اطلب من طفلك رمز ربط وليّ الأمر (الظاهر في لوحة تحكمه)، ثم الصقه هنا.",
+      "linkCodeLabel": "رمز ربط وليّ الأمر",
+      "linkCodePlaceholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "linkSubmit": "اربط الطالب",
+      "linking": "جارٍ الربط…",
+      "migrationRequiredBefore": "مطلوب ترحيل قاعدة البيانات: شغّل",
+      "migrationRequiredAfter": "في محرّر SQL في Supabase (أو {command})، ثم حدّث الصفحة.",
+      "loadingStudents": "جارٍ تحميل الطلاب المرتبطين…",
+      "noStudentsBefore": "لا يوجد طلاب مرتبطون بعد. اطلب من طفلك",
+      "noStudentsLinkCode": "رمز ربط وليّ الأمر",
+      "noStudentsAfter": "من لوحة تحكمه، ثم الصقه أعلاه.",
+      "viewing": "المعروض",
+      "allStudents": "جميع الطلاب المرتبطين",
+      "unlinkAria": "إلغاء ربط {name}",
+      "unlinkTitle": "إلغاء الربط",
+      "xpTotal": "{xp} XP",
+      "levelAndStreak": "المستوى {level} · سلسلة {days} يوم",
+      "masteryTitle": "إتقان الدروس حسب المادة",
+      "masteryBasisAll": "بناءً على اختبارات التدريب التي حصلت على {pass}% أو أكثر (جميع الطلاب المرتبطين).",
+      "masteryBasisOne": "بناءً على اختبارات التدريب التي حصلت على {pass}% أو أكثر.",
+      "studyTimePrefix": "وقت الدراسة:",
+      "studyMinutes": "{minutes} دقيقة",
+      "quizAttempts_zero": " · لم تُسجَّل أي محاولة اختبار",
+      "quizAttempts_one": " · تم تسجيل {count} محاولة اختبار",
+      "quizAttempts_two": " · تم تسجيل محاولتَي اختبار",
+      "quizAttempts_few": " · تم تسجيل {count} محاولات اختبار",
+      "quizAttempts_many": " · تم تسجيل {count} محاولة اختبار",
+      "quizAttempts_other": " · تم تسجيل {count} محاولة اختبار",
+      "noQuizYet": " · لم يُرسَل أي اختبار بعد",
+      "loadingMastery": "جارٍ تحميل الإتقان…",
+      "masteryLoadError": "لم نتمكّن من تحميل تقدّم الدروس: {message}",
+      "noMasteryOpened": "فتح هذا الطالب دروسًا، لكنه لم يُكمل اختبار تدريب بنسبة {pass}% أو أكثر بعد. يتم تحديث XP والإتقان عند النجاح في اختبار.",
+      "noMasteryAtAll": "لا توجد اختبارات تدريب مكتملة بعد. عندما يُكمل طالبك اختبار درس بنسبة {pass}% أو أكثر، ستظهر XP والإتقان هنا.",
+      "subjectProgress": "{done}/{total} · {pct}%",
+      "manageTitle": "إدارة الدروس المنشورة",
+      "manageBody": "تبقى دروس المناهج في المكتبة. يمكنك إزالة المهام التي نشرتها بنفسك فقط.",
+      "fixVideos": "إصلاح فيديوهات أوراق العمل",
+      "fixVideosNote": "يعيد مطابقة فيديوهات الشرح على YouTube لأوراق العمل التي رفعتها (مثلًا المغناطيسية ← المغناطيس، وليس الأنظمة البيئية).",
+      "status": {
+        "perfect": "ممتاز {score}% · {attempts}",
+        "mastered": "أُتقن بنسبة {score}% · {attempts} · أعد المحاولة للوصول إلى 100%",
+        "best": "أفضل نتيجة {score}% · {attempts} (يحتاج إلى {pass}% أو أكثر)",
+        "bestAttempt": "أفضل محاولة {score}% (يحتاج إلى {pass}% أو أكثر)",
+        "openedNotFinished": "مفتوح — الاختبار غير مكتمل",
+        "notMastered": "لم يُتقَن بعد"
+      },
+      "taskMeta": "{tag} · {xp} XP · {status}",
+      "curriculumSuffix": " · مناهج",
+      "worksheetSuffix": " · درس ورقة عمل",
+      "deleteTaskAria": "حذف {title}",
+      "reportsTitle": "أحدث تقارير الكتب المصحّحة بالذكاء الاصطناعي",
+      "loadingReports": "جارٍ تحميل التقارير…",
+      "noReports": "لا توجد تقارير مُرسَلة بعد.",
+      "ungraded": "غير مصحّح",
+      "linkCodeInvalid": "أدخل رمز ربط وليّ أمر صحيحًا (UUID).",
+      "linkSchemaMissing": "لم يتم إعداد الربط بين وليّ الأمر والطالب بعد. شغّل ترحيل parent_student_links في Supabase، ثم حاول مرة أخرى.",
+      "studentLinked": "تم ربط الطالب.",
+      "linkFailed": "لم نتمكّن من ربط ذلك الطالب.",
+      "studentUnlinked": "تم إلغاء ربط الطالب.",
+      "taskRemoved": "تمت إزالة المهمة.",
+      "taskRemoveDenied": "لم نتمكّن من إزالة المهمة. تبقى دروس المناهج في المكتبة.",
+      "taskRemoveFailed": "لم نتمكّن من إزالة المهمة.",
+      "videosAlreadyRight_zero": "تم فحص {count} درس ورقة عمل — الفيديوهات صحيحة بالفعل.",
+      "videosAlreadyRight_one": "تم فحص {count} درس ورقة عمل — الفيديوهات صحيحة بالفعل.",
+      "videosAlreadyRight_two": "تم فحص درسَي ورقة عمل — الفيديوهات صحيحة بالفعل.",
+      "videosAlreadyRight_few": "تم فحص {count} دروس أوراق عمل — الفيديوهات صحيحة بالفعل.",
+      "videosAlreadyRight_many": "تم فحص {count} درسًا من أوراق العمل — الفيديوهات صحيحة بالفعل.",
+      "videosAlreadyRight_other": "تم فحص {count} درس ورقة عمل — الفيديوهات صحيحة بالفعل.",
+      "noWorksheetLessons": "لم نجد دروس أوراق عمل لتحديثها.",
+      "videosUpdated_zero": "تم تحديث الفيديوهات في {updated} من {scanned} درس ورقة عمل.",
+      "videosUpdated_one": "تم تحديث الفيديوهات في {updated} من {scanned} درس ورقة عمل.",
+      "videosUpdated_two": "تم تحديث الفيديوهات في {updated} من {scanned} درسَي ورقة عمل.",
+      "videosUpdated_few": "تم تحديث الفيديوهات في {updated} من {scanned} دروس أوراق عمل.",
+      "videosUpdated_many": "تم تحديث الفيديوهات في {updated} من {scanned} درسًا من أوراق العمل.",
+      "videosUpdated_other": "تم تحديث الفيديوهات في {updated} من {scanned} درس ورقة عمل.",
+      "videosRefreshFailed": "لم نتمكّن من تحديث فيديوهات الدروس."
+    }
+  },
+  "arcade": {
+    "subject": {
+      "math": {
+        "hubTitle": "صالة الرياضيات",
+        "campaignTitle": "حملة سباق الأعداد",
+        "description": "تسلَّق المستويات من 1 إلى 4، ثم اهزم الزعيم. تتبع موضوعات اللعب وحدات الرياضيات التي تدرسها. وتبقى الدروس هي مصدر XP الحقيقي في لوحة المهام أدناه.",
+        "shortName": "الرياضيات"
+      },
+      "ela": {
+        "hubTitle": "صالة اللغة الإنجليزية",
+        "campaignTitle": "حملة سباق القصص",
+        "description": "بوابات المفردات، والفكرة الرئيسية، واللغة المجازية، والقواعد. نجوم تدريب فقط — تبقى XP الدروس في لوحة مهامك.",
+        "shortName": "اللغة الإنجليزية"
+      },
+      "science": {
+        "hubTitle": "صالة العلوم",
+        "campaignTitle": "حملة سباق المادة",
+        "description": "الأنظمة البيئية، والمادة، وأنظمة الأرض، وبوابات ضوء النجوم. نجوم تدريب فقط — تبقى XP الحقيقية للدروس.",
+        "shortName": "العلوم"
+      },
+      "social": {
+        "hubTitle": "صالة الدراسات الاجتماعية",
+        "campaignTitle": "حملة سباق الخرائط",
+        "description": "الجغرافيا، والحضارات، والاستكشاف، والتربية المدنية. نجوم تدريب فقط — دروس لوحة المهام هي التي تمنح XP الإتقان.",
+        "shortName": "الدراسات الاجتماعية"
+      },
+      "reading": {
+        "hubTitle": "صالة القراءة",
+        "campaignTitle": "حملة رحلة المفردات",
+        "description": "سخّن مفرداتك وفهمك ومهارة RACECE قبل تقرير الكتاب. نجوم تدريب فقط — يبقى استوديو الكتب هو العمل الحقيقي.",
+        "shortName": "القراءة"
+      }
+    },
+    "mode": {
+      "number-dash": {
+        "title": "سباق الأعداد",
+        "blurb": "اقفز، وأحسِن توقيت قفزاتك، واجتَز بوابات ضرب الأعداد متعددة الأرقام.",
+        "accentLabel": "الأعداد"
+      },
+      "fraction-flight": {
+        "title": "طيران الكسور",
+        "blurb": "انطلق عبر تحديات المقامات غير المتشابهة دون أن تفقد سرعتك.",
+        "accentLabel": "الكسور"
+      },
+      "decimal-dash": {
+        "title": "سباق الأعداد العشرية",
+        "blurb": "بوابات القيمة المكانية وعمليات أجزاء المئة — ابقَ متيقظًا مع السرعة.",
+        "accentLabel": "العشرية"
+      },
+      "volume-vault": {
+        "title": "قبو الحجم",
+        "blurb": "اختبارات حجم المنشور المستطيل بين جولات الأشواك.",
+        "accentLabel": "الحجم"
+      },
+      "powers-pulse": {
+        "title": "نبضة الأُسس",
+        "blurb": "قوى العدد 10 وإزاحات القيمة المكانية تُشعل دفعاتك.",
+        "accentLabel": "الأُسس"
+      },
+      "story-sprint": {
+        "title": "عدْو القصص",
+        "blurb": "تغيّر الشخصية وأدلة النص السردي بسرعة السباق.",
+        "accentLabel": "القصة"
+      },
+      "root-rush": {
+        "title": "انطلاقة الجذور",
+        "blurb": "جذور الكلمات اليونانية واللاتينية تُضيء البوابات.",
+        "accentLabel": "الجذور"
+      },
+      "main-idea-march": {
+        "title": "مسيرة الفكرة الرئيسية",
+        "blurb": "اختر الفكرة الرئيسية والأدلة الداعمة تحت الضغط.",
+        "accentLabel": "الفكرة الرئيسية"
+      },
+      "figurative-flight": {
+        "title": "طيران اللغة المجازية",
+        "blurb": "بوابات التشبيه والاستعارة والتعبير الاصطلاحي تُبقيك في الجو.",
+        "accentLabel": "المجازية"
+      },
+      "grammar-gauntlet": {
+        "title": "تحدي القواعد",
+        "blurb": "أقسام الكلام وسلامة الجملة بين الأشواك.",
+        "accentLabel": "القواعد"
+      },
+      "matter-dash": {
+        "title": "سباق المادة",
+        "blurb": "خصائص المادة واختبارات حفظ الكتلة في المنطقة الخضراء.",
+        "accentLabel": "المادة"
+      },
+      "ecosystem-escape": {
+        "title": "الهروب من النظام البيئي",
+        "blurb": "الكائنات المنتِجة والمستهلِكة والمُحلِّلة تمنحك الطاقة في جولتك.",
+        "accentLabel": "النظام البيئي"
+      },
+      "sphere-sprint": {
+        "title": "عدْو الأغلفة",
+        "blurb": "بوابات الغلاف الصخري والمائي والجوي والحيوي.",
+        "accentLabel": "الأرض"
+      },
+      "starlight-surge": {
+        "title": "اندفاعة ضوء النجوم",
+        "blurb": "النجوم والمسافة والسطوع بين البوابات الليمونية.",
+        "accentLabel": "النجوم"
+      },
+      "force-field": {
+        "title": "حقل القوى",
+        "blurb": "الدفع والسحب وفهم الحركة بسرعة عالية.",
+        "accentLabel": "القوى"
+      },
+      "map-dash": {
+        "title": "سباق الخرائط",
+        "blurb": "بوابات جغرافيا نصف الكرة الغربي على مسار كحلي.",
+        "accentLabel": "الخرائط"
+      },
+      "civilization-charge": {
+        "title": "هجمة الحضارات",
+        "blurb": "معلومات عن المايا والأزتك والإنكا بين بوابات مغرة اللون.",
+        "accentLabel": "التاريخ"
+      },
+      "exploration-run": {
+        "title": "جولة الاستكشاف",
+        "blurb": "التواصل بين الشعوب، والرحلات، وتعدّد وجهات النظر.",
+        "accentLabel": "الاستكشاف"
+      },
+      "civics-circuit": {
+        "title": "دائرة التربية المدنية",
+        "blurb": "نقاط تفتيش عن الحكومة الأمريكية والمواطنة.",
+        "accentLabel": "التربية المدنية"
+      },
+      "hemisphere-hustle": {
+        "title": "حركة نصف الكرة",
+        "blurb": "كندا والمكسيك وجمهورية الدومينيكان واليوم — التجارة والمواطنة.",
+        "accentLabel": "اليوم"
+      },
+      "vocab-voyage": {
+        "title": "رحلة المفردات",
+        "blurb": "بوابات معاني الكلمات في سماء ليلية نيليّة.",
+        "accentLabel": "المفردات"
+      },
+      "comprehension-cruise": {
+        "title": "رحلة الفهم",
+        "blurb": "مَن، وماذا، ولماذا — والدليل من بين الصفحات.",
+        "accentLabel": "الفهم"
+      },
+      "racece-relay": {
+        "title": "تتابع RACECE",
+        "blurb": "أعد الصياغة، وأجب، واستشهد، واشرح — جاهز لتقرير الكتاب.",
+        "accentLabel": "RACECE"
+      },
+      "genre-glide": {
+        "title": "انزلاق الأنواع الأدبية",
+        "blurb": "الخيال، وغير الخيال، وذكاء تحديد الراوي.",
+        "accentLabel": "النوع الأدبي"
+      }
+    },
+    "levels": {
+      "L1": { "label": "المستوى 1", "blurb": "تعلَّم الإيقاع — سرعة هادئة ومجال واسع للقفز." },
+      "L2": { "label": "المستوى 2", "blurb": "تمرير أسرع وفجوات أضيق." },
+      "L3": { "label": "المستوى 3", "blurb": "بوابات أصعب وأشواك أكثر كثافة." },
+      "L4": { "label": "المستوى 4", "blurb": "قلبان فقط. ابقَ متيقظًا — الزعيم هو التالي." },
+      "boss": {
+        "label": "الزعيم",
+        "blurb": "سلسلة من البوابات الصعبة — تغلّب عليها لإكمال الحملة."
+      }
+    },
+    "hub": {
+      "campaignComplete": "أُكملت الحملة",
+      "continueMode": "متابعة {mode}",
+      "unlockRule": "أكمل المسار أو اجتَز {gates} بوابة لفتح المستوى التالي. تُحتسب البوابات حتى لو نفدت قلوبك بعد ذلك.",
+      "topicLabel": "الموضوع · {mode}",
+      "hideTopics": "إخفاء الموضوعات",
+      "switchTopic": "تغيير الموضوع",
+      "suggested": "مقترح",
+      "campaignCompleteAria": "أُكملت الحملة",
+      "modeStars": "{stars} نجمة تدريب · المستوى {level}",
+      "bossCleared": " · الزعيم ✓",
+      "levelsTitle": "مستويات {mode}",
+      "unlockedThrough": "مفتوح حتى {level}",
+      "starsTotal": "{stars} نجمة",
+      "gatesToUnlock": "{current}/{needed} بوابة لفتح التالي",
+      "finalChallenge": "التحدي الأخير",
+      "locked": "مقفل",
+      "reason": {
+        "openUnit": "مطابق للوحدة التي تدرسها · {mode}",
+        "subjectUnit": "بناءً على وحدة {subject} · {mode}",
+        "default": "{mode} الافتراضي — تدرَّب في انتظار المهام"
+      }
+    },
+    "game": {
+      "hubButton": "صالة الألعاب",
+      "trackPct": "{pct}% من المسار",
+      "gates": "البوابات {current}/{needed}",
+      "canvasAria": "سباق {mode} {level} الجانبي في المادة",
+      "unlocked": "تم فتح {level}!",
+      "bossGate": "بوابة الزعيم",
+      "challengeGate": "بوابة التحدي",
+      "gateHeader": "{gate} · {topic}",
+      "bossGateCleared": "تم اجتياز بوابة الزعيم! {tip}",
+      "gateCorrect": "أحسنت! {tip}",
+      "gateWrong": "ليس تمامًا — {tip}",
+      "campaignCleared": "أُكملت الحملة!",
+      "bossDefeated": "هُزم الزعيم!",
+      "levelCleared": "أُكمل المستوى!",
+      "outOfHearts": "نفدت القلوب",
+      "runSummary": "النتيجة {score} · {gates} بوابة تم حلّها",
+      "gateProgressSaved": "تم حفظ تقدّم البوابات: {current}/{needed} نحو الفتح التالي",
+      "practiceOnlyNote": "نجوم تدريب فقط — تبقى XP الدروس في لوحة مهامك.",
+      "playAgain": "العب مرة أخرى",
+      "backToHub": "العودة إلى الصالة",
+      "jumpHintBefore": "القفز:",
+      "keySpace": "مسافة",
+      "jumpHintAfter": "/ اضغط · إكمال المسار أو {gates} بوابة يفتح المستوى التالي",
+      "jump": "اقفز",
+      "bossRunOverlay": "جولة الزعيم",
+      "canvasLabel": "{mode} · {level}"
+    }
+  },
+  "howto": {
+    "player": {
+      "eyebrow": "شرح سريع",
+      "closeAria": "إغلاق النصيحة",
+      "skipAllTips": "تخطَّ كل النصائح",
+      "skipTour": "تخطَّ الجولة",
+      "hideAllTips": "إخفاء كل النصائح",
+      "back": "السابق",
+      "next": "التالي",
+      "gotIt": "فهمت"
+    },
+    "menu": {
+      "openHelp": "مساعدة",
+      "openShorts": "شروحات سريعة",
+      "parentTips": "نصائح لوليّ الأمر",
+      "studentTips": "نصائح للطالب",
+      "closeAria": "إغلاق قائمة المساعدة",
+      "tipsHiddenNote": "النصائح مخفية. أعد تشغيل أي شرح أدناه، أو أعد تفعيل النصائح.",
+      "showTips": "إظهار النصائح",
+      "hideAllTips": "إخفاء كل النصائح",
+      "replayTour": "إعادة جولة الترحيب",
+      "resetTips": "إعادة تعيين كل النصائح"
+    },
+    "shorts": {
+      "student-welcome": {
+        "title": "مرحبًا بك في رحلتك",
+        "scenes": {
+          "1": {
+            "caption": "هذه بوابة الطالب — مقرّك الرئيسي للتعلّم.",
+            "emphasis": "بوابة الطالب"
+          },
+          "2": {
+            "caption": "اجمع XP وارتقِ بالمستويات عند إنجاز الدروس وتقارير الكتب.",
+            "emphasis": "XP والمستويات"
+          },
+          "3": {
+            "caption": "تدرَّب قليلًا كل يوم لتنمو سلسلة أيامك.",
+            "emphasis": "السلسلة اليومية"
+          },
+          "4": {
+            "caption": "استخدم الشروحات السريعة من «مساعدة» في أي وقت إذا واجهت صعوبة.",
+            "emphasis": "زر المساعدة"
+          }
+        }
+      },
+      "student-link-code": {
+        "title": "شارك رمز ربط وليّ الأمر",
+        "scenes": {
+          "1": {
+            "caption": "يتيح رمز الربط لوليّ أمرك الاتصال بتقدّمك.",
+            "emphasis": "رمز الربط"
+          },
+          "2": {
+            "caption": "اضغط «نسخ»، ثم أرسل الرمز إلى وليّ أمرك.",
+            "emphasis": "نسخ"
+          },
+          "3": {
+            "caption": "يلصقه في بوابة وليّ الأمر ← ربط طالب.",
+            "emphasis": "وليّ الأمر يتصل"
+          },
+          "4": {
+            "caption": "بعد الربط، يمكنه تعيين الدروس ورؤية إنجازاتك.",
+            "emphasis": "أنتما متصلان"
+          }
+        }
+      },
+      "student-subjects": {
+        "title": "المواد والدروس",
+        "scenes": {
+          "1": {
+            "caption": "اختر تبويب مادة: الرياضيات، أو اللغة الإنجليزية، أو العلوم، أو الدراسات الاجتماعية، أو القراءة.",
+            "emphasis": "تبويبات المواد"
+          },
+          "2": {
+            "caption": "افتح بطاقة درس لتتعلّم وتختبر نفسك وتتدرّب.",
+            "emphasis": "بطاقات الدروس"
+          },
+          "3": {
+            "caption": "إذا كانت المادة فارغة، فانتظر أن يعيّن وليّ أمرك شيئًا — أو جرّب تبويبًا آخر.",
+            "emphasis": "اللوحات الفارغة"
+          },
+          "4": {
+            "caption": "«القراءة المقررة» مخصّصة للكتب التي رفعها وليّ أمرك.",
+            "emphasis": "تبويب القراءة"
+          }
+        }
+      },
+      "student-lesson": {
+        "title": "كيف يعمل الدرس",
+        "scenes": {
+          "1": { "caption": "أولًا: ملاحظات الشرح والفيديو — افهم الفكرة.", "emphasis": "الشرح" },
+          "2": {
+            "caption": "ثم: أسئلة التدريب. تحتاج إلى نحو 70% للمتابعة.",
+            "emphasis": "الاختبار"
+          },
+          "3": {
+            "caption": "بعض الدروس فيها ورقة عمل — اكتب إجاباتك أو ارسمها بنفسك.",
+            "emphasis": "ورقة العمل"
+          },
+          "4": {
+            "caption": "اسأل المدرّب الذكي عن تلميحات — يساعدك على التفكير، ولا يكتب الإجابات عنك.",
+            "emphasis": "المدرّب الذكي"
+          },
+          "5": { "caption": "انجح في الدرس لتجمع XP والإتقان.", "emphasis": "الإتقان" }
+        }
+      },
+      "student-books": {
+        "title": "القراءة المقررة وتقارير الكتب",
+        "scenes": {
+          "1": {
+            "caption": "افتح كتابًا عيّنه وليّ أمرك واقرأه داخل التطبيق.",
+            "emphasis": "اقرأ"
+          },
+          "2": {
+            "caption": "اكتب إجابة RACECE: أعد الصياغة، وأجب، واستشهد، واشرح (مرتين).",
+            "emphasis": "RACECE"
+          },
+          "3": {
+            "caption": "أرسلها إلى المعلّم الذكي للحصول على درجة ونقاط قوة وخطوات تالية.",
+            "emphasis": "تصحيح ذكي"
+          },
+          "4": {
+            "caption": "التقارير القوية تجمع XP — واصل التحسين بالاستفادة من الملاحظات.",
+            "emphasis": "التحسين"
+          }
+        }
+      },
+      "student-leaderboard": {
+        "title": "تحدّي رحلة اليوم",
+        "scenes": {
+          "1": {
+            "caption": "ترتّب لوحة المتصدرين اليومية وقت التدريب ونتائج الاختبارات اليوم.",
+            "emphasis": "اليوم فقط"
+          },
+          "2": {
+            "caption": "يُعاد التصفير في منتصف الليل بالتوقيت الشرقي — فرصة جديدة كل يوم.",
+            "emphasis": "تصفير كل ليلة"
+          },
+          "3": {
+            "caption": "افتح درسًا وتدرَّب لتظهر على اللوحة.",
+            "emphasis": "التدريب يُحتسب"
+          },
+          "4": {
+            "caption": "شجّع زملاءك — التعلّم معًا هو الفوز الحقيقي.",
+            "emphasis": "روح الفريق"
+          }
+        }
+      },
+      "parent-welcome": {
+        "title": "مرحبًا بك في بوابة وليّ الأمر",
+        "scenes": {
+          "1": {
+            "caption": "بوابة وليّ الأمر مخصّصة لتعيين المهام ومراجعة التقدّم.",
+            "emphasis": "بوابة وليّ الأمر"
+          },
+          "2": {
+            "caption": "استخدم «التبديل إلى بوابة وليّ الأمر» من أعلى لوحة التحكم.",
+            "emphasis": "زر التبديل"
+          },
+          "3": {
+            "caption": "الخطوة الأولى: اربط طالبك برمزه القابل للمشاركة.",
+            "emphasis": "الربط أولًا"
+          },
+          "4": {
+            "caption": "أعد تشغيل أي نصيحة من الشروحات السريعة في «مساعدة».",
+            "emphasis": "مساعدة"
+          }
+        }
+      },
+      "parent-link-student": {
+        "title": "اربط طالبك",
+        "scenes": {
+          "1": {
+            "caption": "اطلب من طالبك رمز ربط وليّ الأمر (الموجود في لوحة تحكمه).",
+            "emphasis": "احصل على الرمز"
+          },
+          "2": { "caption": "الصقه ضمن «ربط طالب» ثم أكّد.", "emphasis": "الصق واربط" },
+          "3": {
+            "caption": "يمكنك ربط أكثر من طالب إذا لزم الأمر.",
+            "emphasis": "أكثر من طفل"
+          },
+          "4": {
+            "caption": "يظهر الطلاب المرتبطون هنا مع الإتقان والتقارير والمهام.",
+            "emphasis": "تم الاتصال"
+          }
+        }
+      },
+      "parent-worksheet": {
+        "title": "ارفع ورقة عمل بصيغة PDF",
+        "scenes": {
+          "1": {
+            "caption": "ارفع ورقة عمل PDF نصية يُسمح لك باستخدامها.",
+            "emphasis": "رفع PDF"
+          },
+          "2": {
+            "caption": "يُعِدّ الذكاء الاصطناعي مسودة درس: اختبار، وحقول قابلة للتعبئة، وفيديو مطابق عند الإمكان.",
+            "emphasis": "مسودة ذكية"
+          },
+          "3": {
+            "caption": "راجع المسودة — لا يراها الطلاب حتى تنشرها.",
+            "emphasis": "المراجعة"
+          },
+          "4": {
+            "caption": "انشرها لتعيينها. تجاهلها إذا أردت المحاولة من جديد.",
+            "emphasis": "النشر"
+          }
+        }
+      },
+      "parent-tasks-books": {
+        "title": "المهام والكتب المعيَّنة",
+        "scenes": {
+          "1": {
+            "caption": "أداة متقدّمة اختيارية: عيّن وحدة مدمجة للصف الخامس بالوسم. ويُفضَّل استخدام مسودات PDF بالذكاء الاصطناعي لأوراق العمل المخصّصة.",
+            "emphasis": "الوحدات المدمجة"
+          },
+          "2": {
+            "caption": "ارفع كتابًا بصيغة PDF وسؤال كتابة لـ«القراءة المقررة».",
+            "emphasis": "الكتب"
+          },
+          "3": {
+            "caption": "يرى الطلاب المرتبطون المهام الجديدة في بوابة الطالب.",
+            "emphasis": "سيرونها"
+          },
+          "4": {
+            "caption": "اجعل الأسئلة واضحة — تعمل RACECE بأفضل شكل مع سؤال محدّد.",
+            "emphasis": "أسئلة واضحة"
+          }
+        }
+      },
+      "parent-progress": {
+        "title": "مراجعة التقدّم",
+        "scenes": {
+          "1": {
+            "caption": "افتح طالبًا مرتبطًا لرؤية أشرطة الإتقان والمهام المكتملة.",
+            "emphasis": "الإتقان"
+          },
+          "2": {
+            "caption": "اقرأ تقارير الكتب المصحّحة بالذكاء الاصطناعي وملاحظات قائمة التحقق.",
+            "emphasis": "التقارير"
+          },
+          "3": {
+            "caption": "احتفِ بالجهد — تُظهر XP والسلاسل عادات التدريب اليومية.",
+            "emphasis": "العادات"
+          },
+          "4": {
+            "caption": "عيّن الدرس أو الكتاب التالي عندما يكون جاهزًا للمزيد.",
+            "emphasis": "الخطوة التالية"
+          }
+        }
+      }
+    }
+  },
+  "admin": {
+    "analytics": {
+      "loading": "جارٍ تحميل التحليلات…",
+      "loadErrorBefore": "لم نتمكّن من تحميل التحليلات. تأكّد من أن دور ملفك الشخصي هو",
+      "backToDashboard": "العودة إلى لوحة التحكم",
+      "eyebrow": "المسؤول · تحليلات داخلية",
+      "title": "حركة الموقع",
+      "subtitle": "آخر {days} يومًا · مسجّل الدخول باسم {name}",
+      "defaultAdminName": "مسؤول",
+      "dashboard": "لوحة التحكم",
+      "kpi": {
+        "pageViews": "مشاهدات الصفحات",
+        "uniqueVisitors": "زوّار فريدون",
+        "loginsSignups": "تسجيلات الدخول / الحسابات الجديدة",
+        "shares": "المشاركات والنسخ"
+      },
+      "trafficTitle": "الحركة عبر الوقت",
+      "trafficNote": "الزوّار البشريون ومشاهدات الصفحات (أيام بتوقيت UTC). تظهر جلسات الروبوتات بشكل منفصل.",
+      "series": {
+        "pageViews": "مشاهدات الصفحات",
+        "visitors": "الزوّار",
+        "botSessions": "جلسات الروبوتات"
+      },
+      "topPages": "أكثر الصفحات زيارة",
+      "noPageViews": "لا توجد مشاهدات صفحات بعد.",
+      "referrers": "مصادر الزيارات",
+      "noSessions": "لا توجد جلسات بعد.",
+      "botsVsHumans": "الروبوتات مقابل البشر",
+      "humanSessions": "جلسات بشرية",
+      "botSessions": "جلسات الروبوتات",
+      "noCrawlers": "لا توجد برامج زحف معروفة بعد.",
+      "recentEvents": "أحدث الأحداث",
+      "waitingForTraffic": "في انتظار الحركة…",
+      "eventBotTag": " · روبوت:{name}",
+      "eventBotUnnamed": "نعم",
+      "privacyNote": "قياسات داخلية محدودة الغرض فقط: مسارات الصفحات، ومصادر الزيارات، ومعاملات UTM، وحجم الشاشة التقريبي، واللغة، وفرق المنطقة الزمنية، وتصنيف وكيل المستخدم، وعنوان IP مُشفَّر عند تشغيل منارة الخادم. لا كلمات مرور، ولا عناوين بريد إلكتروني كاملة في الأحداث، ولا تتبّع لبصمات الأجهزة بين المواقع."
+    }
+  },
+  "privacy": {
+    "title": "سياسة الخصوصية",
+    "lastUpdated": "آخر تحديث: 31 يوليو 2026",
+    "intro": "يساعد تطبيق «رحلة شيا في الصف الخامس» («التطبيق») الطلاب على الاستعداد للصف الخامس في مدرسة P.S./I.S. 187، ويتيح لأولياء الأمور متابعة التقدّم. توضّح هذه الصفحة المعلومات التي نجمعها وكيفية استخدامنا لها.",
+    "collectTitle": "المعلومات التي نجمعها",
+    "collect": {
+      "account": "بيانات الحساب (البريد الإلكتروني، والاسم إن قدّمه مزوّد تسجيل الدخول)",
+      "role": "الدور (طالب أو وليّ أمر) والتحقّق من العمر لحسابات أولياء الأمور",
+      "activity": "نشاط التعلّم (المهام، وXP، والسلاسل، وتقارير الكتب، والتقدّم المرتبط بها)",
+      "files": "الملفات التي يرفعها أولياء الأمور (مثل ملفات PDF للقراءة المقررة)"
+    },
+    "useTitle": "كيف نستخدم المعلومات",
+    "useBody": "نستخدم هذه المعلومات لتشغيل الحسابات، وحفظ التقدّم، وتصحيح الكتابة بالذكاء الاصطناعي عند تفعيله، وتمكين أولياء الأمور المرتبطين من مراجعة عمل الطالب. ونحن لا نبيع المعلومات الشخصية.",
+    "googleTitle": "تسجيل الدخول عبر Google",
+    "googleBody": "إذا اخترت تسجيل الدخول عبر Google، فسيشارك Google معلومات الملف الشخصي الأساسية (مثل البريد الإلكتروني) مع مزوّد المصادقة لدينا حتى نتمكّن من إنشاء حسابك أو فتحه. وتُدار المصادقة عبر Supabase Auth.",
+    "contactTitle": "التواصل",
+    "contactBody": "للأسئلة حول هذه السياسة: استخدم البريد الإلكتروني للتواصل المُهيّأ في شاشة موافقة Google OAuth لهذا التطبيق، أو تواصل مع وليّ الأمر الذي يدير التطبيق.",
+    "backHome": "→ العودة إلى الرئيسية"
+  },
+  "serverErrors": {
+    "could_not_download_the_uploaded_pdf_try_uploading_again": "لم نتمكّن من تنزيل ملف PDF المرفوع. حاول رفعه مرة أخرى.",
+    "could_not_load_lessons_to_update_videos": "لم نتمكّن من تحميل الدروس لتحديث الفيديوهات.",
+    "could_not_load_profile": "لم نتمكّن من تحميل الملف الشخصي.",
+    "could_not_publish_this_lesson_please_try_again": "لم نتمكّن من نشر هذا الدرس. يُرجى المحاولة مرة أخرى.",
+    "could_not_save_the_lesson_draft_please_try_again": "لم نتمكّن من حفظ مسودة الدرس. يُرجى المحاولة مرة أخرى.",
+    "could_not_save_your_report_please_try_again": "لم نتمكّن من حفظ تقريرك. يُرجى المحاولة مرة أخرى.",
+    "could_not_save_your_worksheet_please_try_again": "لم نتمكّن من حفظ ورقة عملك. يُرجى المحاولة مرة أخرى.",
+    "draft_not_found": "لم يتم العثور على المسودة.",
+    "lesson_not_found": "لم يتم العثور على الدرس.",
+    "link_code_does_not_match_your_profile": "رمز الربط لا يطابق ملفك الشخصي.",
+    "only_parents_or_admins_can_manage_lesson_drafts": "يمكن لأولياء الأمور أو المسؤولين فقط إدارة مسودات الدروس.",
+    "only_unpublished_drafts_can_be_discarded_here_use_remove_for_published_lessons": "يمكن تجاهل المسودات غير المنشورة فقط من هنا. استخدم «إزالة» للدروس المنشورة.",
+    "pdf_path_must_be_under_your_own_uploads_folder": "يجب أن يكون مسار ملف PDF داخل مجلد الملفات التي رفعتها بنفسك.",
+    "parent_accounts_do_not_share_a_student_link_code": "حسابات أولياء الأمور لا تشارك رمز ربط طالب.",
+    "please_wait_a_minute_before_sending_another_link_code_email": "يُرجى الانتظار دقيقة قبل إرسال رسالة أخرى برمز الربط.",
+    "profile_not_found": "لم يتم العثور على الملف الشخصي",
+    "the_ai_draft_was_incomplete_please_try_generating_again": "كانت مسودة الذكاء الاصطناعي غير مكتملة. يُرجى إعادة إنشائها مرة أخرى.",
+    "the_ai_returned_an_unreadable_answer_please_try_again": "أعاد الذكاء الاصطناعي إجابة غير مقروءة. يُرجى المحاولة مرة أخرى.",
+    "this_draft_has_no_lesson_content_to_publish": "لا تحتوي هذه المسودة على محتوى درس لنشره.",
+    "this_lesson_has_no_fillable_worksheet_to_grade": "لا يحتوي هذا الدرس على ورقة عمل قابلة للتعبئة لتصحيحها.",
+    "this_lesson_is_already_published": "هذا الدرس منشور بالفعل.",
+    "this_lesson_is_not_published_yet": "هذا الدرس غير منشور بعد.",
+    "welcome_email_is_only_for_parent_accounts": "رسالة الترحيب مخصّصة لحسابات أولياء الأمور فقط.",
+    "welcome_email_must_go_to_your_own_account_email": "يجب إرسال رسالة الترحيب إلى بريد حسابك الخاص.",
+    "worksheet_practice_is_for_students": "التدريب على أوراق العمل مخصّص للطلاب.",
+    "you_can_only_publish_your_own_drafts": "يمكنك نشر مسوداتك الخاصة فقط."
+  }
+}

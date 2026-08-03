@@ -35,6 +35,17 @@ export function titleForLevel(level: number): string {
   return `Quest Hero · Rank ${safe}`;
 }
 
+/**
+ * Catalog key for a level's title, so the UI can localize it. Levels past the
+ * named list share one key that takes a `{level}` variable.
+ */
+export function levelTitleKey(level: number): string {
+  const safe = Math.max(1, Math.floor(level));
+  return safe <= LEVEL_TITLES.length
+    ? `gamification.levelTitles.${safe}`
+    : "gamification.levelTitles.beyond";
+}
+
 export type LevelUpInfo = {
   fromLevel: number;
   toLevel: number;

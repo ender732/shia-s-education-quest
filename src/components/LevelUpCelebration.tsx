@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, Trophy, Zap } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "@/i18n";
 import { celebrateLevelUp } from "@/lib/confetti";
 import type { LevelUpInfo } from "@/lib/gamification";
-import { XP_PER_LEVEL, levelProgress } from "@/lib/gamification";
+import { XP_PER_LEVEL, levelProgress, levelTitleKey } from "@/lib/gamification";
 
 type LevelUpCelebrationProps = {
   info: LevelUpInfo | null;
@@ -14,6 +15,8 @@ type LevelUpCelebrationProps = {
  * Full-screen level-up moment — shown when XP crosses a 500-XP level boundary.
  */
 export function LevelUpCelebration({ info, onClose }: LevelUpCelebrationProps) {
+  const { t, formatNumber } = useTranslation();
+
   useEffect(() => {
     if (!info) return;
     void celebrateLevelUp();
@@ -44,7 +47,7 @@ export function LevelUpCelebration({ info, onClose }: LevelUpCelebrationProps) {
         >
           <motion.button
             type="button"
-            aria-label="Dismiss celebration"
+            aria-label={t("gamification.levelUp.dismissAria")}
             className="absolute inset-0 border-0 bg-[radial-gradient(ellipse_at_center,rgba(15,23,42,0.55)_0%,rgba(2,6,23,0.92)_70%)]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -80,49 +83,55 @@ export function LevelUpCelebration({ info, onClose }: LevelUpCelebrationProps) {
             </motion.div>
 
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-xp">
-              Level up
+              {t("gamification.levelUp.eyebrow")}
             </p>
             <h2
               id="level-up-title"
               className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl"
             >
-              Level {info.toLevel}
+              {t("gamification.levelUp.level", { level: formatNumber(info.toLevel) })}
             </h2>
             <p className="mt-2 text-sm font-semibold text-muted-foreground">
-              You earned the title{" "}
-              <span className="text-foreground">{info.title}</span>
+              {t("gamification.levelUp.earnedTitle")}{" "}
+              <span className="text-foreground">
+                {t(levelTitleKey(info.toLevel), { level: formatNumber(info.toLevel) })}
+              </span>
             </p>
 
             {levelsGained > 1 && (
               <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
                 <Sparkles className="size-3.5" aria-hidden />
-                Jumped {levelsGained} levels in one go
+                {t("gamification.levelUp.multiLevel", { count: levelsGained })}
               </p>
             )}
 
-            <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+            <div className="mt-6 grid grid-cols-2 gap-3 text-start">
               <div className="rounded-2xl border border-border bg-background/60 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                  Was
+                  {t("gamification.levelUp.was")}
                 </p>
-                <p className="mt-1 text-lg font-black">Level {info.fromLevel}</p>
+                <p className="mt-1 text-lg font-black">
+                  {t("gamification.levelUp.level", { level: formatNumber(info.fromLevel) })}
+                </p>
               </div>
               <div className="rounded-2xl border border-xp/30 bg-xp/10 p-3">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-xp">
-                  Now
+                  {t("gamification.levelUp.now")}
                 </p>
-                <p className="mt-1 text-lg font-black text-xp">Level {info.toLevel}</p>
+                <p className="mt-1 text-lg font-black text-xp">
+                  {t("gamification.levelUp.level", { level: formatNumber(info.toLevel) })}
+                </p>
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-border bg-background/60 p-3 text-left">
+            <div className="mt-4 rounded-2xl border border-border bg-background/60 p-3 text-start">
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span className="inline-flex items-center gap-1 text-muted-foreground">
                   <Zap className="size-3.5 text-xp" aria-hidden />
-                  +{info.xpGained} XP this win
+                  {t("gamification.levelUp.xpThisWin", { xp: formatNumber(info.xpGained) })}
                 </span>
                 <span className="text-foreground">
-                  {info.newXp.toLocaleString()} total
+                  {t("gamification.levelUp.totalXp", { xp: formatNumber(info.newXp) })}
                 </span>
               </div>
               {progress && (
@@ -136,7 +145,11 @@ export function LevelUpCelebration({ info, onClose }: LevelUpCelebrationProps) {
                     />
                   </div>
                   <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    {progress.into} / {XP_PER_LEVEL} XP toward Level {info.toLevel + 1}
+                    {t("gamification.levelUp.towardNextLevel", {
+                      into: formatNumber(progress.into),
+                      needed: formatNumber(XP_PER_LEVEL),
+                      level: formatNumber(info.toLevel + 1),
+                    })}
                   </p>
                 </>
               )}
@@ -149,7 +162,7 @@ export function LevelUpCelebration({ info, onClose }: LevelUpCelebrationProps) {
               whileTap={{ scale: 0.98 }}
               autoFocus
             >
-              Keep questing
+              {t("gamification.levelUp.dismiss")}
             </motion.button>
           </motion.div>
         </motion.div>

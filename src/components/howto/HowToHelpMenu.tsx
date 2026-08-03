@@ -11,6 +11,7 @@ import {
 } from "@/lib/howto-progress";
 import { claimHowToSlot, isHowToSlotFree, releaseHowToSlot } from "@/lib/howto-lock";
 import { getHowToShort, shortsForRole } from "@/lib/howto-shorts";
+import { useTranslation } from "@/i18n";
 import { HowToShortPlayer } from "@/components/howto/HowToShortPlayer";
 
 type HowToHelpMenuProps = {
@@ -21,6 +22,7 @@ type HowToHelpMenuProps = {
 
 export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps) {
   const panelId = useId();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [replayId, setReplayId] = useState<string | null>(null);
   const shorts = useMemo(() => shortsForRole(role), [role]);
@@ -51,23 +53,23 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
         >
           <CircleHelp className="size-3.5 text-primary" />
-          {tipsHidden ? "Help" : "How-to shorts"}
+          {tipsHidden ? t("howto.menu.openHelp") : t("howto.menu.openShorts")}
         </button>
 
         {open && (
           <div
             id={panelId}
-            className="absolute right-0 z-40 mt-2 w-72 rounded-xl border border-border bg-surface p-3 shadow-lg"
+            className="absolute end-0 z-40 mt-2 w-72 rounded-xl border border-border bg-surface p-3 shadow-lg"
             role="menu"
           >
             <div className="mb-2 flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                {role === "parent" ? "Parent tips" : "Student tips"}
+                {role === "parent" ? t("howto.menu.parentTips") : t("howto.menu.studentTips")}
               </p>
               <button
                 type="button"
                 className="rounded-md p-1 text-muted-foreground hover:bg-secondary"
-                aria-label="Close help menu"
+                aria-label={t("howto.menu.closeAria")}
                 onClick={() => setOpen(false)}
               >
                 <X className="size-4" />
@@ -76,7 +78,7 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
 
             {tipsHidden && (
               <p className="mb-2 rounded-lg bg-secondary/60 px-2 py-1.5 text-[11px] leading-snug text-muted-foreground">
-                Tips are hidden. Replay any short below, or turn tips back on.
+                {t("howto.menu.tipsHiddenNote")}
               </p>
             )}
 
@@ -87,10 +89,10 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
                     type="button"
                     role="menuitem"
                     onClick={() => startReplay(s.id)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-secondary"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-start text-sm hover:bg-secondary"
                   >
                     <Play className="size-3.5 shrink-0 text-primary" />
-                    <span className="font-medium leading-snug">{s.title}</span>
+                    <span className="font-medium leading-snug">{t(`howto.shorts.${s.id}.title`)}</span>
                   </button>
                 </li>
               ))}
@@ -107,17 +109,17 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
                   }
                   setOpen(false);
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs font-semibold hover:bg-secondary"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-start text-xs font-semibold hover:bg-secondary"
               >
                 {tipsHidden ? (
                   <>
                     <Eye className="size-3.5 text-primary" />
-                    Show tips
+                    {t("howto.menu.showTips")}
                   </>
                 ) : (
                   <>
                     <EyeOff className="size-3.5 text-primary" />
-                    Hide all tips
+                    {t("howto.menu.hideAllTips")}
                   </>
                 )}
               </button>
@@ -128,10 +130,10 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
                   setOpen(false);
                   onReplayTour();
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs font-semibold hover:bg-secondary"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-start text-xs font-semibold hover:bg-secondary"
               >
                 <Play className="size-3.5 text-primary" />
-                Replay welcome tour
+                {t("howto.menu.replayTour")}
               </button>
               <button
                 type="button"
@@ -139,10 +141,10 @@ export function HowToHelpMenu({ userId, role, onReplayTour }: HowToHelpMenuProps
                   resetAllHowToTips(userId);
                   setOpen(false);
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-start text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
               >
                 <RotateCcw className="size-3.5" />
-                Reset all tips
+                {t("howto.menu.resetTips")}
               </button>
             </div>
           </div>

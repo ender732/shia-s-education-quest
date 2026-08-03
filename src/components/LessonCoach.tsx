@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, MessageCircle, Send, X } from "lucide-react";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useTranslation } from "@/i18n";
 import { askLessonCoach } from "@/lib/lesson-coach.functions";
 
 export type CoachChatMessage = {
@@ -29,6 +30,7 @@ export function LessonCoach({
   privateHints,
 }: LessonCoachProps) {
   const panelId = useId();
+  const { t, tError } = useTranslation();
   const askCoach = useServerFn(askLessonCoach);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -99,16 +101,18 @@ export function LessonCoach({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full min-h-12 items-center justify-between gap-2 px-4 py-3 text-left text-sm font-bold"
+        className="flex w-full min-h-12 items-center justify-between gap-2 px-4 py-3 text-start text-sm font-bold"
       >
         <span className="inline-flex items-center gap-2">
           <MessageCircle className="size-4 shrink-0 text-primary" aria-hidden />
-          Ask AI Coach
+          {t("lesson.coach.open")}
         </span>
         {open ? (
           <X className="size-4 text-muted-foreground" aria-hidden />
         ) : (
-          <span className="text-xs font-semibold text-muted-foreground">Tap to open</span>
+          <span className="text-xs font-semibold text-muted-foreground">
+            {t("lesson.coach.tapToOpen")}
+          </span>
         )}
       </button>
 
@@ -117,12 +121,9 @@ export function LessonCoach({
           id={panelId}
           className="space-y-3 border-t border-border px-3 pb-3 pt-2"
           role="region"
-          aria-label="AI Coach chat"
+          aria-label={t("lesson.coach.regionAria")}
         >
-          <p className="text-xs text-muted-foreground">
-            Ask for help while you fill the worksheet yourself. The coach gives hints — not
-            finished answers.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("lesson.coach.intro")}</p>
 
           <div
             ref={listRef}
@@ -131,7 +132,7 @@ export function LessonCoach({
           >
             {messages.length === 0 && (
               <p className="px-2 py-3 text-sm text-muted-foreground">
-                Example: &ldquo;I don&apos;t get the tip — can you explain it another way?&rdquo;
+                {t("lesson.coach.emptyExample")}
               </p>
             )}
             {messages.map((m) => (
@@ -139,12 +140,12 @@ export function LessonCoach({
                 key={m.id}
                 className={`rounded-lg px-3 py-2 text-sm leading-relaxed ${
                   m.role === "user"
-                    ? "ml-6 bg-primary/15 text-foreground"
-                    : "mr-6 border border-border bg-secondary/40 text-foreground"
+                    ? "ms-6 bg-primary/15 text-foreground"
+                    : "me-6 border border-border bg-secondary/40 text-foreground"
                 }`}
               >
                 <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  {m.role === "user" ? "You" : "Coach"}
+                  {m.role === "user" ? t("lesson.coach.you") : t("lesson.coach.coach")}
                 </p>
                 <p className="whitespace-pre-wrap">{m.content}</p>
               </div>
@@ -153,15 +154,13 @@ export function LessonCoach({
 
           {send.isError && (
             <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
-              {send.error instanceof Error
-                ? send.error.message
-                : "Could not reach the AI coach. Try again."}
+              {tError(send.error, "lesson.coach.failed")}
             </p>
           )}
 
           <form onSubmit={handleSubmit} className="flex gap-2">
             <label className="sr-only" htmlFor={`${panelId}-input`}>
-              Your question for the AI coach
+              {t("lesson.coach.inputLabel")}
             </label>
             <textarea
               id={`${panelId}-input`}
@@ -177,13 +176,13 @@ export function LessonCoach({
                   handleSubmit(e);
                 }
               }}
-              placeholder="Ask a question about this lesson…"
+              placeholder={t("lesson.coach.inputPlaceholder")}
               className="input-base min-h-12 flex-1 resize-none text-base"
             />
             <button
               type="submit"
               disabled={send.isPending || !draft.trim()}
-              aria-label="Send question to AI coach"
+              aria-label={t("lesson.coach.sendAria")}
               className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground disabled:opacity-50"
             >
               {send.isPending ? (
@@ -193,7 +192,7 @@ export function LessonCoach({
               )}
             </button>
           </form>
-          <p className="text-right text-[10px] text-muted-foreground">
+          <p className="text-end text-[10px] text-muted-foreground">
             {draft.length}/{MAX_INPUT}
           </p>
         </div>

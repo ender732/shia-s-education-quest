@@ -11,12 +11,14 @@ import { HowToContextual } from "@/components/howto/HowToContextual";
 import { HowToHelpMenu } from "@/components/howto/HowToHelpMenu";
 import { HowToTour } from "@/components/howto/HowToTour";
 import { ArcadeHub } from "@/components/arcade/ArcadeHub";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ParentLinkCodeCard } from "@/components/ParentLinkCodeCard";
 import { arcadeForSubjectTitle } from "@/lib/arcade/index";
 import { ParentPortal } from "@/components/ParentPortal";
 import { SubjectTabs } from "@/components/SubjectTabs";
 import { TaskBoard, useTasks } from "@/components/TaskBoard";
 import { useProfile, useSession, useStreakTouch } from "@/hooks/useProfile";
+import { useTranslation } from "@/i18n";
 import { upgradeStudentToParent } from "@/lib/ensure-role";
 import { supabase } from "@/integrations/supabase/client";
 import { accentFor } from "@/lib/gamification";
@@ -45,6 +47,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { session } = useSession();
+  const { t, tDb, tError } = useTranslation();
   const userId = session?.user.id;
   const { data: profile, isLoading: profileLoading } = useProfile(userId);
   useStreakTouch(profile);
@@ -98,19 +101,19 @@ function Dashboard() {
     if (!session?.user) return;
 
     if (!upgradeDob) {
-      toast.error("Enter your date of birth.");
+      toast.error(t("dashboard.upgrade.dobRequired"));
       return;
     }
     if (ageFromDob(upgradeDob) === null) {
-      toast.error("Enter a valid date of birth.");
+      toast.error(t("dashboard.upgrade.dobInvalid"));
       return;
     }
     if (!isAdultDob(upgradeDob)) {
-      toast.error("Parents must be 18 or older.");
+      toast.error(t("dashboard.upgrade.mustBeAdult"));
       return;
     }
     if (!upgradeConfirm) {
-      toast.error("Confirm that you are a parent/guardian 18+.");
+      toast.error(t("dashboard.upgrade.confirmRequired"));
       return;
     }
 
@@ -121,18 +124,21 @@ function Dashboard() {
         confirmedParentGuardian: upgradeConfirm,
       });
       if (!result.ok) {
-        if (result.reason === "under_18") toast.error("Parents must be 18 or older.");
+        if (result.reason === "under_18") toast.error(t("dashboard.upgrade.mustBeAdult"));
         else if (result.reason === "missing_confirmation")
-          toast.error("Confirm that you are a parent/guardian 18+.");
-        else toast.error(typeof result.reason === "string" ? result.reason : "Could not upgrade.");
+          toast.error(t("dashboard.upgrade.confirmRequired"));
+        else
+          toast.error(
+            typeof result.reason === "string" ? result.reason : t("dashboard.upgrade.failed"),
+          );
         return;
       }
       await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       setShowParentUpgrade(false);
       setParentMode(true);
-      toast.success("You're verified as a parent — Parent Portal is unlocked.");
+      toast.success(t("dashboard.upgrade.success"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not upgrade account.");
+      toast.error(tError(err, "dashboard.upgrade.failedAccount"));
     } finally {
       setUpgradeBusy(false);
     }
@@ -141,7 +147,7 @@ function Dashboard() {
   if (profileLoading || subjectsLoading || !userId) {
     return (
       <div className="flex min-h-screen items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin" /> Loading your quest…
+        <Loader2 className="size-5 animate-spin" /> {t("dashboard.loading")}
       </div>
     );
   }
@@ -158,9 +164,10 @@ function Dashboard() {
           ) : (
             <GraduationCap className="size-3.5 text-primary" />
           )}
-          {parentMode && isParent ? "Parent Portal" : "Student Portal"}
+          {parentMode && isParent ? t("dashboard.parentBadge") : t("dashboard.studentBadge")}
         </span>
         <div className="flex flex-wrap items-center gap-2">
+          <LanguageSwitcher />
           {userId && (
             <HowToHelpMenu
               userId={userId}
@@ -173,7 +180,7 @@ function Dashboard() {
               to="/admin/analytics"
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
             >
-              <BarChart3 className="size-3.5 text-primary" /> Analytics
+              <BarChart3 className="size-3.5 text-primary" /> {t("dashboard.analytics")}
             </Link>
           )}
           {isParent ? (
@@ -181,21 +188,23 @@ function Dashboard() {
               onClick={() => setParentMode((v) => !v)}
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
             >
-              {parentMode ? "Switch to Student View" : "Switch to Parent Portal"}
+              {parentMode ? t("dashboard.switchToStudent") : t("dashboard.switchToParent")}
             </button>
           ) : !isAdmin ? (
             <button
               onClick={() => setShowParentUpgrade((v) => !v)}
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
             >
-              {showParentUpgrade ? "Hide parent upgrade" : "I meant to be a parent"}
+              {showParentUpgrade
+                ? t("dashboard.hideParentUpgrade")
+                : t("dashboard.showParentUpgrade")}
             </button>
           ) : null}
           <button
             onClick={signOut}
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-destructive"
           >
-            <LogOut className="size-3.5" /> Sign out
+            <LogOut className="size-3.5" /> {t("dashboard.signOut")}
           </button>
         </div>
       </div>
@@ -215,13 +224,12 @@ function Dashboard() {
           onSubmit={submitParentUpgrade}
           className="mb-5 space-y-3 rounded-xl border border-border bg-surface/80 p-4"
         >
-          <h2 className="text-sm font-bold">Upgrade to a parent/guardian account</h2>
+          <h2 className="text-sm font-bold">{t("dashboard.upgrade.title")}</h2>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Parent Portal needs a separate verified adult account (18+). Confirm your date of birth
-            once — students stay on this portal and share a link code with parents instead.
+            {t("dashboard.upgrade.body")}
           </p>
           <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Date of birth
+            {t("dashboard.upgrade.dobLabel")}
             <input
               className="input-base mt-1"
               type="date"
@@ -238,7 +246,7 @@ function Dashboard() {
               checked={upgradeConfirm}
               onChange={(e) => setUpgradeConfirm(e.target.checked)}
             />
-            <span>I confirm I am a parent/guardian 18 years of age or older.</span>
+            <span>{t("dashboard.upgrade.confirmLabel")}</span>
           </label>
           <button
             type="submit"
@@ -246,7 +254,7 @@ function Dashboard() {
             className="glow-ring inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
           >
             {upgradeBusy && <Loader2 className="size-3.5 animate-spin" />}
-            Verify and unlock Parent Portal
+            {t("dashboard.upgrade.submit")}
           </button>
         </form>
       )}
@@ -265,7 +273,7 @@ function Dashboard() {
             enabled={!tourBlocksContextual}
           />
           <GamificationHeader
-            name={profile?.display_name ?? "Explorer"}
+            name={profile?.display_name ?? t("gamification.defaultName")}
             xp={profile?.xp_points ?? 0}
             streak={profile?.streak_days ?? 0}
           />
@@ -304,7 +312,9 @@ function Dashboard() {
           />
 
           {current?.description && (
-            <p className="text-sm text-muted-foreground">{current.description}</p>
+            <p className="text-sm text-muted-foreground">
+              {tDb("subjects.description", current.description)}
+            </p>
           )}
 
           <motion.div

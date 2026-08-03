@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { ArrowLeft, Heart, RotateCcw, Star, Zap, Crown } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import { ARCADE_GATES_TO_UNLOCK, type ArcadeLevelDef } from "@/lib/arcade/levels";
 import { nextQuestion, starsForRun } from "@/lib/arcade/questions";
 import {
@@ -30,6 +31,9 @@ const JUMP_V = -720;
 export type DashGameProps = {
   mode: ArcadeMode;
   level: ArcadeLevelDef;
+  /** Localized names, resolved by the hub so the canvas can draw them directly. */
+  modeTitle: string;
+  levelLabel: string;
   /** Gates already banked on this level toward unlock (from persistence). */
   gatesBanked: number;
   getQuestions: (hardness: 1 | 2 | 3) => ArcadeChoiceQuestion[];
@@ -45,6 +49,8 @@ export type DashGameProps = {
 export function DashGame({
   mode,
   level,
+  modeTitle,
+  levelLabel,
   gatesBanked,
   getQuestions,
   onGateCorrect,
@@ -52,6 +58,7 @@ export function DashGame({
   onExit,
 }: DashGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { t, formatNumber } = useTranslation();
   const diff = level.difficulty;
   const maxHearts = diff.hearts;
 
@@ -71,6 +78,13 @@ export function DashGame({
   const [unlockToast, setUnlockToast] = useState<string | null>(null);
   const [campaignDone, setCampaignDone] = useState(false);
   const [isBossChallenge, setIsBossChallenge] = useState(false);
+
+  // The canvas loop is not re-created on locale change, so read labels from a ref.
+  const canvasTextRef = useRef({ heading: "", boss: "" });
+  canvasTextRef.current = {
+    heading: t("arcade.game.canvasLabel", { mode: modeTitle, level: levelLabel }),
+    boss: t("arcade.game.bossRunOverlay"),
+  };
 
   const stateRef = useRef({
     running: true,
@@ -126,7 +140,7 @@ export function DashGame({
     setStars(earned);
     const result = onLevelClear(earned);
     if (result.unlockedNext && result.newlyUnlockedLabel) {
-      setUnlockToast(`${result.newlyUnlockedLabel} unlocked!`);
+      setUnlockToast(t("arcade.game.unlocked", { level: result.newlyUnlockedLabel }));
     }
     if (result.campaignComplete) setCampaignDone(true);
     setPhase("cleared");
@@ -411,7 +425,7 @@ export function DashGame({
         }
       }
 
-      draw(g, s, mode, level, diff.targetDistance);
+      draw(g, s, mode, level, diff.targetDistance, canvasTextRef.current);
       raf = requestAnimationFrame(frame);
     }
 
@@ -439,19 +453,19 @@ export function DashGame({
         const result = onGateCorrect();
         s.gatesToward = Math.min(ARCADE_GATES_TO_UNLOCK, s.gatesToward + 1);
         if (result.unlockedNext && result.newlyUnlockedLabel) {
-          setUnlockToast(`${result.newlyUnlockedLabel} unlocked!`);
+          setUnlockToast(t("arcade.game.unlocked", { level: result.newlyUnlockedLabel }));
         }
       }
       setFeedback(
-        isBossChallenge
-          ? `Boss gate cleared! ${question.tip}`
-          : `Nice! ${question.tip}`,
+        t(isBossChallenge ? "arcade.game.bossGateCleared" : "arcade.game.gateCorrect", {
+          tip: question.tip,
+        }),
       );
     } else {
       s.hearts -= 1;
       s.deaths += 1;
       s.camShake = 12;
-      setFeedback(`Not quite — ${question.tip}`);
+      setFeedback(t("arcade.game.gateWrong", { tip: question.tip }));
       if (s.hearts <= 0) {
         s.running = false;
         s.paused = false;
@@ -497,7 +511,7 @@ export function DashGame({
           onClick={onExit}
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
         >
-          <ArrowLeft className="size-3.5" /> Arcade hub
+          <ArrowLeft className="size-3.5" /> {t("arcade.game.hubButton")}
         </button>
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
           <span
@@ -508,20 +522,23 @@ export function DashGame({
             }`}
           >
             {level.isBoss ? <Crown className="size-3" /> : null}
-            {level.label}
+            {levelLabel}
           </span>
           <span className="inline-flex items-center gap-1 rounded-md bg-background/70 px-2 py-1 text-xp">
-            <Zap className="size-3" /> {hud.score}
+            <Zap className="size-3" /> {formatNumber(hud.score)}
           </span>
           <span className="rounded-md bg-secondary px-2 py-1 text-secondary-foreground">
-            {trackPct}% track
+            {t("arcade.game.trackPct", { pct: formatNumber(trackPct) })}
           </span>
           {!level.isBoss && (
             <span
               className="rounded-md px-2 py-1"
               style={{ backgroundColor: mode.theme.uiAccentSoft, color: mode.theme.uiAccent }}
             >
-              Gates {gatesShow}/{gatesNeeded}
+              {t("arcade.game.gates", {
+                current: formatNumber(gatesShow),
+                needed: formatNumber(gatesNeeded),
+              })}
             </span>
           )}
           <span className="inline-flex items-center gap-0.5 text-destructive">
@@ -555,7 +572,7 @@ export function DashGame({
           height={H}
           className="block h-auto w-full touch-none bg-background"
           role="img"
-          aria-label={`${mode.title} ${level.label} side-scrolling subject dash`}
+          aria-label={t("arcade.game.canvasAria", { mode: modeTitle, level: levelLabel })}
           onPointerDown={(e) => {
             e.preventDefault();
             requestJump();
@@ -578,7 +595,10 @@ export function DashGame({
                 className="font-display text-sm font-bold sm:text-base"
                 style={{ color: isBossChallenge ? mode.theme.portal : mode.theme.uiAccent }}
               >
-                {isBossChallenge ? "Boss gate" : "Challenge gate"} · {mode.theme.accentLabel}
+                {t("arcade.game.gateHeader", {
+                  gate: t(isBossChallenge ? "arcade.game.bossGate" : "arcade.game.challengeGate"),
+                  topic: t(`arcade.mode.${mode.id}.accentLabel`),
+                })}
               </p>
               <p className="mt-2 text-sm font-semibold leading-snug">{question.prompt}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
@@ -588,7 +608,7 @@ export function DashGame({
                     type="button"
                     disabled={Boolean(feedback)}
                     onClick={() => answer(i)}
-                    className="rounded-lg border border-border bg-background px-3 py-2.5 text-left text-sm font-bold transition disabled:opacity-60"
+                    className="rounded-lg border border-border bg-background px-3 py-2.5 text-start text-sm font-bold transition disabled:opacity-60"
                     style={{ ["--tw-hover" as string]: mode.theme.uiAccent }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = mode.theme.uiAccent;
@@ -617,18 +637,23 @@ export function DashGame({
                 {phase === "cleared"
                   ? level.isBoss
                     ? campaignDone
-                      ? "Campaign cleared!"
-                      : "Boss defeated!"
-                    : "Level cleared!"
-                  : "Out of hearts"}
+                      ? t("arcade.game.campaignCleared")
+                      : t("arcade.game.bossDefeated")
+                    : t("arcade.game.levelCleared")
+                  : t("arcade.game.outOfHearts")}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Score {hud.score} · {hud.corrects} gates solved
+                {t("arcade.game.runSummary", {
+                  score: formatNumber(hud.score),
+                  gates: formatNumber(hud.corrects),
+                })}
               </p>
               {phase === "gameover" && hud.gatesToward > 0 && !level.isBoss && (
                 <p className="mt-2 text-xs" style={{ color: mode.theme.uiAccent }}>
-                  Gate progress saved: {Math.min(gatesNeeded, hud.gatesToward)}/{gatesNeeded} toward
-                  next unlock
+                  {t("arcade.game.gateProgressSaved", {
+                    current: formatNumber(Math.min(gatesNeeded, hud.gatesToward)),
+                    needed: formatNumber(gatesNeeded),
+                  })}
                 </p>
               )}
               {phase === "cleared" && (
@@ -647,7 +672,7 @@ export function DashGame({
                 </p>
               )}
               <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-                Practice stars only — lesson XP stays on your TaskBoard.
+                {t("arcade.game.practiceOnlyNote")}
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 <button
@@ -655,14 +680,14 @@ export function DashGame({
                   onClick={restart}
                   className="glow-ring inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground"
                 >
-                  <RotateCcw className="size-3.5" /> Play again
+                  <RotateCcw className="size-3.5" /> {t("arcade.game.playAgain")}
                 </button>
                 <button
                   type="button"
                   onClick={onExit}
                   className="rounded-xl border border-border bg-secondary px-4 py-2.5 text-xs font-bold"
                 >
-                  Back to hub
+                  {t("arcade.game.backToHub")}
                 </button>
               </div>
             </div>
@@ -672,9 +697,12 @@ export function DashGame({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[11px] text-muted-foreground">
-          Jump: <kbd className="rounded bg-secondary px-1.5 py-0.5 font-semibold">Space</kbd> /{" "}
-          <kbd className="rounded bg-secondary px-1.5 py-0.5 font-semibold">↑</kbd> / tap · Clear
-          track or {gatesNeeded} gates unlocks next
+          {t("arcade.game.jumpHintBefore")}{" "}
+          <kbd className="rounded bg-secondary px-1.5 py-0.5 font-semibold">
+            {t("arcade.game.keySpace")}
+          </kbd>{" "}
+          / <kbd className="rounded bg-secondary px-1.5 py-0.5 font-semibold">↑</kbd>{" "}
+          {t("arcade.game.jumpHintAfter", { gates: formatNumber(gatesNeeded) })}
         </p>
         <button
           type="button"
@@ -685,7 +713,7 @@ export function DashGame({
           className="glow-ring min-h-12 min-w-[8rem] rounded-xl px-6 py-3 text-sm font-bold text-primary-foreground sm:hidden"
           style={{ backgroundColor: mode.theme.uiAccent }}
         >
-          Jump
+          {t("arcade.game.jump")}
         </button>
       </div>
     </div>
@@ -711,6 +739,7 @@ function draw(
   mode: ArcadeMode,
   level: ArcadeLevelDef,
   targetDistance: number,
+  text: { heading: string; boss: string },
 ) {
   const theme = level.isBoss ? bossTint(mode.theme) : mode.theme;
   const shakeX = (Math.random() - 0.5) * s.camShake;
@@ -856,12 +885,12 @@ function draw(
   ctx.fillStyle = "rgba(255,255,255,0.45)";
   ctx.font = "bold 12px 'Bricolage Grotesque', sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText(`${mode.title} · ${level.label}`, 14, 22);
+  ctx.fillText(text.heading, 14, 22);
 
   if (level.isBoss) {
     ctx.fillStyle = "rgba(245,158,11,0.85)";
     ctx.font = "bold 11px 'Space Grotesk', sans-serif";
-    ctx.fillText("BOSS RUN", 14, 40);
+    ctx.fillText(text.boss, 14, 40);
   }
 
   ctx.restore();

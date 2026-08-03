@@ -1,0 +1,1202 @@
+{
+  "app": {
+    "name": "La Aventura de 5.º Grado de Shia",
+    "school": "P.S./I.S. 187 Hudson Cliffs · Aventura de 5.º Grado",
+    "tagline": "Preparación de 5.º grado de la P.S./I.S. 187 para estudiantes y padres."
+  },
+  "common": {
+    "loading": "Cargando…",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "cancel": "Cancelar",
+    "tryAgain": "Intentar de nuevo",
+    "goHome": "Ir al inicio",
+    "backHome": "Volver al inicio",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "publish": "Publicar",
+    "publishing": "Publicando…",
+    "discard": "Descartar",
+    "or": "o",
+    "you": "Tú",
+    "student": "Estudiante",
+    "locked": "Bloqueado",
+    "xp": "XP",
+    "none": "—",
+    "percent": "{value}%",
+    "somethingWentWrong": "Algo salió mal.",
+    "attempts_one": "{count} intento",
+    "attempts_other": "{count} intentos"
+  },
+  "language": {
+    "label": "Idioma",
+    "chooseAria": "Elegir un idioma"
+  },
+  "footer": {
+    "legalNavAria": "Legal",
+    "privacy": "Política de Privacidad",
+    "codeOfConduct": "Código de Conducta",
+    "license": "Licencia MIT",
+    "poweredByPrefix": "Este sitio funciona con",
+    "netlify": "Netlify",
+    "netlifyBadgeAlt": "Despliegues por Netlify"
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "Página no encontrada",
+      "body": "La página que buscas no existe o fue movida."
+    },
+    "boundary": {
+      "title": "Esta página no cargó",
+      "body": "Algo salió mal de nuestro lado. Puedes recargar la página o volver al inicio."
+    }
+  },
+  "landing": {
+    "eyebrow": "Distrito 6 de NYC · 5.º Grado",
+    "titleLead": "La Aventura de 5.º Grado de",
+    "titleAccent": "Shia",
+    "body": "Un puente de verano gamificado para la P.S./I.S. 187. Domina Matemáticas, ELA, Ciencias y Estudios Sociales, lee los libros asignados y recibe comentarios instantáneos de la IA sobre tu escritura RACECE.",
+    "cta": "Comenzar la aventura",
+    "cards": {
+      "xp": {
+        "title": "Gana XP y sube de nivel",
+        "body": "Cada tarea completada suma XP. 500 XP por nivel, con confeti en cada logro."
+      },
+      "streak": {
+        "title": "Mantén tu racha",
+        "body": "Practicar todos los días crea una racha de fuego que se ve en el encabezado."
+      },
+      "grading": {
+        "title": "Calificación del Maestro IA",
+        "body": "Entrega un reporte de lectura y recibe una puntuación, tus fortalezas y una lista RACECE."
+      }
+    }
+  },
+  "auth": {
+    "signInTitle": "¡Qué bueno verte de nuevo!",
+    "signUpTitle": "Crea tu cuenta",
+    "checkEmailNotice": "Revisa tu correo y toca el enlace de confirmación. Volverás aquí a una página de «Correo confirmado» y después podrás iniciar sesión. Si te registraste como estudiante, terminaremos de enviarle el código de enlace a tu padre o madre en cuanto confirmes.",
+    "displayNamePlaceholder": "Nombre para mostrar",
+    "emailPlaceholder": "Correo electrónico",
+    "passwordPlaceholder": "Contraseña",
+    "pathStudent": "Estudiante",
+    "pathParent": "Soy padre/madre o tutor",
+    "parentEmailPlaceholder": "Correo del padre/madre o tutor",
+    "studentPathNote": "Le enviaremos por correo tu código de enlace para que pueda conectarse en el Portal para Padres. Los estudiantes menores de 13 años deberían usar una cuenta administrada por un adulto cuando sea posible.",
+    "dateOfBirthLabel": "Fecha de nacimiento",
+    "confirmAdultLabel": "Confirmo que soy padre/madre o tutor de 18 años o más.",
+    "parentPathNote": "Las cuentas de padres requieren verificación de adulto. Podrás vincular a tu hijo con su código de enlace después de registrarte.",
+    "submitSignIn": "Iniciar sesión",
+    "submitSignUp": "Crear cuenta",
+    "googleSignIn": "Iniciar sesión con Google",
+    "googleSignUpParent": "Continuar con Google como padre/tutor",
+    "googleSignUpStudent": "Continuar con Google como estudiante",
+    "googleParentNote": "La verificación de adulto (fecha de nacimiento + confirmación de arriba) es necesaria antes de continuar con Google, igual que en el registro por correo.",
+    "needParentAccountNote": "¿Necesitas una cuenta de padre? Elige «Crea una cuenta» y selecciona padre/tutor para que podamos verificar que tienes 18 años o más (también funciona con Google).",
+    "toggleToSignUp": "¿Primera vez aquí? Crea una cuenta",
+    "toggleToSignIn": "¿Ya tienes una cuenta? Inicia sesión",
+    "validation": {
+      "parentEmailRequired": "El correo del padre/madre o tutor es obligatorio para las cuentas de estudiante.",
+      "parentEmailInvalid": "Ingresa un correo válido del padre/madre o tutor.",
+      "dobRequired": "La fecha de nacimiento es obligatoria para las cuentas de padres.",
+      "dobInvalid": "Ingresa una fecha de nacimiento válida.",
+      "mustBeAdult": "Los padres deben tener 18 años o más. Elige la opción de estudiante si eres menor de 18.",
+      "confirmAdult": "Confirma que eres padre/madre o tutor de 18 años o más."
+    },
+    "toast": {
+      "forcedStudent": "Los padres deben tener 18 años o más. Tu cuenta se creó como estudiante.",
+      "linkCodeEmailed": "Le enviamos el código de enlace a tu padre/madre o tutor.",
+      "emailNotConfiguredDashboard": "El correo no está configurado: copia tu código de enlace desde el panel.",
+      "emailNotConfiguredShare": "El correo no está configurado: copia tu código de enlace desde el panel para compartirlo.",
+      "confirmThenSignIn": "Confirma tu correo y luego inicia sesión para terminar la configuración.",
+      "googleFailed": "No se pudo iniciar sesión con Google. Inténtalo de nuevo.",
+      "parentReady": "Cuenta de padre lista: te damos la bienvenida al Portal para Padres.",
+      "parentConfirmationIncomplete": "La confirmación de padre quedó incompleta: la cuenta se creó como estudiante. Puedes verificarte como padre desde el panel.",
+      "roleSetupFailed": "Iniciaste sesión, pero no pudimos terminar de configurar tu rol. Intenta recargar la página o verifícalo desde el panel."
+    },
+    "confirm": {
+      "workingTitle": "Confirmando tu correo…",
+      "workingBody": "Un momento: estamos terminando tu registro para que puedas entrar a la aventura.",
+      "errorTitle": "El enlace no funcionó",
+      "invalidLink": "Este enlace de confirmación no es válido o ya venció. Solicita uno nuevo desde la página de inicio de sesión.",
+      "noParams": "No encontramos los datos de confirmación. Abre el enlace desde tu correo o solicita uno nuevo aquí abajo.",
+      "genericFailure": "Algo salió mal al confirmar tu correo.",
+      "resendLabel": "Solicitar un nuevo enlace de confirmación",
+      "resendPlaceholder": "El correo con el que te registraste",
+      "resendSubmit": "Enviar nuevo enlace",
+      "resendMissingEmail": "Ingresa el correo que usaste para registrarte.",
+      "resendSent": "Revisa tu bandeja de entrada para ver el nuevo enlace de confirmación.",
+      "resendFailed": "No se pudo reenviar el correo de confirmación.",
+      "backToSignIn": "Volver a iniciar sesión"
+    },
+    "confirmed": {
+      "redirecting": "Te llevamos a tu panel…",
+      "title": "¡Correo confirmado!",
+      "body": "Todo listo. Inicia sesión para abrir tu panel, ganar XP y seguir con la aventura. Si te registraste como estudiante, terminaremos de enviarle el código de enlace a tu padre o madre en cuanto inicies sesión.",
+      "cta": "Inicia sesión para continuar"
+    }
+  },
+  "dashboard": {
+    "loading": "Cargando tu aventura…",
+    "parentBadge": "Portal para Padres",
+    "studentBadge": "Portal del Estudiante",
+    "analytics": "Analíticas",
+    "switchToStudent": "Cambiar a la vista de estudiante",
+    "switchToParent": "Cambiar al Portal para Padres",
+    "hideParentUpgrade": "Ocultar el cambio a cuenta de padre",
+    "showParentUpgrade": "Quería una cuenta de padre/tutor",
+    "signOut": "Cerrar sesión",
+    "upgrade": {
+      "title": "Cambia a una cuenta de padre/madre o tutor",
+      "body": "El Portal para Padres necesita una cuenta de adulto verificada aparte (18 años o más). Confirma tu fecha de nacimiento una sola vez: los estudiantes se quedan en este portal y comparten un código de enlace con sus padres.",
+      "dobLabel": "Fecha de nacimiento",
+      "confirmLabel": "Confirmo que soy padre/madre o tutor de 18 años o más.",
+      "submit": "Verificar y desbloquear el Portal para Padres",
+      "dobRequired": "Ingresa tu fecha de nacimiento.",
+      "dobInvalid": "Ingresa una fecha de nacimiento válida.",
+      "mustBeAdult": "Los padres deben tener 18 años o más.",
+      "confirmRequired": "Confirma que eres padre/madre o tutor de 18 años o más.",
+      "failed": "No se pudo actualizar.",
+      "failedAccount": "No se pudo actualizar la cuenta.",
+      "success": "Ya verificamos que eres padre/madre o tutor: el Portal para Padres ya está desbloqueado."
+    }
+  },
+  "gamification": {
+    "welcomeBack": "¡Qué bueno verte de nuevo, {name}!",
+    "defaultName": "Explorador",
+    "subtitle": "Termina tus tareas, escribe buenas respuestas RACECE y sube de nivel.",
+    "level": "Nivel",
+    "totalXp": "XP total",
+    "dayStreak": "Racha de días",
+    "streakValue": "{days} 🔥",
+    "progressToLevel": "Progreso al nivel {level}",
+    "xpOfNeeded": "{into} / {needed} XP",
+    "levelTitles": {
+      "1": "Principiante de la Aventura",
+      "2": "Explorador Curioso",
+      "3": "Rastreador de Habilidades",
+      "4": "Pro de la Práctica",
+      "5": "Leyenda de las Lecciones",
+      "6": "Estrella de las Rachas",
+      "7": "Constructor de Mentes",
+      "8": "Campeón de la Concentración",
+      "9": "Caballero del Saber",
+      "10": "Gran Erudito",
+      "11": "Héroe de la Aventura",
+      "12": "Dinamo del Distrito",
+      "beyond": "Héroe de la Aventura · Rango {level}"
+    },
+    "levelUp": {
+      "eyebrow": "Subiste de nivel",
+      "level": "Nivel {level}",
+      "earnedTitle": "Ganaste el título",
+      "multiLevel_one": "Subiste {count} nivel de una sola vez",
+      "multiLevel_other": "Subiste {count} niveles de una sola vez",
+      "was": "Antes",
+      "now": "Ahora",
+      "xpThisWin": "+{xp} XP en este logro",
+      "totalXp": "{xp} en total",
+      "towardNextLevel": "{into} / {needed} XP para el Nivel {level}",
+      "dismiss": "Seguir la aventura",
+      "dismissAria": "Cerrar la celebración"
+    }
+  },
+  "leaderboard": {
+    "title": "El Reto de Hoy",
+    "resetNote": "Se reinicia a medianoche del Este (America/New_York)",
+    "loading": "Cargando la clasificación de hoy…",
+    "unavailableTitle": "La tabla de clasificación aún no está lista",
+    "unavailableBody": "Pídele a un adulto que ejecute la migración de la tabla de clasificación diaria y luego practica una lección para aparecer aquí.",
+    "emptyTitle": "Todavía no hay competidores hoy",
+    "emptyBody": "Abre una lección y practica: el tiempo y tu mejor puntuación cuentan para el reto de hoy.",
+    "rank": "Puesto",
+    "name": "Nombre",
+    "timeToday": "Tiempo de hoy",
+    "bestScore": "Mejor puntuación",
+    "duration": {
+      "hours": "{hours} h {minutes} min {seconds} s",
+      "minutes": "{minutes} min {seconds} s",
+      "seconds": "{seconds} s"
+    }
+  },
+  "linkCode": {
+    "missing": "El código de enlace para padres aún no está disponible. Pídele a un adulto que ejecute la última migración de la base de datos ({migrations}) y luego recarga la página.",
+    "label": "Código de enlace para padres",
+    "shareNote": "Comparte este código con un padre o tutor para que pueda seguir tu progreso. Solo esa persona podrá ver tu aventura después de vincularse.",
+    "emailPlaceholder": "Correo del padre/madre o tutor",
+    "emailButton": "Enviar el código por correo a mi padre o tutor",
+    "defaultStudentName": "Tu estudiante",
+    "copied": "Código de enlace para padres copiado.",
+    "copyFailed": "No se pudo copiar: selecciona y copia el código a mano.",
+    "emailInvalid": "Ingresa un correo válido del padre/madre o tutor.",
+    "emailSent": "Código de enlace enviado a tu padre/madre o tutor.",
+    "emailNotConfigured": "El correo no está configurado; copia el código en su lugar",
+    "emailFailed": "No se pudo enviar el correo."
+  },
+  "subjects": {
+    "navAria": "Materias",
+    "title": {
+      "math": "Matemáticas",
+      "ela_reading": "ELA / Lectura",
+      "science_nyssls": "Ciencias (NYSSLS)",
+      "social_studies_western_hemisphere": "Estudios Sociales (Hemisferio Occidental)",
+      "assigned_reading": "Lectura Asignada"
+    },
+    "description": {
+      "multi_digit_numbers_decimals_fractions_and_volume": "Números de varios dígitos, decimales, fracciones y volumen",
+      "narrative_analysis_root_words_and_racece_writing": "Análisis narrativo, raíces de palabras y escritura RACECE",
+      "matter_conservation_of_mass_and_earth_s_spheres": "La materia, la conservación de la masa y las esferas de la Tierra",
+      "geography_history_and_map_reading": "Geografía, historia y lectura de mapas",
+      "ebook_reading_and_ai_graded_book_reports": "Lectura de libros digitales y reportes de lectura calificados por IA"
+    }
+  },
+  "tasks": {
+    "title": {
+      "multi_digit_multiplication_drill": "Práctica de multiplicación de varios dígitos",
+      "decimal_place_value_to_thousandths": "Valor posicional de decimales hasta las milésimas",
+      "fractions_with_unlike_denominators": "Fracciones con denominadores distintos",
+      "volume_of_rectangular_prisms": "Volumen de prismas rectangulares",
+      "narrative_analysis_character_change": "Análisis narrativo: el cambio del personaje",
+      "greek_latin_root_words": "Raíces griegas y latinas",
+      "racece_constructed_response": "Respuesta construida con RACECE",
+      "properties_of_matter_lab": "Laboratorio de propiedades de la materia",
+      "conservation_of_mass": "Conservación de la masa",
+      "earth_s_four_spheres": "Las cuatro esferas de la Tierra",
+      "mapping_the_western_hemisphere": "Mapa del Hemisferio Occidental",
+      "indigenous_civilizations": "Civilizaciones indígenas",
+      "weekly_reading_log": "Registro semanal de lectura"
+    },
+    "description": {
+      "solve_10_problems_multiplying_3_digit_by_2_digit_whole_numbers_using_the_standard_algorithm": "Resuelve 10 problemas multiplicando números enteros de 3 dígitos por 2 dígitos con el algoritmo estándar.",
+      "compare_round_add_and_subtract_decimals_to_the_thousandths_place": "Compara, redondea, suma y resta decimales hasta las milésimas.",
+      "add_and_subtract_fractions_by_finding_common_denominators_show_all_work": "Suma y resta fracciones buscando denominadores comunes. Muestra todo tu trabajo.",
+      "use_v_l_x_w_x_h_to_find_the_volume_of_6_solid_figures_including_composite_shapes": "Usa V = l × a × h para hallar el volumen de 6 figuras sólidas, incluidas las figuras compuestas.",
+      "read_the_assigned_chapter_and_explain_how_the_main_character_changes_with_two_pieces_of_evidence": "Lee el capítulo asignado y explica cómo cambia el personaje principal, con dos pruebas del texto.",
+      "define_12_root_words_and_use_each_in_an_original_sentence": "Define 12 raíces de palabras y usa cada una en una oración propia.",
+      "answer_the_prompt_using_restate_answer_cite_explain_cite_explain": "Responde la pregunta usando Reformula, Responde, Cita, Explica, Cita, Explica.",
+      "classify_five_materials_by_their_measurable_properties_and_record_observations": "Clasifica cinco materiales según sus propiedades medibles y anota tus observaciones.",
+      "explain_why_mass_stays_the_same_when_substances_mix_with_a_real_example": "Explica por qué la masa no cambia cuando se mezclan sustancias, con un ejemplo real.",
+      "describe_geosphere_hydrosphere_atmosphere_and_biosphere_and_how_they_interact": "Describe la geosfera, la hidrosfera, la atmósfera y la biosfera, y cómo interactúan entre sí.",
+      "label_the_major_countries_rivers_and_mountain_ranges_of_north_and_south_america": "Rotula los principales países, ríos y cordilleras de América del Norte y América del Sur.",
+      "compare_the_maya_aztec_and_inca_civilizations_in_a_short_chart": "Compara las civilizaciones maya, azteca e inca en una tabla breve.",
+      "read_30_minutes_a_day_for_five_days_and_log_the_pages_covered": "Lee 30 minutos al día durante cinco días y anota las páginas que leíste."
+    }
+  },
+  "taskboard": {
+    "loading": "Cargando lecciones…",
+    "loadError": "No pudimos cargar tus lecciones. Recarga la página e inténtalo de nuevo.",
+    "emptyTitle": "Todavía no hay lecciones aquí",
+    "emptyBody": "Un padre o tutor puede agregar tareas desde el Portal para Padres.",
+    "standardsNote": "Alineado con los estándares de 5.º grado de NYC (Hudson Cliffs): aprende y luego haz el examen para ganar XP.",
+    "masteredCount": "{done}/{total} dominadas",
+    "quizPlusWorksheet_one": "{count} pregunta de examen + hoja de trabajo para completar",
+    "quizPlusWorksheet_other": "{count} preguntas de examen + hoja de trabajo para completar",
+    "practiceQuestions_one": "{count} pregunta de práctica · aprende primero, luego el examen",
+    "practiceQuestions_other": "{count} preguntas de práctica · aprende primero, luego el examen",
+    "practiceComingSoon": "La práctica de esta unidad estará disponible pronto.",
+    "xpReward": "+{xp} XP",
+    "best": "Mejor {score}%",
+    "bestRetry": " · inténtalo de nuevo para llegar al 100%",
+    "bestPerfect": " · perfecto",
+    "actionReview": "Repasar",
+    "actionRetry": "Intentar de nuevo para el 100%",
+    "actionStart": "Comenzar"
+  },
+  "lesson": {
+    "backToLessons": "Volver a las lecciones",
+    "notReadyBody": "Las preguntas de práctica de esta tarea aún no están listas. Pídele a un padre o tutor que la etiquete con un código de unidad conocido (como {example}) o que suba una hoja de trabajo en PDF.",
+    "phase": {
+      "teach": "Aprende",
+      "quiz": "Practica",
+      "worksheet": "Hoja de trabajo",
+      "results": "Resultados"
+    },
+    "coachTipPrefix": "Consejo del entrenador: ",
+    "readingText": "Texto de lectura",
+    "startQuiz": "Comenzar las preguntas de práctica",
+    "worksheetHeadsUp": "Después del examen, escribirás en la hoja de trabajo (con el dedo o el Pencil) y recibirás comentarios de la IA. Necesitas {pass}% o más en las dos partes para ganar XP.",
+    "noAttemptsYet": "Todavía no hay intentos",
+    "bestScoreSuffix": " · mejor puntuación {score}%",
+    "perfectSuffix": " · ¡perfecto!",
+    "retrySuffix": " · inténtalo cuando quieras para llegar al 100%",
+    "masteredRetryFor100": "Dominada con {score}%: repite el examen para lograr un 100% perfecto.",
+    "perfectUnlocked": "Puntuación perfecta desbloqueada. Puedes seguir practicando cuando quieras.",
+    "alreadyMastered": "Ya dominaste esta lección. Puedes seguir practicando.",
+    "questionCounter": "Pregunta {index} de {total}",
+    "needToContinue": "Necesitas {pass}% para continuar",
+    "needToEarnXp": "Necesitas {pass}% para ganar XP",
+    "correct": "Correcto",
+    "notYet": "Todavía no",
+    "checkAnswer": "Revisar respuesta",
+    "continueToWorksheet": "Continuar a la hoja de trabajo",
+    "seeResults": "Ver resultados",
+    "nextQuestion": "Siguiente pregunta",
+    "pickAnswerFirst": "Primero elige una respuesta.",
+    "typeAnswerFirst": "Primero escribe tu respuesta.",
+    "answerPlaceholder": "Escribe tu respuesta",
+    "savingProgress": "Guardando tu progreso…",
+    "correctOfTotal": "{correct} de {total} correctas",
+    "quizAndWorksheetScore": "Examen {quiz}% · Hoja de trabajo {worksheet}%",
+    "perfectScore": "¡Puntuación perfecta!",
+    "mastered": "Lección dominada",
+    "masteredReviewBest": "¡Buen trabajo! Tu mejor puntuación hasta ahora es {score}%. Inténtalo de nuevo para llegar al 100%.",
+    "masteredReviewAlready": "Buen repaso: ya habías ganado el XP antes.",
+    "masteredEarned": "Ganaste +{xp} XP por aprender esta habilidad.",
+    "attemptsLine": "Intentos: {count}",
+    "attemptsBestSuffix": " · Mejor: {score}%",
+    "keepPracticing": "Sigue practicando",
+    "keepPracticingWorksheet": "Necesitas al menos {pass}% en la hoja de trabajo. Revisa los comentarios de la IA e inténtalo de nuevo: la lección sigue disponible.",
+    "keepPracticingQuiz": "Necesitas al menos {pass}% para completar esta lección y ganar XP. Repasa las notas de la clase e inténtalo de nuevo.",
+    "retryWorksheet": "Reintentar la hoja de trabajo",
+    "retryFor100": "Intentar de nuevo para el 100%",
+    "tryAgain": "Intentar de nuevo",
+    "reviewLesson": "Repasar la lección",
+    "backToBoard": "Volver al tablero",
+    "toast": {
+      "masteredXp": "¡Lección dominada! +{xp} XP",
+      "perfect": "¡Puntuación perfecta, 100%! Qué gran perseverancia.",
+      "newBest": "Nueva mejor puntuación: {score}%",
+      "newBestKeepGoing": "Nueva mejor puntuación: {score}%. Sigue así para llegar al 100%.",
+      "reviewNoXp": "Buen repaso: ya habías ganado el XP antes.",
+      "saveFailed": "No se pudo guardar tu progreso.",
+      "worksheetMasteredXp": "¡Hoja de trabajo dominada! +{xp} XP",
+      "worksheetKeepPracticing": "Sigue practicando: saca al menos 70% en la hoja de trabajo para dominar esta lección.",
+      "worksheetGradeFailed": "No se pudo calificar tu hoja de trabajo."
+    },
+    "worksheet": {
+      "defaultTitle": "Hoja de trabajo",
+      "statusLine": "Examen {quiz}% · Escribe con el dedo o el Pencil · Necesitas {pass}% o más para dominarla",
+      "quizFirst": "Primero aprueba el examen de práctica y luego entrega la hoja de trabajo.",
+      "answerRequired": "Escribe o dibuja una respuesta para: {prompt}",
+      "partRequired": "Por favor completa: {prompt} — {part}",
+      "submit": "Entregar la hoja al Maestro IA",
+      "grading": "El Maestro IA está calificando…",
+      "inkProgress": "{filled} de {total} campos tienen dibujo",
+      "writeHere": "Escribe tu trabajo aquí",
+      "optionalTypedBlanks": "Espacios opcionales para escribir con el teclado (o dibuja todo aquí arriba)",
+      "optionalTypedNotes": "Notas opcionales escritas con el teclado",
+      "typeIfYouWant": "Escribe si quieres",
+      "typeNumber": "O escribe el número",
+      "typeAnswer": "O escribe tu respuesta",
+      "feedbackTitle": "Comentarios del Maestro IA",
+      "score": "{score}/100",
+      "strengths": "Fortalezas",
+      "improvements": "Mejoras",
+      "perQuestionNotes": "Notas por pregunta"
+    },
+    "coach": {
+      "open": "Pregúntale al Entrenador IA",
+      "tapToOpen": "Toca para abrir",
+      "regionAria": "Chat con el Entrenador IA",
+      "intro": "Pide ayuda mientras completas la hoja de trabajo por tu cuenta. El entrenador te da pistas, no respuestas terminadas.",
+      "emptyExample": "Ejemplo: «No entiendo el consejo, ¿puedes explicarlo de otra manera?»",
+      "you": "Tú",
+      "coach": "Entrenador",
+      "failed": "No se pudo conectar con el entrenador IA. Inténtalo de nuevo.",
+      "inputLabel": "Tu pregunta para el entrenador IA",
+      "inputPlaceholder": "Haz una pregunta sobre esta lección…",
+      "sendAria": "Enviar la pregunta al entrenador IA"
+    },
+    "video": {
+      "defaultTitle": "Video explicativo de la lección",
+      "defaultChannel": "Crash Course Kids",
+      "readTranscript": "Leer la transcripción",
+      "hideTranscript": "Ocultar la transcripción",
+      "transcriptAria": "Transcripción del video",
+      "transcriptUnavailable": "La transcripción todavía no está disponible. Puedes seguir el video con los subtítulos de YouTube cuando estén disponibles.",
+      "openOnYouTube": "Abrir el video en YouTube (subtítulos)"
+    }
+  },
+  "scribble": {
+    "defaultLabel": "Escribe o dibuja tu respuesta",
+    "inkSaved": "· trazos guardados",
+    "fingerOrPencil": "· dedo o Pencil",
+    "undo": "Deshacer",
+    "undoAria": "Deshacer el trazo",
+    "clear": "Borrar",
+    "clearAria": "Borrar el dibujo",
+    "canvasAria": "Área para dibujar la respuesta"
+  },
+  "pdf": {
+    "regionAria": "Lector de PDF",
+    "readingAria": "Leyendo: {title}",
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "pageOf": "{page} de {total}",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "loadFailed": "No pudimos abrir este PDF en el lector.",
+    "openInNewTab": "Abrir el PDF en una pestaña nueva",
+    "loadingReader": "Cargando el lector…",
+    "loadingPages": "Cargando las páginas…",
+    "renderingPage": "Mostrando la página…"
+  },
+  "book": {
+    "loadingLibrary": "Cargando tu biblioteca…",
+    "libraryError": "No pudimos cargar la biblioteca de lectura.",
+    "noBookSelected": "No hay ningún libro seleccionado",
+    "byAuthor": "de {author}",
+    "unknownAuthor": "Autor desconocido",
+    "removeAria": "Quitar {title}",
+    "removeTitle": "Quitar el libro",
+    "noPdfAttached": "Este libro todavía no tiene un PDF adjunto.",
+    "noBooksYet": "Todavía no hay libros de tus padres vinculados. Pídeles que suban uno desde el Portal para Padres.",
+    "readingPromptPrefix": "Pregunta de lectura: ",
+    "defaultBookTitle": "Libro asignado",
+    "chapterLabel": "Título del libro / capítulo",
+    "chapterPlaceholder": "Capítulo 4 — La tormenta",
+    "reportLabel": "Resumen y análisis (usa RACECE)",
+    "reportPlaceholder": "Reformula la pregunta, respóndela, cita dos pruebas del texto y explica cada una…",
+    "wordCount": "{count} palabras",
+    "submit": "Entregar al Maestro IA para calificar",
+    "grading": "El Maestro IA está leyendo…",
+    "gradedToast": "¡Calificado! Ganaste +{xp} XP",
+    "gradeFailed": "La calificación falló. Inténtalo de nuevo.",
+    "confirmRemoveStudent": "¿Quitar «{title}»? Pregúntale a un padre o tutor si tienes dudas: esto elimina el PDF.",
+    "removeNotAllowed": "Tu padre o tutor no te ha dado permiso para quitar este libro.",
+    "removeDenied": "No se pudo quitar el libro. Puede que no tengas permiso.",
+    "removeFailed": "No se pudo quitar el libro.",
+    "removed": "Libro eliminado.",
+    "feedback": {
+      "title": "Boleta de calificaciones del Maestro IA",
+      "score": "{score}/100",
+      "strengths": "Fortalezas",
+      "improvements": "Mejoras para la próxima vez",
+      "checklistTitle": "Lista de verificación RACECE",
+      "racece": {
+        "restate": "Reformuló la pregunta",
+        "answer": "Respondió directamente",
+        "cite_1": "Citó la prueba n.º 1",
+        "explain_1": "Explicó la prueba n.º 1",
+        "cite_2": "Citó la prueba n.º 2",
+        "explain_2": "Explicó la prueba n.º 2"
+      }
+    }
+  },
+  "parent": {
+    "field": {
+      "subject": "Materia",
+      "chooseSubject": "Elige una materia…",
+      "draft": "Borrador",
+      "title": "Título",
+      "description": "Descripción",
+      "sourceCredit": "Crédito de la fuente"
+    },
+    "worksheetUploader": {
+      "title": "Subir hoja de trabajo → borrador de lección con IA",
+      "body": "Sube un PDF que tengas permiso de usar. La IA crea el borrador de una lección con 5 preguntas de examen y campos para completar dentro de la app (los estudiantes escriben sus propias respuestas; las claves de respuestas quedan ocultas y solo se usan para calificar y dar apoyo). La app también adjunta un video de YouTube del currículo y una transcripción de lectura cuando encuentra un tema que coincide bien. Los estudiantes nunca ven los borradores hasta que los publiques. No extraemos contenido de la web: solo se suben archivos.",
+      "titleHintLabel": "Sugerencia de título (opcional)",
+      "titleHintPlaceholder": "Práctica de fracciones — denominadores distintos",
+      "sourceCreditLabel": "Crédito de la fuente (opcional)",
+      "sourceCreditPlaceholder": "Hoja de trabajo subida por un padre",
+      "sourceCreditDefault": "Hoja de trabajo subida por un padre",
+      "fileLabel": "Hoja de trabajo en PDF (obligatoria · máx. 15 MB · con texto)",
+      "submit": "Generar borrador de lección",
+      "drafting": "Creando el borrador con IA…",
+      "reviewTitle": "Revisar borradores",
+      "noDrafts": "Todavía no hay borradores. Sube un PDF para generar uno.",
+      "draftSummary": "{questions} preguntas de examen · {fields} campos para completar · se aprueba con {pass}%",
+      "videoLine": "Video: {title}",
+      "noVideoMatch": "No se encontró un video del currículo que coincida con este tema: los estudiantes recibirán el texto de lectura de todos modos.",
+      "transcriptReady": "Transcripción lista ({chars} caracteres)",
+      "fillableTitle": "Hoja de trabajo para completar (espacios del estudiante)",
+      "answerKeyPrefix": "Clave de respuestas (oculta para los estudiantes): ",
+      "confirmDiscard": "¿Descartar este borrador y eliminar el PDF que subiste?",
+      "draftReady": "Borrador de IA listo: revísalo antes de publicarlo.",
+      "published": "Lección publicada: los estudiantes ya pueden practicarla.",
+      "discarded": "Borrador descartado.",
+      "chooseSubjectError": "Elige una materia.",
+      "choosePdfError": "Primero elige un PDF.",
+      "pdfOnlyError": "Solo se permiten archivos PDF.",
+      "pdfTooLargeError": "El PDF debe pesar 15 MB o menos.",
+      "uploadFailed": "La subida falló.",
+      "missingWorksheetBucket": "Falta el bucket de almacenamiento «lesson-worksheets». Pídele a un administrador que ejecute la migración lesson_drafts_from_pdf.",
+      "draftFailed": "No se pudo crear el borrador de la lección a partir del PDF.",
+      "publishFailed": "No se pudo publicar.",
+      "discardFailed": "No se pudo descartar el borrador."
+    },
+    "taskCreator": {
+      "title": "Avanzado: asignar una lección del currículo integrado",
+      "bodyBefore": "Opcional. Usa esto solo para asignar una unidad de 5.º grado que ya esté en la biblioteca (por etiqueta de unidad). Para hojas de trabajo personalizadas, usa el",
+      "bodyLink": "borrador de lección con IA desde un PDF",
+      "bodyAfter": "que está más arriba.",
+      "taskTitleLabel": "Título de la tarea",
+      "taskTitlePlaceholder": "Práctica extra: denominadores distintos",
+      "descriptionPlaceholder": "Nota opcional para el estudiante",
+      "unitTagLabel": "Etiqueta de unidad integrada",
+      "unitTagPlaceholder": "187_MATH_FRACTIONS",
+      "xpRewardLabel": "Recompensa de XP",
+      "tagsNote": "Vincula al estudiante con el examen o el video de una lección ya creada (no con una nueva hoja de trabajo en PDF). Etiquetas: {tags}.",
+      "submit": "Asignar lección integrada",
+      "assigning": "Asignando…",
+      "assigned": "Lección integrada asignada al portal del estudiante.",
+      "assignFailed": "No se pudo asignar esa lección."
+    },
+    "bookUploader": {
+      "title": "Administrador de subida de libros",
+      "bookTitleLabel": "Título del libro",
+      "authorLabel": "Autor",
+      "promptLabel": "Pregunta de lectura",
+      "promptPlaceholder": "¿Cómo cambia el narrador después de la tormenta? Usa RACECE.",
+      "fileLabel": "Archivo PDF (obligatorio · máx. 15 MB)",
+      "allowStudentDelete": "Permitir que el estudiante quite este libro cuando termine",
+      "submit": "Asignar libro",
+      "uploading": "Subiendo…",
+      "assigned": "Libro asignado.",
+      "assignedBooksTitle": "Libros asignados",
+      "pdfAttached": " · PDF adjunto",
+      "noPdf": " · sin PDF",
+      "allowStudentRemove": "Permitir que el estudiante lo quite",
+      "deleteAria": "Eliminar {title}",
+      "confirmRemove": "¿Quitar «{title}» de forma permanente? El PDF se eliminará del almacenamiento.",
+      "missingBooksBucket": "Falta el bucket de almacenamiento «assigned-books». Pídele a un administrador que ejecute la migración secure_assigned_books_storage.",
+      "permissionUpdateDenied": "No se pudo actualizar el permiso. Puede que este libro no sea tuyo.",
+      "permissionUpdateFailed": "No se pudo actualizar el permiso."
+    },
+    "progress": {
+      "linkTitle": "Vincular un estudiante",
+      "linkBody": "Pídele a tu hijo su código de enlace para padres (aparece en su panel) y luego pégalo aquí.",
+      "linkCodeLabel": "Código de enlace para padres",
+      "linkCodePlaceholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "linkSubmit": "Vincular estudiante",
+      "linking": "Vinculando…",
+      "migrationRequiredBefore": "Se necesita una migración de la base de datos: ejecuta",
+      "migrationRequiredAfter": "en el editor SQL de Supabase (o {command}) y luego recarga la página.",
+      "loadingStudents": "Cargando estudiantes vinculados…",
+      "noStudentsBefore": "Todavía no hay estudiantes vinculados. Pídele a tu hijo su",
+      "noStudentsLinkCode": "código de enlace para padres",
+      "noStudentsAfter": "en su panel y luego pégalo aquí arriba.",
+      "viewing": "Viendo",
+      "allStudents": "Todos los estudiantes vinculados",
+      "unlinkAria": "Desvincular a {name}",
+      "unlinkTitle": "Desvincular",
+      "xpTotal": "{xp} XP",
+      "levelAndStreak": "Nivel {level} · racha de {days} días",
+      "masteryTitle": "Dominio de lecciones por materia",
+      "masteryBasisAll": "Según los exámenes de práctica con {pass}% o más (todos los estudiantes vinculados).",
+      "masteryBasisOne": "Según los exámenes de práctica con {pass}% o más.",
+      "studyTimePrefix": "Tiempo de estudio:",
+      "studyMinutes": "{minutes} min",
+      "quizAttempts_one": " · {count} intento de examen registrado",
+      "quizAttempts_other": " · {count} intentos de examen registrados",
+      "noQuizYet": " · todavía no ha entregado ningún examen",
+      "loadingMastery": "Cargando el dominio…",
+      "masteryLoadError": "No se pudo cargar el progreso de las lecciones: {message}",
+      "noMasteryOpened": "Este estudiante ha abierto lecciones, pero todavía no ha completado un examen de práctica con {pass}% o más. El XP y el dominio se actualizan cuando se aprueba un examen.",
+      "noMasteryAtAll": "Todavía no hay exámenes de práctica completados. Cuando tu estudiante termine el examen de una lección con {pass}% o más, el XP y el dominio aparecerán aquí.",
+      "subjectProgress": "{done}/{total} · {pct}%",
+      "manageTitle": "Administrar lecciones publicadas",
+      "manageBody": "Las lecciones del currículo se quedan en la biblioteca. Solo puedes quitar las tareas que publicaste tú.",
+      "fixVideos": "Corregir los videos de las hojas de trabajo",
+      "fixVideosNote": "Vuelve a buscar videos explicativos de YouTube para las hojas de trabajo que subiste (por ejemplo, magnetismo → imanes, no ecosistemas).",
+      "status": {
+        "perfect": "perfecto {score}% · {attempts}",
+        "mastered": "dominada con {score}% · {attempts} · inténtalo de nuevo para el 100%",
+        "best": "mejor {score}% · {attempts} (necesita {pass}% o más)",
+        "bestAttempt": "mejor intento {score}% (necesita {pass}% o más)",
+        "openedNotFinished": "abierta — examen sin terminar",
+        "notMastered": "todavía no dominada"
+      },
+      "taskMeta": "{tag} · {xp} XP · {status}",
+      "curriculumSuffix": " · currículo",
+      "worksheetSuffix": " · lección con hoja de trabajo",
+      "deleteTaskAria": "Eliminar {title}",
+      "reportsTitle": "Reportes de lectura calificados por IA más recientes",
+      "loadingReports": "Cargando reportes…",
+      "noReports": "Todavía no hay entregas.",
+      "ungraded": "sin calificar",
+      "linkCodeInvalid": "Ingresa un código de enlace para padres válido (UUID).",
+      "linkSchemaMissing": "La vinculación entre padres y estudiantes aún no está configurada. Ejecuta la migración parent_student_links en Supabase e inténtalo de nuevo.",
+      "studentLinked": "Estudiante vinculado.",
+      "linkFailed": "No se pudo vincular a ese estudiante.",
+      "studentUnlinked": "Estudiante desvinculado.",
+      "taskRemoved": "Tarea eliminada.",
+      "taskRemoveDenied": "No se pudo quitar la tarea. Las lecciones del currículo se quedan en la biblioteca.",
+      "taskRemoveFailed": "No se pudo quitar la tarea.",
+      "videosAlreadyRight_one": "Se revisó {count} lección con hoja de trabajo: los videos ya se ven bien.",
+      "videosAlreadyRight_other": "Se revisaron {count} lecciones con hoja de trabajo: los videos ya se ven bien.",
+      "noWorksheetLessons": "No se encontraron lecciones con hoja de trabajo para actualizar.",
+      "videosUpdated_one": "Se actualizaron los videos de {updated} de {scanned} lección con hoja de trabajo.",
+      "videosUpdated_other": "Se actualizaron los videos de {updated} de {scanned} lecciones con hoja de trabajo.",
+      "videosRefreshFailed": "No se pudieron actualizar los videos de las lecciones."
+    }
+  },
+  "arcade": {
+    "subject": {
+      "math": {
+        "hubTitle": "Arcade de Matemáticas",
+        "campaignTitle": "Campaña Carrera de Números",
+        "description": "Sube del Nivel 1 al 4 y luego vence al Jefe. Los temas siguen tus unidades de Matemáticas. Las lecciones siguen dando el XP de verdad en el Tablero de Tareas de abajo.",
+        "shortName": "Matemáticas"
+      },
+      "ela": {
+        "hubTitle": "Arcade de ELA",
+        "campaignTitle": "Campaña Carrera de Cuentos",
+        "description": "Portales de vocabulario, idea principal, lenguaje figurado y gramática. Solo estrellas de práctica: el XP de las lecciones se queda en tu Tablero de Tareas.",
+        "shortName": "ELA"
+      },
+      "science": {
+        "hubTitle": "Arcade de Ciencias",
+        "campaignTitle": "Campaña Carrera de la Materia",
+        "description": "Ecosistemas, materia, sistemas de la Tierra y puertas de luz estelar. Solo estrellas de práctica: las lecciones conservan el XP de verdad.",
+        "shortName": "Ciencias"
+      },
+      "social": {
+        "hubTitle": "Arcade de Estudios Sociales",
+        "campaignTitle": "Campaña Carrera de Mapas",
+        "description": "Geografía, civilizaciones, exploración y civismo. Solo estrellas de práctica: las lecciones del Tablero de Tareas dan el XP de dominio.",
+        "shortName": "Estudios Sociales"
+      },
+      "reading": {
+        "hubTitle": "Arcade de Lectura",
+        "campaignTitle": "Campaña Viaje de Vocabulario",
+        "description": "Calienta con vocabulario, comprensión y RACECE antes de tu reporte de lectura. Solo estrellas de práctica: el Estudio de Libros sigue siendo el trabajo de verdad.",
+        "shortName": "Lectura"
+      }
+    },
+    "mode": {
+      "number-dash": {
+        "title": "Carrera de Números",
+        "blurb": "Salta, calcula bien tus brincos y supera las puertas de multiplicación de varios dígitos.",
+        "accentLabel": "Número"
+      },
+      "fraction-flight": {
+        "title": "Vuelo de Fracciones",
+        "blurb": "Corre entre retos de denominadores distintos sin perder el impulso.",
+        "accentLabel": "Fracción"
+      },
+      "decimal-dash": {
+        "title": "Carrera de Decimales",
+        "blurb": "Portales de valor posicional y operaciones con centésimas: mantente atento a toda velocidad.",
+        "accentLabel": "Decimal"
+      },
+      "volume-vault": {
+        "title": "Salto de Volumen",
+        "blurb": "Retos de volumen de prismas rectangulares entre carreras de púas.",
+        "accentLabel": "Volumen"
+      },
+      "powers-pulse": {
+        "title": "Pulso de Potencias",
+        "blurb": "Las potencias de 10 y los cambios de valor posicional impulsan tus aceleradas.",
+        "accentLabel": "Potencias"
+      },
+      "story-sprint": {
+        "title": "Carrera de Cuentos",
+        "blurb": "El cambio de los personajes y las pruebas del texto a toda velocidad.",
+        "accentLabel": "Cuento"
+      },
+      "root-rush": {
+        "title": "Ráfaga de Raíces",
+        "blurb": "Las raíces griegas y latinas encienden los portales.",
+        "accentLabel": "Raíces"
+      },
+      "main-idea-march": {
+        "title": "Marcha de la Idea Principal",
+        "blurb": "Elige la idea principal y las pruebas que la apoyan contra el reloj.",
+        "accentLabel": "Idea principal"
+      },
+      "figurative-flight": {
+        "title": "Vuelo Figurado",
+        "blurb": "Las puertas de símiles, metáforas y modismos te mantienen en el aire.",
+        "accentLabel": "Figurado"
+      },
+      "grammar-gauntlet": {
+        "title": "Desafío de Gramática",
+        "blurb": "Clases de palabras y sentido de la oración entre las púas.",
+        "accentLabel": "Gramática"
+      },
+      "matter-dash": {
+        "title": "Carrera de la Materia",
+        "blurb": "Propiedades de la materia y conservación de la masa en la zona verde.",
+        "accentLabel": "Materia"
+      },
+      "ecosystem-escape": {
+        "title": "Escape del Ecosistema",
+        "blurb": "Productores, consumidores y descomponedores impulsan tu carrera.",
+        "accentLabel": "Ecosistema"
+      },
+      "sphere-sprint": {
+        "title": "Carrera de Esferas",
+        "blurb": "Portales de geosfera, hidrosfera, atmósfera y biosfera.",
+        "accentLabel": "Tierra"
+      },
+      "starlight-surge": {
+        "title": "Impulso Estelar",
+        "blurb": "Estrellas, distancia y brillo entre puertas de color lima.",
+        "accentLabel": "Estrellas"
+      },
+      "force-field": {
+        "title": "Campo de Fuerzas",
+        "blurb": "Empujones, jalones y el sentido del movimiento a toda velocidad.",
+        "accentLabel": "Fuerzas"
+      },
+      "map-dash": {
+        "title": "Carrera de Mapas",
+        "blurb": "Puertas de geografía del Hemisferio Occidental en un camino azul marino.",
+        "accentLabel": "Mapas"
+      },
+      "civilization-charge": {
+        "title": "Carga de Civilizaciones",
+        "blurb": "Conocimientos sobre los mayas, aztecas e incas entre portales ocres.",
+        "accentLabel": "Historia"
+      },
+      "exploration-run": {
+        "title": "Ruta de Exploración",
+        "blurb": "El contacto, los viajes y los distintos puntos de vista.",
+        "accentLabel": "Explorar"
+      },
+      "civics-circuit": {
+        "title": "Circuito de Civismo",
+        "blurb": "Puntos de control sobre el gobierno de EE. UU. y la ciudadanía.",
+        "accentLabel": "Civismo"
+      },
+      "hemisphere-hustle": {
+        "title": "Reto del Hemisferio",
+        "blurb": "Canadá, México, RD y la actualidad: comercio y ciudadanía.",
+        "accentLabel": "Actualidad"
+      },
+      "vocab-voyage": {
+        "title": "Viaje de Vocabulario",
+        "blurb": "Puertas de significado de palabras en un cielo nocturno índigo.",
+        "accentLabel": "Vocabulario"
+      },
+      "comprehension-cruise": {
+        "title": "Crucero de Comprensión",
+        "blurb": "Quién, qué y por qué: las pruebas están en las páginas.",
+        "accentLabel": "Comprensión"
+      },
+      "racece-relay": {
+        "title": "Relevo RACECE",
+        "blurb": "Reformula, responde, cita y explica: listo para tu reporte de lectura.",
+        "accentLabel": "RACECE"
+      },
+      "genre-glide": {
+        "title": "Vuelo de Géneros",
+        "blurb": "Ficción, no ficción y todo sobre el narrador.",
+        "accentLabel": "Género"
+      }
+    },
+    "levels": {
+      "L1": {
+        "label": "Nivel 1",
+        "blurb": "Aprende el ritmo: velocidad suave y espacio para saltar."
+      },
+      "L2": {
+        "label": "Nivel 2",
+        "blurb": "Desplazamiento más rápido y espacios más estrechos."
+      },
+      "L3": {
+        "label": "Nivel 3",
+        "blurb": "Puertas más difíciles y más púas."
+      },
+      "L4": {
+        "label": "Nivel 4",
+        "blurb": "Dos corazones. Mantente atento: el Jefe es el siguiente."
+      },
+      "boss": {
+        "label": "Jefe",
+        "blurb": "Una serie de portales difíciles: véncela para completar la campaña."
+      }
+    },
+    "hub": {
+      "campaignComplete": "Campaña completa",
+      "continueMode": "Continuar con {mode}",
+      "unlockRule": "Termina la pista o pasa {gates} puertas para desbloquear el siguiente nivel. Las puertas cuentan aunque después te quedes sin corazones.",
+      "topicLabel": "Tema · {mode}",
+      "hideTopics": "Ocultar temas",
+      "switchTopic": "Cambiar de tema",
+      "suggested": "Sugerido",
+      "campaignCompleteAria": "Campaña completa",
+      "modeStars": "{stars} estrellas de práctica · N{level}",
+      "bossCleared": " · Jefe ✓",
+      "levelsTitle": "Niveles de {mode}",
+      "unlockedThrough": "Desbloqueado hasta el {level}",
+      "starsTotal": "{stars} estrellas",
+      "gatesToUnlock": "{current}/{needed} puertas para desbloquear el siguiente",
+      "finalChallenge": "Reto final",
+      "locked": "Bloqueado",
+      "reason": {
+        "openUnit": "Elegido según la unidad que tienes abierta · {mode}",
+        "subjectUnit": "Según tu unidad de {subject} · {mode}",
+        "default": "{mode} por defecto: practica mientras esperas tus tareas"
+      }
+    },
+    "game": {
+      "hubButton": "Centro del Arcade",
+      "trackPct": "{pct}% de la pista",
+      "gates": "Puertas {current}/{needed}",
+      "canvasAria": "{mode} {level}: juego de desplazamiento lateral de la materia",
+      "unlocked": "¡{level} desbloqueado!",
+      "bossGate": "Puerta del Jefe",
+      "challengeGate": "Puerta de reto",
+      "gateHeader": "{gate} · {topic}",
+      "bossGateCleared": "¡Puerta del Jefe superada! {tip}",
+      "gateCorrect": "¡Muy bien! {tip}",
+      "gateWrong": "Casi — {tip}",
+      "campaignCleared": "¡Campaña completada!",
+      "bossDefeated": "¡Jefe vencido!",
+      "levelCleared": "¡Nivel completado!",
+      "outOfHearts": "Sin corazones",
+      "runSummary": "Puntuación {score} · {gates} puertas resueltas",
+      "gateProgressSaved": "Progreso de puertas guardado: {current}/{needed} para el siguiente desbloqueo",
+      "practiceOnlyNote": "Solo estrellas de práctica: el XP de las lecciones se queda en tu Tablero de Tareas.",
+      "playAgain": "Jugar de nuevo",
+      "backToHub": "Volver al centro",
+      "jumpHintBefore": "Saltar:",
+      "keySpace": "Espacio",
+      "jumpHintAfter": "/ toca · Termina la pista o pasa {gates} puertas para desbloquear el siguiente",
+      "jump": "Saltar",
+      "bossRunOverlay": "CARRERA DEL JEFE",
+      "canvasLabel": "{mode} · {level}"
+    }
+  },
+  "howto": {
+    "player": {
+      "eyebrow": "Guía rápida",
+      "closeAria": "Cerrar el consejo",
+      "skipAllTips": "Omitir todos los consejos",
+      "skipTour": "Omitir el recorrido",
+      "hideAllTips": "Ocultar todos los consejos",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "gotIt": "Entendido"
+    },
+    "menu": {
+      "openHelp": "Ayuda",
+      "openShorts": "Guías rápidas",
+      "parentTips": "Consejos para padres",
+      "studentTips": "Consejos para estudiantes",
+      "closeAria": "Cerrar el menú de ayuda",
+      "tipsHiddenNote": "Los consejos están ocultos. Puedes volver a ver cualquier guía de aquí abajo o activarlos de nuevo.",
+      "showTips": "Mostrar consejos",
+      "hideAllTips": "Ocultar todos los consejos",
+      "replayTour": "Repetir el recorrido de bienvenida",
+      "resetTips": "Restablecer todos los consejos"
+    },
+    "shorts": {
+      "student-welcome": {
+        "title": "Te damos la bienvenida a tu Aventura",
+        "scenes": {
+          "1": {
+            "caption": "Este es tu Portal del Estudiante: tu base para aprender.",
+            "emphasis": "Portal del Estudiante"
+          },
+          "2": {
+            "caption": "Gana XP y niveles cuando termines lecciones y reportes de lectura.",
+            "emphasis": "XP y niveles"
+          },
+          "3": {
+            "caption": "Practica un poco cada día para aumentar tu racha.",
+            "emphasis": "Racha diaria"
+          },
+          "4": {
+            "caption": "Usa las Guías rápidas desde Ayuda cuando tengas dudas.",
+            "emphasis": "Botón de Ayuda"
+          }
+        }
+      },
+      "student-link-code": {
+        "title": "Comparte tu código de enlace para padres",
+        "scenes": {
+          "1": {
+            "caption": "Tu código de enlace permite que un padre o tutor siga tu progreso.",
+            "emphasis": "Código de enlace"
+          },
+          "2": {
+            "caption": "Toca Copiar y envía el código a tu padre, madre o tutor.",
+            "emphasis": "Copiar"
+          },
+          "3": {
+            "caption": "Ellos lo pegan en Portal para Padres → Vincular estudiante.",
+            "emphasis": "El padre se conecta"
+          },
+          "4": {
+            "caption": "Una vez vinculados, pueden asignarte lecciones y ver tus logros.",
+            "emphasis": "Ya están conectados"
+          }
+        }
+      },
+      "student-subjects": {
+        "title": "Materias y lecciones",
+        "scenes": {
+          "1": {
+            "caption": "Elige una pestaña de materia: Matemáticas, ELA, Ciencias, Estudios Sociales o Lectura.",
+            "emphasis": "Pestañas de materias"
+          },
+          "2": {
+            "caption": "Abre una tarjeta de lección para aprender, practicar y hacer el examen.",
+            "emphasis": "Tarjetas de lección"
+          },
+          "3": {
+            "caption": "Si una materia está vacía, espera a que un padre te asigne algo o prueba otra pestaña.",
+            "emphasis": "Tableros vacíos"
+          },
+          "4": {
+            "caption": "La Lectura Asignada es para los libros que subió tu padre o tutor.",
+            "emphasis": "Pestaña de Lectura"
+          }
+        }
+      },
+      "student-lesson": {
+        "title": "Cómo funciona una lección",
+        "scenes": {
+          "1": {
+            "caption": "Primero: notas de la clase y video, para aprender la idea.",
+            "emphasis": "Aprende"
+          },
+          "2": {
+            "caption": "Después: preguntas de práctica. Necesitas alrededor del 70% para continuar.",
+            "emphasis": "Examen"
+          },
+          "3": {
+            "caption": "Algunas lecciones tienen una hoja de trabajo: escribe o dibuja tus propias respuestas.",
+            "emphasis": "Hoja de trabajo"
+          },
+          "4": {
+            "caption": "Pídele pistas al Entrenador IA: te ayuda a pensar, no te llena las respuestas.",
+            "emphasis": "Entrenador IA"
+          },
+          "5": {
+            "caption": "Aprueba la lección para ganar XP y dominio.",
+            "emphasis": "Dominio"
+          }
+        }
+      },
+      "student-books": {
+        "title": "Lectura asignada y reportes de lectura",
+        "scenes": {
+          "1": {
+            "caption": "Abre un libro que te asignó tu padre o tutor y léelo en la app.",
+            "emphasis": "Lee"
+          },
+          "2": {
+            "caption": "Escribe una respuesta RACECE: Reformula, Responde, Cita y Explica (dos veces).",
+            "emphasis": "RACECE"
+          },
+          "3": {
+            "caption": "Entrégalo al Maestro IA para recibir una puntuación, tus fortalezas y los siguientes pasos.",
+            "emphasis": "Calificación de IA"
+          },
+          "4": {
+            "caption": "Los buenos reportes ganan XP: sigue mejorando con los comentarios.",
+            "emphasis": "Mejora"
+          }
+        }
+      },
+      "student-leaderboard": {
+        "title": "El Reto de Hoy",
+        "scenes": {
+          "1": {
+            "caption": "La tabla de clasificación diaria ordena el tiempo de práctica y las puntuaciones de hoy.",
+            "emphasis": "Solo hoy"
+          },
+          "2": {
+            "caption": "Se reinicia a medianoche del Este: una nueva oportunidad cada día.",
+            "emphasis": "Se reinicia cada noche"
+          },
+          "3": {
+            "caption": "Abre una lección y practica para aparecer en la tabla.",
+            "emphasis": "La práctica cuenta"
+          },
+          "4": {
+            "caption": "Anima a tus compañeros: aprender juntos es lo que vale.",
+            "emphasis": "Espíritu de equipo"
+          }
+        }
+      },
+      "parent-welcome": {
+        "title": "Te damos la bienvenida al Portal para Padres",
+        "scenes": {
+          "1": {
+            "caption": "El Portal para Padres sirve para asignar trabajo y revisar el progreso.",
+            "emphasis": "Portal para Padres"
+          },
+          "2": {
+            "caption": "Usa «Cambiar al Portal para Padres» en la parte de arriba del panel.",
+            "emphasis": "Cambiar de vista"
+          },
+          "3": {
+            "caption": "Primer paso: vincula a tu estudiante con su código para compartir.",
+            "emphasis": "Vincula primero"
+          },
+          "4": {
+            "caption": "Puedes repetir cualquier consejo desde las Guías rápidas en Ayuda.",
+            "emphasis": "Ayuda"
+          }
+        }
+      },
+      "parent-link-student": {
+        "title": "Vincula a tu estudiante",
+        "scenes": {
+          "1": {
+            "caption": "Pídele a tu estudiante su código de enlace para padres (está en su panel).",
+            "emphasis": "Consigue el código"
+          },
+          "2": {
+            "caption": "Pégalo en «Vincular un estudiante» y confirma.",
+            "emphasis": "Pega y vincula"
+          },
+          "3": {
+            "caption": "Puedes vincular a más de un estudiante si lo necesitas.",
+            "emphasis": "Varios hijos"
+          },
+          "4": {
+            "caption": "Los estudiantes vinculados muestran aquí su dominio, sus reportes y sus tareas.",
+            "emphasis": "Conexión lista"
+          }
+        }
+      },
+      "parent-worksheet": {
+        "title": "Sube una hoja de trabajo en PDF",
+        "scenes": {
+          "1": {
+            "caption": "Sube una hoja de trabajo en PDF con texto que tengas permiso de usar.",
+            "emphasis": "Subir PDF"
+          },
+          "2": {
+            "caption": "La IA crea el borrador de una lección: examen, campos para completar y un video que coincida cuando sea posible.",
+            "emphasis": "Borrador de IA"
+          },
+          "3": {
+            "caption": "Revisa el borrador: los estudiantes no lo ven hasta que lo publiques.",
+            "emphasis": "Revisar"
+          },
+          "4": {
+            "caption": "Publícalo para asignarlo. Descártalo si quieres intentarlo de nuevo.",
+            "emphasis": "Publicar"
+          }
+        }
+      },
+      "parent-tasks-books": {
+        "title": "Tareas y libros asignados",
+        "scenes": {
+          "1": {
+            "caption": "Herramienta avanzada opcional: asigna por etiqueta una unidad de 5.º grado integrada. Para hojas de trabajo personalizadas, es mejor usar los borradores de IA desde PDF.",
+            "emphasis": "Unidades integradas"
+          },
+          "2": {
+            "caption": "Sube un libro en PDF y una pregunta de escritura para la Lectura Asignada.",
+            "emphasis": "Libros"
+          },
+          "3": {
+            "caption": "Los estudiantes vinculados ven el trabajo nuevo en su Portal del Estudiante.",
+            "emphasis": "Ellos lo ven"
+          },
+          "4": {
+            "caption": "Escribe preguntas claras: RACECE funciona mejor con una pregunta bien enfocada.",
+            "emphasis": "Preguntas claras"
+          }
+        }
+      },
+      "parent-progress": {
+        "title": "Revisa el progreso",
+        "scenes": {
+          "1": {
+            "caption": "Abre un estudiante vinculado para ver las barras de dominio y el trabajo terminado.",
+            "emphasis": "Dominio"
+          },
+          "2": {
+            "caption": "Lee los reportes de lectura calificados por IA y los comentarios de la lista de verificación.",
+            "emphasis": "Reportes"
+          },
+          "3": {
+            "caption": "Celebra el esfuerzo: el XP y las rachas muestran los hábitos de práctica diaria.",
+            "emphasis": "Hábitos"
+          },
+          "4": {
+            "caption": "Asigna la siguiente lección o el siguiente libro cuando estén listos para más.",
+            "emphasis": "Siguiente paso"
+          }
+        }
+      }
+    }
+  },
+  "admin": {
+    "analytics": {
+      "loading": "Cargando analíticas…",
+      "loadErrorBefore": "No se pudieron cargar las analíticas. Confirma que el rol de tu perfil sea",
+      "backToDashboard": "Volver al panel",
+      "eyebrow": "Administrador · analíticas propias",
+      "title": "Tráfico del sitio",
+      "subtitle": "Últimos {days} días · sesión iniciada como {name}",
+      "defaultAdminName": "administrador",
+      "dashboard": "Panel",
+      "kpi": {
+        "pageViews": "Vistas de página",
+        "uniqueVisitors": "Visitantes únicos",
+        "loginsSignups": "Inicios de sesión / registros",
+        "shares": "Compartidos y copias"
+      },
+      "trafficTitle": "Tráfico a lo largo del tiempo",
+      "trafficNote": "Visitantes humanos y vistas de página (días UTC). Las sesiones de bots se muestran por separado.",
+      "series": {
+        "pageViews": "Vistas de página",
+        "visitors": "Visitantes",
+        "botSessions": "Sesiones de bots"
+      },
+      "topPages": "Páginas más vistas",
+      "noPageViews": "Todavía no hay vistas de página.",
+      "referrers": "Sitios de referencia",
+      "noSessions": "Todavía no hay sesiones.",
+      "botsVsHumans": "Bots frente a humanos",
+      "humanSessions": "Sesiones humanas",
+      "botSessions": "Sesiones de bots",
+      "noCrawlers": "Todavía no hay rastreadores conocidos.",
+      "recentEvents": "Eventos recientes",
+      "waitingForTraffic": "Esperando tráfico…",
+      "eventBotTag": " · bot:{name}",
+      "eventBotUnnamed": "sí",
+      "privacyNote": "Solo telemetría propia con fines limitados: rutas de página, sitios de referencia, parámetros UTM, tamaño aproximado de pantalla, idioma, diferencia de zona horaria, clasificación del navegador y la IP con hash cuando se ejecuta el registro del servidor. Sin contraseñas, sin correos completos en los eventos y sin seguimiento entre sitios."
+    }
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización: 31 de julio de 2026",
+    "intro": "La Aventura de 5.º Grado de Shia («la App») ayuda a los estudiantes a prepararse para 5.º grado en la P.S./I.S. 187 y permite que los padres sigan su progreso. Esta página explica qué información recopilamos y cómo la usamos.",
+    "collectTitle": "Información que recopilamos",
+    "collect": {
+      "account": "Datos de la cuenta (correo electrónico y nombre, si tu proveedor de inicio de sesión lo proporciona)",
+      "role": "Rol (estudiante o padre) y verificación de edad para las cuentas de padres",
+      "activity": "Actividad de aprendizaje (tareas, XP, rachas, reportes de lectura y el progreso relacionado)",
+      "files": "Archivos que suben los padres (por ejemplo, los PDF de lectura asignada)"
+    },
+    "useTitle": "Cómo usamos la información",
+    "useBody": "Usamos esta información para administrar las cuentas, guardar el progreso, calificar la escritura con IA cuando está habilitada y permitir que los padres vinculados revisen el trabajo del estudiante. No vendemos información personal.",
+    "googleTitle": "Iniciar sesión con Google",
+    "googleBody": "Si eliges iniciar sesión con Google, Google comparte información básica de tu perfil (como el correo electrónico) con nuestro proveedor de autenticación para que podamos crear o abrir tu cuenta. La autenticación la gestiona Supabase Auth.",
+    "contactTitle": "Contacto",
+    "contactBody": "Si tienes preguntas sobre esta política, usa el correo de contacto configurado en la pantalla de consentimiento de OAuth de Google para esta app, o comunícate con el padre, madre o tutor que administra la App.",
+    "backHome": "← Volver al inicio"
+  },
+  "serverErrors": {
+    "could_not_download_the_uploaded_pdf_try_uploading_again": "No se pudo descargar el PDF que subiste. Intenta subirlo de nuevo.",
+    "could_not_load_lessons_to_update_videos": "No se pudieron cargar las lecciones para actualizar los videos.",
+    "could_not_load_profile": "No se pudo cargar el perfil.",
+    "could_not_publish_this_lesson_please_try_again": "No se pudo publicar esta lección. Inténtalo de nuevo.",
+    "could_not_save_the_lesson_draft_please_try_again": "No se pudo guardar el borrador de la lección. Inténtalo de nuevo.",
+    "could_not_save_your_report_please_try_again": "No se pudo guardar tu reporte. Inténtalo de nuevo.",
+    "could_not_save_your_worksheet_please_try_again": "No se pudo guardar tu hoja de trabajo. Inténtalo de nuevo.",
+    "draft_not_found": "No se encontró el borrador.",
+    "lesson_not_found": "No se encontró la lección.",
+    "link_code_does_not_match_your_profile": "El código de enlace no coincide con tu perfil.",
+    "only_parents_or_admins_can_manage_lesson_drafts": "Solo los padres o los administradores pueden gestionar los borradores de lecciones.",
+    "only_unpublished_drafts_can_be_discarded_here_use_remove_for_published_lessons": "Aquí solo se pueden descartar los borradores sin publicar. Usa Quitar para las lecciones ya publicadas.",
+    "pdf_path_must_be_under_your_own_uploads_folder": "La ruta del PDF debe estar dentro de tu propia carpeta de archivos subidos.",
+    "parent_accounts_do_not_share_a_student_link_code": "Las cuentas de padres no comparten un código de enlace de estudiante.",
+    "please_wait_a_minute_before_sending_another_link_code_email": "Espera un minuto antes de enviar otro correo con el código de enlace.",
+    "profile_not_found": "No se encontró el perfil",
+    "the_ai_draft_was_incomplete_please_try_generating_again": "El borrador de la IA quedó incompleto. Intenta generarlo de nuevo.",
+    "the_ai_returned_an_unreadable_answer_please_try_again": "La IA devolvió una respuesta que no se pudo leer. Inténtalo de nuevo.",
+    "this_draft_has_no_lesson_content_to_publish": "Este borrador no tiene contenido de lección para publicar.",
+    "this_lesson_has_no_fillable_worksheet_to_grade": "Esta lección no tiene una hoja de trabajo para completar que se pueda calificar.",
+    "this_lesson_is_already_published": "Esta lección ya está publicada.",
+    "this_lesson_is_not_published_yet": "Esta lección todavía no está publicada.",
+    "welcome_email_is_only_for_parent_accounts": "El correo de bienvenida es solo para las cuentas de padres.",
+    "welcome_email_must_go_to_your_own_account_email": "El correo de bienvenida debe enviarse al correo de tu propia cuenta.",
+    "worksheet_practice_is_for_students": "La práctica con hojas de trabajo es para los estudiantes.",
+    "you_can_only_publish_your_own_drafts": "Solo puedes publicar tus propios borradores."
+  }
+}

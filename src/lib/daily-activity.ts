@@ -29,6 +29,24 @@ export function formatDuration(totalSeconds: number, style: "clock" | "friendly"
   return `${hours}:${pad(minutes)}:${pad(seconds)}`;
 }
 
+/**
+ * Split seconds into h/m/s plus the catalog key that fits, so the UI can render
+ * a localized "friendly" duration instead of hardcoded h/m/s suffixes.
+ */
+export function durationParts(totalSeconds: number): {
+  hours: number;
+  minutes: number;
+  seconds: number;
+  key: "hours" | "minutes" | "seconds";
+} {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const hours = Math.floor(s / 3600);
+  const minutes = Math.floor((s % 3600) / 60);
+  const seconds = s % 60;
+  const key = hours > 0 ? "hours" : minutes > 0 ? "minutes" : "seconds";
+  return { hours, minutes, seconds, key };
+}
+
 export type DailyLeaderboardRow = {
   rank: number;
   user_id: string;

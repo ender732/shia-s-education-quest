@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { accentFor } from "@/lib/gamification";
 import { imageForSubject } from "@/lib/subject-images";
 
@@ -13,9 +14,11 @@ type SubjectTabsProps = {
 };
 
 export function SubjectTabs({ subjects, activeId, onSelect }: SubjectTabsProps) {
+  const { t, tDb } = useTranslation();
+
   return (
     <nav
-      aria-label="Subjects"
+      aria-label={t("subjects.navAria")}
       className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
     >
       {subjects.map((s) => {
@@ -37,7 +40,7 @@ export function SubjectTabs({ subjects, activeId, onSelect }: SubjectTabsProps) 
                   }
                 : undefined
             }
-            className={`group overflow-hidden rounded-xl border bg-surface text-left transition ${
+            className={`group overflow-hidden rounded-xl border bg-surface text-start transition ${
               active
                 ? "border-2"
                 : "border-border hover:border-foreground/25 hover:shadow-sm"
@@ -63,8 +66,8 @@ export function SubjectTabs({ subjects, activeId, onSelect }: SubjectTabsProps) 
                 }`}
                 style={active ? { textShadow: `0 0 12px var(--${accent})` } : undefined}
               >
-                {s.title}
-              </span>
+              {tDb("subjects.title", s.title)}
+            </span>
             </div>
           </button>
         );

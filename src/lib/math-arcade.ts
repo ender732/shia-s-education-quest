@@ -7,6 +7,7 @@ import {
   arcadeByKey,
   modeById as subjectModeById,
   pickRecommendedMode as pickSubjectMode,
+  type RecommendedMode,
 } from "@/lib/arcade/index";
 import type { ArcadeMode } from "@/lib/arcade/types";
 
@@ -46,6 +47,6 @@ export function modeForUnitTag(unitTag: string | null | undefined): ArcadeMode {
 export function pickRecommendedMode(
   tasks: Array<{ id: string; unit_tag?: string | null }>,
   masteredIds: Set<string>,
-): { mode: ArcadeMode; reason: string; unitTag: string | null } {
+): RecommendedMode {
   return pickSubjectMode(MATH, tasks, masteredIds);
 }

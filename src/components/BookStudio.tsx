@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { BookOpen, CheckCircle2, Loader2, Sparkles, Trash2, XCircle } from "lucide-react";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CANCELLED, I18nError, isCancelled, useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { celebrate } from "@/lib/confetti";
 import { detectLevelUp, type LevelUpInfo } from "@/lib/gamification";
@@ -35,14 +36,7 @@ type Feedback = {
   teacher_note: string;
 };
 
-const RACECE_LABELS: Array<[string, string]> = [
-  ["restate", "Restated the question"],
-  ["answer", "Answered directly"],
-  ["cite_1", "Cited evidence #1"],
-  ["explain_1", "Explained evidence #1"],
-  ["cite_2", "Cited evidence #2"],
-  ["explain_2", "Explained evidence #2"],
-];
+const RACECE_KEYS = ["restate", "answer", "cite_1", "explain_1", "cite_2", "explain_2"] as const;
 
 export async function removeAssignedBook(book: AssignedBook) {
   // Permission-checked RPC: deletes the row or raises a real error.
@@ -54,7 +48,7 @@ export async function removeAssignedBook(book: AssignedBook) {
   if (error) throw error;
   const removed = data as { id?: string; pdf_url?: string | null } | null;
   if (!removed?.id) {
-    throw new Error("Could not remove book. You may not have permission.");
+    throw new I18nError("book.removeDenied");
   }
 
   const path = removed.pdf_url ?? book.pdf_url;
@@ -85,6 +79,7 @@ export function useBooks() {
 
 export function BookStudio({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
+  const { t, tError, formatNumber } = useTranslation();
   const { data: books, isLoading, isError } = useBooks();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chapter, setChapter] = useState("");
@@ -126,7 +121,7 @@ export function BookStudio({ userId }: { userId: string }) {
     onSuccess: (result) => {
       setFeedback(result.feedback as Feedback);
       void celebrate();
-      toast.success(`Graded! +${result.xpAwarded} XP earned`);
+      toast.success(t("book.gradedToast", { xp: formatNumber(result.xpAwarded) }));
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
       queryClient.invalidateQueries({ queryKey: ["book_reports"] });
       if (typeof result.newXp === "number" && result.xpAwarded > 0) {
@@ -135,32 +130,28 @@ export function BookStudio({ userId }: { userId: string }) {
         if (up) setLevelUp(up);
       }
     },
-    onError: (err: Error) => toast.error(err.message || "Grading failed. Try again."),
+    onError: (err: Error) => toast.error(tError(err, "book.gradeFailed")),
   });
 
   const removeBook = useMutation({
     mutationFn: async (book: AssignedBook) => {
       if (!book.student_may_delete) {
-        throw new Error("Your parent has not allowed you to remove this book.");
+        throw new I18nError("book.removeNotAllowed");
       }
-      if (
-        !window.confirm(
-          `Remove “${book.title}”? Ask a parent if you are unsure — this deletes the PDF.`,
-        )
-      ) {
-        throw new Error("cancelled");
+      if (!window.confirm(t("book.confirmRemoveStudent", { title: book.title }))) {
+        throw new Error(CANCELLED);
       }
       await removeAssignedBook(book);
     },
     onSuccess: () => {
-      toast.success("Book removed.");
+      toast.success(t("book.removed"));
       setSelectedId(null);
       setFeedback(null);
       queryClient.invalidateQueries({ queryKey: ["assigned_books"] });
     },
     onError: (err: Error) => {
-      if (err.message === "cancelled") return;
-      toast.error(err.message || "Could not remove book.");
+      if (isCancelled(err)) return;
+      toast.error(tError(err, "book.removeFailed"));
     },
   });
 
@@ -169,13 +160,11 @@ export function BookStudio({ userId }: { userId: string }) {
       <LevelUpCelebration info={levelUp} onClose={() => setLevelUp(null)} />
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Loading your library…
+          <Loader2 className="size-4 animate-spin" /> {t("book.loadingLibrary")}
         </div>
       )}
       {isError && (
-        <div className="surface-card p-6 text-sm text-destructive">
-          We couldn&apos;t load the reading library.
-        </div>
+        <div className="surface-card p-6 text-sm text-destructive">{t("book.libraryError")}</div>
       )}
 
       {books && books.length > 0 && (
@@ -202,9 +191,13 @@ export function BookStudio({ userId }: { userId: string }) {
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <BookOpen className="size-4 text-reading" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold">{selected?.title ?? "No book selected"}</p>
+              <p className="truncate text-sm font-bold">
+                {selected?.title ?? t("book.noBookSelected")}
+              </p>
               {selected?.author && (
-                <p className="truncate text-xs text-muted-foreground">by {selected.author}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {t("book.byAuthor", { author: selected.author })}
+                </p>
               )}
             </div>
             {selected?.student_may_delete && (
@@ -213,8 +206,8 @@ export function BookStudio({ userId }: { userId: string }) {
                 onClick={() => removeBook.mutate(selected)}
                 disabled={removeBook.isPending}
                 className="rounded-md p-2 text-muted-foreground transition hover:bg-destructive/15 hover:text-destructive"
-                aria-label={`Remove ${selected.title}`}
-                title="Remove book"
+                aria-label={t("book.removeAria", { title: selected.title })}
+                title={t("book.removeTitle")}
               >
                 <Trash2 className="size-4" />
               </button>
@@ -224,22 +217,20 @@ export function BookStudio({ userId }: { userId: string }) {
             <Suspense
               fallback={
                 <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" /> Loading reader…
+                  <Loader2 className="size-4 animate-spin" /> {t("pdf.loadingReader")}
                 </div>
               }
             >
-              <PdfReader url={signedUrl} title={selected?.title ?? "Assigned book"} />
+              <PdfReader url={signedUrl} title={selected?.title ?? t("book.defaultBookTitle")} />
             </Suspense>
           ) : (
             <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
-              {selected
-                ? "This book has no PDF attached yet."
-                : "No books from your linked parents yet. Ask them to upload one from the Parent Portal."}
+              {selected ? t("book.noPdfAttached") : t("book.noBooksYet")}
             </div>
           )}
           {selected?.prompt && (
             <div className="border-t border-border bg-background/50 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-              <span className="font-bold text-foreground">Reading prompt: </span>
+              <span className="font-bold text-foreground">{t("book.readingPromptPrefix")}</span>
               {selected.prompt}
             </div>
           )}
@@ -249,28 +240,30 @@ export function BookStudio({ userId }: { userId: string }) {
         <div className="surface-card flex flex-col gap-3 p-4">
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Book title / chapter
+              {t("book.chapterLabel")}
             </label>
             <input
               value={chapter}
               onChange={(e) => setChapter(e.target.value)}
-              placeholder="Chapter 4 — The Storm"
+              placeholder={t("book.chapterPlaceholder")}
               className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </div>
           <div className="flex flex-1 flex-col">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Summary &amp; analysis (use RACECE)
+              {t("book.reportLabel")}
             </label>
             <textarea
               value={reportText}
               onChange={(e) => setReportText(e.target.value)}
               rows={12}
-              placeholder="Restate the question, answer it, cite two pieces of text evidence, and explain each one…"
+              placeholder={t("book.reportPlaceholder")}
               className="mt-1 min-h-48 w-full flex-1 resize-y rounded-lg border border-input bg-background px-3 py-2 text-sm leading-relaxed outline-none focus:border-primary"
             />
-            <p className="mt-1 text-right text-[11px] text-muted-foreground">
-              {reportText.trim().split(/\s+/).filter(Boolean).length} words
+            <p className="mt-1 text-end text-[11px] text-muted-foreground">
+              {t("book.wordCount", {
+                count: reportText.trim().split(/\s+/).filter(Boolean).length,
+              })}
             </p>
           </div>
           <button
@@ -280,11 +273,11 @@ export function BookStudio({ userId }: { userId: string }) {
           >
             {grade.isPending ? (
               <>
-                <Loader2 className="size-4 animate-spin" /> AI Teacher is reading…
+                <Loader2 className="size-4 animate-spin" /> {t("book.grading")}
               </>
             ) : (
               <>
-                <Sparkles className="size-4" /> Submit to AI Teacher for Grading
+                <Sparkles className="size-4" /> {t("book.submit")}
               </>
             )}
           </button>
@@ -297,6 +290,8 @@ export function BookStudio({ userId }: { userId: string }) {
 }
 
 export function FeedbackCard({ feedback }: { feedback: Feedback }) {
+  const { t, formatNumber } = useTranslation();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -305,18 +300,22 @@ export function FeedbackCard({ feedback }: { feedback: Feedback }) {
     >
       <div className="hero-gradient flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div className="flex items-center gap-2 text-sm font-bold">
-          <Sparkles className="size-4 text-primary" /> AI Teacher Report Card
+          <Sparkles className="size-4 text-primary" /> {t("book.feedback.title")}
         </div>
-        <div className="text-2xl font-black text-xp">{feedback.score}/100</div>
+        <div className="text-2xl font-black text-xp">
+          {t("book.feedback.score", { score: formatNumber(feedback.score) })}
+        </div>
       </div>
       <div className="grid gap-4 p-5 md:grid-cols-2">
         <div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-success">Strengths</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-success">
+            {t("book.feedback.strengths")}
+          </h4>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{feedback.strengths}</p>
         </div>
         <div>
           <h4 className="text-xs font-bold uppercase tracking-wider text-ela">
-            Improvements for next time
+            {t("book.feedback.improvements")}
           </h4>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             {feedback.improvements}
@@ -324,10 +323,10 @@ export function FeedbackCard({ feedback }: { feedback: Feedback }) {
         </div>
         <div className="md:col-span-2">
           <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
-            RACECE checklist
+            {t("book.feedback.checklistTitle")}
           </h4>
           <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {RACECE_LABELS.map(([key, label]) => {
+            {RACECE_KEYS.map((key) => {
               const ok = Boolean(feedback.racece_checklist?.[key]);
               return (
                 <div
@@ -339,7 +338,7 @@ export function FeedbackCard({ feedback }: { feedback: Feedback }) {
                   ) : (
                     <XCircle className="size-4 shrink-0 text-destructive" />
                   )}
-                  {label}
+                  {t(`book.feedback.racece.${key}`)}
                 </div>
               );
             })}

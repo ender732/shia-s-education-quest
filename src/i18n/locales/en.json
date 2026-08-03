@@ -1,0 +1,1202 @@
+{
+  "app": {
+    "name": "Shia's 5th Grade Quest",
+    "school": "P.S./I.S. 187 Hudson Cliffs · Grade 5 Quest",
+    "tagline": "P.S./I.S. 187 5th-grade prep for students and parents."
+  },
+  "common": {
+    "loading": "Loading…",
+    "back": "Back",
+    "next": "Next",
+    "cancel": "Cancel",
+    "tryAgain": "Try again",
+    "goHome": "Go home",
+    "backHome": "Back home",
+    "copy": "Copy",
+    "copied": "Copied",
+    "show": "Show",
+    "hide": "Hide",
+    "publish": "Publish",
+    "publishing": "Publishing…",
+    "discard": "Discard",
+    "or": "or",
+    "you": "You",
+    "student": "Student",
+    "locked": "Locked",
+    "xp": "XP",
+    "none": "—",
+    "percent": "{value}%",
+    "somethingWentWrong": "Something went wrong.",
+    "attempts_one": "{count} attempt",
+    "attempts_other": "{count} attempts"
+  },
+  "language": {
+    "label": "Language",
+    "chooseAria": "Choose a language"
+  },
+  "footer": {
+    "legalNavAria": "Legal",
+    "privacy": "Privacy Policy",
+    "codeOfConduct": "Code of Conduct",
+    "license": "MIT License",
+    "poweredByPrefix": "This site is powered by",
+    "netlify": "Netlify",
+    "netlifyBadgeAlt": "Deploys by Netlify"
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "Page not found",
+      "body": "The page you're looking for doesn't exist or has been moved."
+    },
+    "boundary": {
+      "title": "This page didn't load",
+      "body": "Something went wrong on our end. You can try refreshing or head back home."
+    }
+  },
+  "landing": {
+    "eyebrow": "NYC District 6 · Grade 5",
+    "titleLead": "Shia's 5th Grade",
+    "titleAccent": "Quest",
+    "body": "A gamified summer bridge for P.S./I.S. 187. Master Math, ELA, Science and Social Studies, read assigned ebooks, and get instant AI feedback on RACECE writing.",
+    "cta": "Start the quest",
+    "cards": {
+      "xp": {
+        "title": "Earn XP & level up",
+        "body": "Every completed task adds XP. 500 XP per level, with confetti on every win."
+      },
+      "streak": {
+        "title": "Keep the streak",
+        "body": "Daily practice builds a fire streak that shows up right in the header."
+      },
+      "grading": {
+        "title": "AI Teacher grading",
+        "body": "Submit a book report and get a score, strengths, and a RACECE checklist."
+      }
+    }
+  },
+  "auth": {
+    "signInTitle": "Welcome back",
+    "signUpTitle": "Create your account",
+    "checkEmailNotice": "Check your email and tap the confirmation link. You'll land back here on an “Email confirmed” page, then you can sign in. If you signed up as a student, we'll finish sending your parent the link code after you confirm.",
+    "displayNamePlaceholder": "Display name",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "pathStudent": "Student",
+    "pathParent": "I am a parent/guardian",
+    "parentEmailPlaceholder": "Parent/guardian email",
+    "studentPathNote": "We'll email them your parent link code so they can connect in Parent Portal. Under-13 learners should use a parent-managed setup when possible.",
+    "dateOfBirthLabel": "Date of birth",
+    "confirmAdultLabel": "I confirm I am a parent/guardian 18 years of age or older.",
+    "parentPathNote": "Parent accounts require adult verification. You'll link a child with their shareable link code after signup.",
+    "submitSignIn": "Sign in",
+    "submitSignUp": "Create account",
+    "googleSignIn": "Sign in with Google",
+    "googleSignUpParent": "Continue with Google as parent",
+    "googleSignUpStudent": "Continue with Google as student",
+    "googleParentNote": "Adult verification (date of birth + confirmation above) is required before Google continues — same as email signup.",
+    "needParentAccountNote": "Need a parent account? Choose “Create an account” and select parent/guardian so we can verify you're 18+ (works with Google too).",
+    "toggleToSignUp": "New here? Create an account",
+    "toggleToSignIn": "Already have an account? Sign in",
+    "validation": {
+      "parentEmailRequired": "Parent/guardian email is required for student accounts.",
+      "parentEmailInvalid": "Enter a valid parent/guardian email.",
+      "dobRequired": "Date of birth is required for parent accounts.",
+      "dobInvalid": "Enter a valid date of birth.",
+      "mustBeAdult": "Parents must be 18 or older. Choose the student path if you are under 18.",
+      "confirmAdult": "Confirm that you are a parent/guardian 18+."
+    },
+    "toast": {
+      "forcedStudent": "Parents must be 18+. Your account was set up as a student.",
+      "linkCodeEmailed": "We emailed your parent/guardian the link code.",
+      "emailNotConfiguredDashboard": "Email not configured — copy your link code from the dashboard.",
+      "emailNotConfiguredShare": "Email not configured — copy your link code from the dashboard to share.",
+      "confirmThenSignIn": "Confirm your email, then sign in to finish setup.",
+      "googleFailed": "Google sign-in failed. Please try again.",
+      "parentReady": "Parent account ready — welcome to Parent Portal.",
+      "parentConfirmationIncomplete": "Parent confirmation was incomplete — account set up as student. You can verify as a parent from the dashboard.",
+      "roleSetupFailed": "Signed in, but we couldn't finish role setup. Try refreshing or verify from the dashboard."
+    },
+    "confirm": {
+      "workingTitle": "Confirming your email…",
+      "workingBody": "Hang tight — we're finishing your signup so you can jump into the quest.",
+      "errorTitle": "Link didn't work",
+      "invalidLink": "This confirmation link is invalid or has expired. Request a new one from the sign-in page.",
+      "noParams": "No confirmation details found. Open the link from your email, or request a new one below.",
+      "genericFailure": "Something went wrong confirming your email.",
+      "resendLabel": "Request a new confirmation link",
+      "resendPlaceholder": "Your signup email",
+      "resendSubmit": "Send new link",
+      "resendMissingEmail": "Enter the email you used to sign up.",
+      "resendSent": "Check your inbox for a new confirmation link.",
+      "resendFailed": "Could not resend confirmation email.",
+      "backToSignIn": "Back to sign in"
+    },
+    "confirmed": {
+      "redirecting": "Taking you to your dashboard…",
+      "title": "Email confirmed!",
+      "body": "You're all set. Sign in to open your dashboard, earn XP, and keep the quest going. If you signed up as a student, we'll finish sending your parent the link code after you sign in.",
+      "cta": "Sign in to continue"
+    }
+  },
+  "dashboard": {
+    "loading": "Loading your quest…",
+    "parentBadge": "Parent Portal",
+    "studentBadge": "Student Portal",
+    "analytics": "Analytics",
+    "switchToStudent": "Switch to Student View",
+    "switchToParent": "Switch to Parent Portal",
+    "hideParentUpgrade": "Hide parent upgrade",
+    "showParentUpgrade": "I meant to be a parent",
+    "signOut": "Sign out",
+    "upgrade": {
+      "title": "Upgrade to a parent/guardian account",
+      "body": "Parent Portal needs a separate verified adult account (18+). Confirm your date of birth once — students stay on this portal and share a link code with parents instead.",
+      "dobLabel": "Date of birth",
+      "confirmLabel": "I confirm I am a parent/guardian 18 years of age or older.",
+      "submit": "Verify and unlock Parent Portal",
+      "dobRequired": "Enter your date of birth.",
+      "dobInvalid": "Enter a valid date of birth.",
+      "mustBeAdult": "Parents must be 18 or older.",
+      "confirmRequired": "Confirm that you are a parent/guardian 18+.",
+      "failed": "Could not upgrade.",
+      "failedAccount": "Could not upgrade account.",
+      "success": "You're verified as a parent — Parent Portal is unlocked."
+    }
+  },
+  "gamification": {
+    "welcomeBack": "Welcome back, {name}!",
+    "defaultName": "Explorer",
+    "subtitle": "Finish tasks, write strong RACECE responses, and level up.",
+    "level": "Level",
+    "totalXp": "Total XP",
+    "dayStreak": "Day streak",
+    "streakValue": "{days} 🔥",
+    "progressToLevel": "Progress to level {level}",
+    "xpOfNeeded": "{into} / {needed} XP",
+    "levelTitles": {
+      "1": "Quest Beginner",
+      "2": "Curious Explorer",
+      "3": "Skill Scout",
+      "4": "Practice Pro",
+      "5": "Lesson Legend",
+      "6": "Streak Star",
+      "7": "Brain Builder",
+      "8": "Focus Champion",
+      "9": "Knowledge Knight",
+      "10": "Master Scholar",
+      "11": "Quest Hero",
+      "12": "District Dynamo",
+      "beyond": "Quest Hero · Rank {level}"
+    },
+    "levelUp": {
+      "eyebrow": "Level up",
+      "level": "Level {level}",
+      "earnedTitle": "You earned the title",
+      "multiLevel_one": "Jumped {count} level in one go",
+      "multiLevel_other": "Jumped {count} levels in one go",
+      "was": "Was",
+      "now": "Now",
+      "xpThisWin": "+{xp} XP this win",
+      "totalXp": "{xp} total",
+      "towardNextLevel": "{into} / {needed} XP toward Level {level}",
+      "dismiss": "Keep questing",
+      "dismissAria": "Dismiss celebration"
+    }
+  },
+  "leaderboard": {
+    "title": "Today's Quest Challenge",
+    "resetNote": "Resets at midnight Eastern (America/New_York)",
+    "loading": "Loading today's rankings…",
+    "unavailableTitle": "Leaderboard not ready yet",
+    "unavailableBody": "Ask a parent to run the daily leaderboard migration, then practice a lesson to appear here.",
+    "emptyTitle": "No challengers yet today",
+    "emptyBody": "Open a lesson and practice — time and your best quiz score count toward today's challenge.",
+    "rank": "Rank",
+    "name": "Name",
+    "timeToday": "Time today",
+    "bestScore": "Best score",
+    "duration": {
+      "hours": "{hours}h {minutes}m {seconds}s",
+      "minutes": "{minutes}m {seconds}s",
+      "seconds": "{seconds}s"
+    }
+  },
+  "linkCode": {
+    "missing": "Parent link code is not available yet. Ask an adult to run the latest database migration ({migrations}), then refresh.",
+    "label": "Parent link code",
+    "shareNote": "Share this code with a parent so they can follow your progress. Only they can see your quest after linking.",
+    "emailPlaceholder": "Parent/guardian email",
+    "emailButton": "Email my parent the link code",
+    "defaultStudentName": "Your student",
+    "copied": "Parent link code copied.",
+    "copyFailed": "Could not copy — select and copy the code manually.",
+    "emailInvalid": "Enter a valid parent/guardian email.",
+    "emailSent": "Link code emailed to your parent/guardian.",
+    "emailNotConfigured": "Email not configured; copy the code instead",
+    "emailFailed": "Could not send email."
+  },
+  "subjects": {
+    "navAria": "Subjects",
+    "title": {
+      "math": "Math",
+      "ela_reading": "ELA / Reading",
+      "science_nyssls": "Science (NYSSLS)",
+      "social_studies_western_hemisphere": "Social Studies (Western Hemisphere)",
+      "assigned_reading": "Assigned Reading"
+    },
+    "description": {
+      "multi_digit_numbers_decimals_fractions_and_volume": "Multi-digit numbers, decimals, fractions, and volume",
+      "narrative_analysis_root_words_and_racece_writing": "Narrative analysis, root words, and RACECE writing",
+      "matter_conservation_of_mass_and_earth_s_spheres": "Matter, conservation of mass, and Earth's spheres",
+      "geography_history_and_map_reading": "Geography, history, and map reading",
+      "ebook_reading_and_ai_graded_book_reports": "Ebook reading and AI-graded book reports"
+    }
+  },
+  "tasks": {
+    "title": {
+      "multi_digit_multiplication_drill": "Multi-Digit Multiplication Drill",
+      "decimal_place_value_to_thousandths": "Decimal Place Value to Thousandths",
+      "fractions_with_unlike_denominators": "Fractions with Unlike Denominators",
+      "volume_of_rectangular_prisms": "Volume of Rectangular Prisms",
+      "narrative_analysis_character_change": "Narrative Analysis: Character Change",
+      "greek_latin_root_words": "Greek & Latin Root Words",
+      "racece_constructed_response": "RACECE Constructed Response",
+      "properties_of_matter_lab": "Properties of Matter Lab",
+      "conservation_of_mass": "Conservation of Mass",
+      "earth_s_four_spheres": "Earth's Four Spheres",
+      "mapping_the_western_hemisphere": "Mapping the Western Hemisphere",
+      "indigenous_civilizations": "Indigenous Civilizations",
+      "weekly_reading_log": "Weekly Reading Log"
+    },
+    "description": {
+      "solve_10_problems_multiplying_3_digit_by_2_digit_whole_numbers_using_the_standard_algorithm": "Solve 10 problems multiplying 3-digit by 2-digit whole numbers using the standard algorithm.",
+      "compare_round_add_and_subtract_decimals_to_the_thousandths_place": "Compare, round, add, and subtract decimals to the thousandths place.",
+      "add_and_subtract_fractions_by_finding_common_denominators_show_all_work": "Add and subtract fractions by finding common denominators. Show all work.",
+      "use_v_l_x_w_x_h_to_find_the_volume_of_6_solid_figures_including_composite_shapes": "Use V = l x w x h to find the volume of 6 solid figures, including composite shapes.",
+      "read_the_assigned_chapter_and_explain_how_the_main_character_changes_with_two_pieces_of_evidence": "Read the assigned chapter and explain how the main character changes, with two pieces of evidence.",
+      "define_12_root_words_and_use_each_in_an_original_sentence": "Define 12 root words and use each in an original sentence.",
+      "answer_the_prompt_using_restate_answer_cite_explain_cite_explain": "Answer the prompt using Restate, Answer, Cite, Explain, Cite, Explain.",
+      "classify_five_materials_by_their_measurable_properties_and_record_observations": "Classify five materials by their measurable properties and record observations.",
+      "explain_why_mass_stays_the_same_when_substances_mix_with_a_real_example": "Explain why mass stays the same when substances mix, with a real example.",
+      "describe_geosphere_hydrosphere_atmosphere_and_biosphere_and_how_they_interact": "Describe geosphere, hydrosphere, atmosphere, and biosphere and how they interact.",
+      "label_the_major_countries_rivers_and_mountain_ranges_of_north_and_south_america": "Label the major countries, rivers, and mountain ranges of North and South America.",
+      "compare_the_maya_aztec_and_inca_civilizations_in_a_short_chart": "Compare the Maya, Aztec, and Inca civilizations in a short chart.",
+      "read_30_minutes_a_day_for_five_days_and_log_the_pages_covered": "Read 30 minutes a day for five days and log the pages covered."
+    }
+  },
+  "taskboard": {
+    "loading": "Loading lessons…",
+    "loadError": "We couldn't load your lessons. Please refresh and try again.",
+    "emptyTitle": "No lessons here yet",
+    "emptyBody": "A parent can add assignments from the Parent Portal.",
+    "standardsNote": "Aligned to NYC Grade 5 standards (Hudson Cliffs) — learn, then quiz for XP.",
+    "masteredCount": "{done}/{total} mastered",
+    "quizPlusWorksheet_one": "{count} quiz question + fillable worksheet",
+    "quizPlusWorksheet_other": "{count} quiz questions + fillable worksheet",
+    "practiceQuestions_one": "{count} practice question · learn first, then quiz",
+    "practiceQuestions_other": "{count} practice questions · learn first, then quiz",
+    "practiceComingSoon": "Practice coming soon for this unit.",
+    "xpReward": "+{xp} XP",
+    "best": "Best {score}%",
+    "bestRetry": " · retry for 100%",
+    "bestPerfect": " · perfect",
+    "actionReview": "Review",
+    "actionRetry": "Retry for 100%",
+    "actionStart": "Start"
+  },
+  "lesson": {
+    "backToLessons": "Back to lessons",
+    "notReadyBody": "Practice questions for this assignment are not ready yet. Ask a parent to tag it with a known unit code (like {example}) or upload a worksheet PDF.",
+    "phase": {
+      "teach": "Learn",
+      "quiz": "Practice",
+      "worksheet": "Worksheet",
+      "results": "Results"
+    },
+    "coachTipPrefix": "Coach tip: ",
+    "readingText": "Reading text",
+    "startQuiz": "Start practice questions",
+    "worksheetHeadsUp": "After the quiz, you'll write on the worksheet (finger or Pencil) and get AI feedback. You need {pass}%+ on both to earn XP.",
+    "noAttemptsYet": "No attempts yet",
+    "bestScoreSuffix": " · best score {score}%",
+    "perfectSuffix": " · perfect!",
+    "retrySuffix": " · retry anytime for 100%",
+    "masteredRetryFor100": "Mastered at {score}% — retake the quiz to push for a perfect 100%.",
+    "perfectUnlocked": "Perfect score unlocked. You can still practice again anytime.",
+    "alreadyMastered": "You already mastered this lesson. You can still practice again.",
+    "questionCounter": "Question {index} of {total}",
+    "needToContinue": "Need {pass}% to continue",
+    "needToEarnXp": "Need {pass}% to earn XP",
+    "correct": "Correct",
+    "notYet": "Not yet",
+    "checkAnswer": "Check answer",
+    "continueToWorksheet": "Continue to worksheet",
+    "seeResults": "See results",
+    "nextQuestion": "Next question",
+    "pickAnswerFirst": "Pick an answer first.",
+    "typeAnswerFirst": "Type your answer first.",
+    "answerPlaceholder": "Type your answer",
+    "savingProgress": "Saving progress…",
+    "correctOfTotal": "{correct} of {total} correct",
+    "quizAndWorksheetScore": "Quiz {quiz}% · Worksheet {worksheet}%",
+    "perfectScore": "Perfect score!",
+    "mastered": "Lesson mastered",
+    "masteredReviewBest": "Nice work — best so far {score}%. Retry to reach 100%.",
+    "masteredReviewAlready": "Nice review — XP was already earned earlier.",
+    "masteredEarned": "You earned +{xp} XP for learning this skill.",
+    "attemptsLine": "Attempts: {count}",
+    "attemptsBestSuffix": " · Best: {score}%",
+    "keepPracticing": "Keep practicing",
+    "keepPracticingWorksheet": "You need at least {pass}% on the worksheet. Review the AI feedback and try again — the lesson stays available.",
+    "keepPracticingQuiz": "You need at least {pass}% to complete this lesson and earn XP. Review the teaching notes and try again.",
+    "retryWorksheet": "Retry worksheet",
+    "retryFor100": "Retry for 100%",
+    "tryAgain": "Try again",
+    "reviewLesson": "Review lesson",
+    "backToBoard": "Back to board",
+    "toast": {
+      "masteredXp": "Lesson mastered! +{xp} XP",
+      "perfect": "Perfect score — 100%! Great persistence.",
+      "newBest": "New best score: {score}%",
+      "newBestKeepGoing": "New best score: {score}% — keep going for 100%.",
+      "reviewNoXp": "Nice review — XP was already earned earlier.",
+      "saveFailed": "Could not save your progress.",
+      "worksheetMasteredXp": "Worksheet mastered! +{xp} XP",
+      "worksheetKeepPracticing": "Keep practicing — score at least 70% on the worksheet to master this lesson.",
+      "worksheetGradeFailed": "Could not grade your worksheet."
+    },
+    "worksheet": {
+      "defaultTitle": "Worksheet",
+      "statusLine": "Quiz {quiz}% · Write with finger or Pencil · Need {pass}%+ for mastery",
+    "quizFirst": "Pass the practice quiz first, then submit the worksheet.",
+    "answerRequired": "Please write or draw an answer for: {prompt}",
+    "partRequired": "Please complete: {prompt} — {part}",
+      "submit": "Submit worksheet to AI Teacher",
+      "grading": "AI Teacher is grading…",
+      "inkProgress": "{filled} of {total} fields have drawing",
+      "writeHere": "Write your work here",
+      "optionalTypedBlanks": "Optional typed blanks (or draw everything above)",
+      "optionalTypedNotes": "Optional typed notes",
+      "typeIfYouWant": "Type if you want",
+      "typeNumber": "Or type the number",
+      "typeAnswer": "Or type your answer",
+      "feedbackTitle": "AI Teacher feedback",
+      "score": "{score}/100",
+      "strengths": "Strengths",
+      "improvements": "Improvements",
+      "perQuestionNotes": "Per-question notes"
+    },
+    "coach": {
+      "open": "Ask AI Coach",
+      "tapToOpen": "Tap to open",
+      "regionAria": "AI Coach chat",
+      "intro": "Ask for help while you fill the worksheet yourself. The coach gives hints — not finished answers.",
+      "emptyExample": "Example: “I don't get the tip — can you explain it another way?”",
+      "you": "You",
+      "coach": "Coach",
+      "failed": "Could not reach the AI coach. Try again.",
+      "inputLabel": "Your question for the AI coach",
+      "inputPlaceholder": "Ask a question about this lesson…",
+      "sendAria": "Send question to AI coach"
+    },
+    "video": {
+      "defaultTitle": "Lesson explainer video",
+      "defaultChannel": "Crash Course Kids",
+      "readTranscript": "Read transcript",
+      "hideTranscript": "Hide transcript",
+      "transcriptAria": "Video transcript",
+      "transcriptUnavailable": "Transcript not available yet. You can still follow along with captions on YouTube when they are offered.",
+      "openOnYouTube": "Open video on YouTube (captions)"
+    }
+  },
+  "scribble": {
+    "defaultLabel": "Write or draw your answer",
+    "inkSaved": "· ink saved",
+    "fingerOrPencil": "· finger or Pencil",
+    "undo": "Undo",
+    "undoAria": "Undo stroke",
+    "clear": "Clear",
+    "clearAria": "Clear drawing",
+    "canvasAria": "Drawing answer area"
+  },
+  "pdf": {
+    "regionAria": "PDF reader",
+    "readingAria": "Reading: {title}",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "{page} of {total}",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "loadFailed": "We couldn't open this PDF in the reader.",
+    "openInNewTab": "Open PDF in a new tab",
+    "loadingReader": "Loading reader…",
+    "loadingPages": "Loading pages…",
+    "renderingPage": "Rendering page…"
+  },
+  "book": {
+    "loadingLibrary": "Loading your library…",
+    "libraryError": "We couldn't load the reading library.",
+    "noBookSelected": "No book selected",
+    "byAuthor": "by {author}",
+    "unknownAuthor": "Unknown author",
+    "removeAria": "Remove {title}",
+    "removeTitle": "Remove book",
+    "noPdfAttached": "This book has no PDF attached yet.",
+    "noBooksYet": "No books from your linked parents yet. Ask them to upload one from the Parent Portal.",
+    "readingPromptPrefix": "Reading prompt: ",
+    "defaultBookTitle": "Assigned book",
+    "chapterLabel": "Book title / chapter",
+    "chapterPlaceholder": "Chapter 4 — The Storm",
+    "reportLabel": "Summary & analysis (use RACECE)",
+    "reportPlaceholder": "Restate the question, answer it, cite two pieces of text evidence, and explain each one…",
+    "wordCount": "{count} words",
+    "submit": "Submit to AI Teacher for Grading",
+    "grading": "AI Teacher is reading…",
+    "gradedToast": "Graded! +{xp} XP earned",
+    "gradeFailed": "Grading failed. Try again.",
+    "confirmRemoveStudent": "Remove “{title}”? Ask a parent if you are unsure — this deletes the PDF.",
+    "removeNotAllowed": "Your parent has not allowed you to remove this book.",
+    "removeDenied": "Could not remove book. You may not have permission.",
+    "removeFailed": "Could not remove book.",
+    "removed": "Book removed.",
+    "feedback": {
+      "title": "AI Teacher Report Card",
+      "score": "{score}/100",
+      "strengths": "Strengths",
+      "improvements": "Improvements for next time",
+      "checklistTitle": "RACECE checklist",
+      "racece": {
+        "restate": "Restated the question",
+        "answer": "Answered directly",
+        "cite_1": "Cited evidence #1",
+        "explain_1": "Explained evidence #1",
+        "cite_2": "Cited evidence #2",
+        "explain_2": "Explained evidence #2"
+      }
+    }
+  },
+  "parent": {
+    "field": {
+      "subject": "Subject",
+      "chooseSubject": "Choose a subject…",
+      "draft": "Draft",
+      "title": "Title",
+      "description": "Description",
+      "sourceCredit": "Source credit"
+    },
+    "worksheetUploader": {
+      "title": "Upload worksheet → AI lesson draft",
+      "body": "Upload a PDF you are allowed to use. The AI drafts a lesson with 5 quiz questions and fillable on-site worksheet fields (students write their own answers; answer keys stay hidden for grading/coaching). The app also attaches a matching curriculum YouTube video + reading transcript when it finds a strong topic match. Students never see drafts until you publish. No scraping — upload only.",
+      "titleHintLabel": "Title hint (optional)",
+      "titleHintPlaceholder": "Fractions practice — unlike denominators",
+      "sourceCreditLabel": "Source credit (optional)",
+      "sourceCreditPlaceholder": "Worksheet uploaded by parent",
+      "sourceCreditDefault": "Worksheet uploaded by parent",
+      "fileLabel": "Worksheet PDF (required · max 15 MB · text-based)",
+      "submit": "Generate draft lesson",
+      "drafting": "Drafting with AI…",
+      "reviewTitle": "Review drafts",
+      "noDrafts": "No drafts yet. Upload a PDF to generate one.",
+      "draftSummary": "{questions} quiz questions · {fields} fillable fields · pass {pass}%",
+      "videoLine": "Video: {title}",
+      "noVideoMatch": "No matching curriculum video found for this topic — students will still get reading text.",
+      "transcriptReady": "Transcript ready ({chars} chars)",
+      "fillableTitle": "Fillable worksheet (student blanks)",
+      "answerKeyPrefix": "Answer key (hidden from students): ",
+      "confirmDiscard": "Discard this draft and delete the uploaded PDF?",
+      "draftReady": "AI draft ready — review before publishing.",
+      "published": "Lesson published — students can practice it now.",
+      "discarded": "Draft discarded.",
+      "chooseSubjectError": "Choose a subject.",
+      "choosePdfError": "Choose a PDF first.",
+      "pdfOnlyError": "Only PDF files are allowed.",
+      "pdfTooLargeError": "PDF must be 15 MB or smaller.",
+      "uploadFailed": "Upload failed.",
+      "missingWorksheetBucket": "Storage bucket “lesson-worksheets” is missing. Ask an admin to run the lesson_drafts_from_pdf migration.",
+      "draftFailed": "Could not draft lesson from PDF.",
+      "publishFailed": "Could not publish.",
+      "discardFailed": "Could not discard draft."
+    },
+    "taskCreator": {
+      "title": "Advanced: assign a built-in curriculum lesson",
+      "bodyBefore": "Optional. Use this only to assign an existing Grade 5 unit already in the library (by unit tag). For custom worksheets, use",
+      "bodyLink": "AI lesson draft from PDF",
+      "bodyAfter": "above instead.",
+      "taskTitleLabel": "Task title",
+      "taskTitlePlaceholder": "Extra practice: unlike denominators",
+      "descriptionPlaceholder": "Optional note for the student",
+      "unitTagLabel": "Built-in unit tag",
+      "unitTagPlaceholder": "187_MATH_FRACTIONS",
+      "xpRewardLabel": "XP reward",
+      "tagsNote": "Links the student to a pre-made lesson quiz/video (not a new PDF worksheet). Tags: {tags}.",
+      "submit": "Assign built-in lesson",
+      "assigning": "Assigning…",
+      "assigned": "Built-in lesson assigned to the student portal.",
+      "assignFailed": "Could not assign that lesson."
+    },
+    "bookUploader": {
+      "title": "Book Upload Manager",
+      "bookTitleLabel": "Book title",
+      "authorLabel": "Author",
+      "promptLabel": "Reading prompt",
+      "promptPlaceholder": "How does the narrator change after the storm? Use RACECE.",
+      "fileLabel": "PDF file (required · max 15 MB)",
+      "allowStudentDelete": "Allow student to remove this book once they are done",
+      "submit": "Assign book",
+      "uploading": "Uploading…",
+      "assigned": "Book assigned.",
+      "assignedBooksTitle": "Assigned books",
+      "pdfAttached": " · PDF attached",
+      "noPdf": " · no PDF",
+      "allowStudentRemove": "Allow student to remove",
+      "deleteAria": "Delete {title}",
+      "confirmRemove": "Remove “{title}” permanently? The PDF will be deleted from storage.",
+      "missingBooksBucket": "Storage bucket “assigned-books” is missing. Ask an admin to run the secure_assigned_books_storage migration.",
+      "permissionUpdateDenied": "Could not update permission. You may not own this book.",
+      "permissionUpdateFailed": "Could not update permission."
+    },
+    "progress": {
+      "linkTitle": "Link a student",
+      "linkBody": "Ask your child for their Parent link code (shown on their dashboard), then paste it here.",
+      "linkCodeLabel": "Parent link code",
+      "linkCodePlaceholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      "linkSubmit": "Link student",
+      "linking": "Linking…",
+      "migrationRequiredBefore": "Database migration required: run",
+      "migrationRequiredAfter": "in the Supabase SQL editor (or {command}), then refresh.",
+      "loadingStudents": "Loading linked students…",
+      "noStudentsBefore": "No students linked yet. Ask your child for their",
+      "noStudentsLinkCode": "Parent link code",
+      "noStudentsAfter": "on their dashboard, then paste it above.",
+      "viewing": "Viewing",
+      "allStudents": "All linked students",
+      "unlinkAria": "Unlink {name}",
+      "unlinkTitle": "Unlink",
+      "xpTotal": "{xp} XP",
+      "levelAndStreak": "Level {level} · {days} day streak",
+      "masteryTitle": "Lesson mastery by subject",
+      "masteryBasisAll": "Based on practice quizzes scored at {pass}% or higher (all linked students).",
+      "masteryBasisOne": "Based on practice quizzes scored at {pass}% or higher.",
+      "studyTimePrefix": "Study time:",
+      "studyMinutes": "{minutes} min",
+      "quizAttempts_one": " · {count} quiz attempt recorded",
+      "quizAttempts_other": " · {count} quiz attempts recorded",
+      "noQuizYet": " · no quiz submitted yet",
+      "loadingMastery": "Loading mastery…",
+      "masteryLoadError": "Could not load lesson progress: {message}",
+      "noMasteryOpened": "This student has opened lessons, but has not completed a practice quiz at {pass}% or higher yet. XP and mastery update when a quiz is passed.",
+      "noMasteryAtAll": "No completed practice quizzes yet. When your student finishes a lesson quiz at {pass}% or higher, XP and mastery will show up here.",
+      "subjectProgress": "{done}/{total} · {pct}%",
+      "manageTitle": "Manage published lessons",
+      "manageBody": "Curriculum lessons stay in the library. You can only remove tasks you published yourself.",
+      "fixVideos": "Fix worksheet videos",
+      "fixVideosNote": "Re-matches YouTube explainers for your uploaded worksheets (for example magnetism → magnets, not ecosystems).",
+      "status": {
+        "perfect": "perfect {score}% · {attempts}",
+        "mastered": "mastered at {score}% · {attempts} · retry for 100%",
+        "best": "best {score}% · {attempts} (needs {pass}%+)",
+        "bestAttempt": "best attempt {score}% (needs {pass}%+)",
+        "openedNotFinished": "opened — quiz not finished",
+        "notMastered": "not mastered yet"
+      },
+      "taskMeta": "{tag} · {xp} XP · {status}",
+      "curriculumSuffix": " · curriculum",
+      "worksheetSuffix": " · worksheet lesson",
+      "deleteTaskAria": "Delete {title}",
+      "reportsTitle": "Recent AI-graded book reports",
+      "loadingReports": "Loading reports…",
+      "noReports": "No submissions yet.",
+      "ungraded": "ungraded",
+      "linkCodeInvalid": "Enter a valid parent link code (UUID).",
+      "linkSchemaMissing": "Parent–student linking is not set up yet. Run the parent_student_links migration in Supabase, then try again.",
+      "studentLinked": "Student linked.",
+      "linkFailed": "Could not link that student.",
+      "studentUnlinked": "Student unlinked.",
+      "taskRemoved": "Task removed.",
+      "taskRemoveDenied": "Could not remove task. Curriculum lessons stay in the library.",
+      "taskRemoveFailed": "Could not remove task.",
+      "videosAlreadyRight_one": "Checked {count} worksheet lesson — videos already look right.",
+      "videosAlreadyRight_other": "Checked {count} worksheet lessons — videos already look right.",
+      "noWorksheetLessons": "No worksheet lessons found to update.",
+      "videosUpdated_one": "Updated videos on {updated} of {scanned} worksheet lesson.",
+      "videosUpdated_other": "Updated videos on {updated} of {scanned} worksheet lessons.",
+      "videosRefreshFailed": "Could not refresh lesson videos."
+    }
+  },
+  "arcade": {
+    "subject": {
+      "math": {
+        "hubTitle": "Math Arcade",
+        "campaignTitle": "Number Dash Campaign",
+        "description": "Climb Levels 1–4, then beat the Boss. Topic themes follow your Math units. Lessons still earn the real XP on the TaskBoard below.",
+        "shortName": "Math"
+      },
+      "ela": {
+        "hubTitle": "ELA Arcade",
+        "campaignTitle": "Story Dash Campaign",
+        "description": "Vocabulary, main idea, figurative language, and grammar portals. Practice stars only — lesson XP stays on your TaskBoard.",
+        "shortName": "ELA"
+      },
+      "science": {
+        "hubTitle": "Science Arcade",
+        "campaignTitle": "Matter Dash Campaign",
+        "description": "Ecosystems, matter, Earth systems, and starlight gates. Practice stars only — lessons keep the real XP.",
+        "shortName": "Science"
+      },
+      "social": {
+        "hubTitle": "Social Studies Arcade",
+        "campaignTitle": "Map Dash Campaign",
+        "description": "Geography, civilizations, exploration, and civics. Practice stars only — TaskBoard lessons earn mastery XP.",
+        "shortName": "Social Studies"
+      },
+      "reading": {
+        "hubTitle": "Reading Arcade",
+        "campaignTitle": "Vocab Voyage Campaign",
+        "description": "Warm up vocab, comprehension, and RACECE before your book report. Practice stars only — Book Studio stays the real work.",
+        "shortName": "Reading"
+      }
+    },
+    "mode": {
+      "number-dash": {
+        "title": "Number Dash",
+        "blurb": "Jump, time your leaps, and clear multi-digit multiplication gates.",
+        "accentLabel": "Number"
+      },
+      "fraction-flight": {
+        "title": "Fraction Flight",
+        "blurb": "Dash through unlike-denominator challenges without losing momentum.",
+        "accentLabel": "Fraction"
+      },
+      "decimal-dash": {
+        "title": "Decimal Dash",
+        "blurb": "Place-value portals and hundredths ops — stay sharp at speed.",
+        "accentLabel": "Decimal"
+      },
+      "volume-vault": {
+        "title": "Volume Vault",
+        "blurb": "Rectangular prism volume checks between spike runs.",
+        "accentLabel": "Volume"
+      },
+      "powers-pulse": {
+        "title": "Powers Pulse",
+        "blurb": "Powers of 10 and place-value shifts fuel your boosts.",
+        "accentLabel": "Powers"
+      },
+      "story-sprint": {
+        "title": "Story Sprint",
+        "blurb": "Character change and narrative evidence at dash speed.",
+        "accentLabel": "Story"
+      },
+      "root-rush": {
+        "title": "Root Rush",
+        "blurb": "Greek & Latin roots light the portals.",
+        "accentLabel": "Roots"
+      },
+      "main-idea-march": {
+        "title": "Main Idea March",
+        "blurb": "Pick the main idea and supporting evidence under pressure.",
+        "accentLabel": "Main Idea"
+      },
+      "figurative-flight": {
+        "title": "Figurative Flight",
+        "blurb": "Simile, metaphor, and idiom gates keep you flying.",
+        "accentLabel": "Figurative"
+      },
+      "grammar-gauntlet": {
+        "title": "Grammar Gauntlet",
+        "blurb": "Parts of speech and sentence sense between spikes.",
+        "accentLabel": "Grammar"
+      },
+      "matter-dash": {
+        "title": "Matter Dash",
+        "blurb": "Properties of matter and conservation checks in the green zone.",
+        "accentLabel": "Matter"
+      },
+      "ecosystem-escape": {
+        "title": "Ecosystem Escape",
+        "blurb": "Producers, consumers, and decomposers fuel your run.",
+        "accentLabel": "Ecosystem"
+      },
+      "sphere-sprint": {
+        "title": "Sphere Sprint",
+        "blurb": "Geosphere, hydrosphere, atmosphere, biosphere portals.",
+        "accentLabel": "Earth"
+      },
+      "starlight-surge": {
+        "title": "Starlight Surge",
+        "blurb": "Stars, distance, and brightness between lime gates.",
+        "accentLabel": "Stars"
+      },
+      "force-field": {
+        "title": "Force Field",
+        "blurb": "Pushes, pulls, and motion sense at speed.",
+        "accentLabel": "Forces"
+      },
+      "map-dash": {
+        "title": "Map Dash",
+        "blurb": "Western Hemisphere geography gates on a navy trail.",
+        "accentLabel": "Maps"
+      },
+      "civilization-charge": {
+        "title": "Civilization Charge",
+        "blurb": "Maya, Aztec, and Inca knowledge between ochre portals.",
+        "accentLabel": "History"
+      },
+      "exploration-run": {
+        "title": "Exploration Run",
+        "blurb": "Contact, voyages, and multiple perspectives.",
+        "accentLabel": "Explore"
+      },
+      "civics-circuit": {
+        "title": "Civics Circuit",
+        "blurb": "U.S. government and citizenship checkpoints.",
+        "accentLabel": "Civics"
+      },
+      "hemisphere-hustle": {
+        "title": "Hemisphere Hustle",
+        "blurb": "Canada, Mexico, DR, and today — trade & citizenship.",
+        "accentLabel": "Today"
+      },
+      "vocab-voyage": {
+        "title": "Vocab Voyage",
+        "blurb": "Word meaning gates on an indigo night sky.",
+        "accentLabel": "Vocab"
+      },
+      "comprehension-cruise": {
+        "title": "Comprehension Cruise",
+        "blurb": "Who, what, why — proof from the pages.",
+        "accentLabel": "Comprehension"
+      },
+      "racece-relay": {
+        "title": "RACECE Relay",
+        "blurb": "Restate, answer, cite, explain — book-report ready.",
+        "accentLabel": "RACECE"
+      },
+      "genre-glide": {
+        "title": "Genre Glide",
+        "blurb": "Fiction, nonfiction, and narrator smarts.",
+        "accentLabel": "Genre"
+      }
+    },
+    "levels": {
+      "L1": {
+        "label": "Level 1",
+        "blurb": "Learn the rhythm — gentle speed, room to jump."
+      },
+      "L2": {
+        "label": "Level 2",
+        "blurb": "Faster scroll and tighter gaps."
+      },
+      "L3": {
+        "label": "Level 3",
+        "blurb": "Harder gates and denser spikes."
+      },
+      "L4": {
+        "label": "Level 4",
+        "blurb": "Two hearts. Stay sharp — boss is next."
+      },
+      "boss": {
+        "label": "Boss",
+        "blurb": "Gauntlet of hard portals — beat it to clear the campaign."
+      }
+    },
+    "hub": {
+      "campaignComplete": "Campaign complete",
+      "continueMode": "Continue {mode}",
+      "unlockRule": "Clear the track or pass {gates} gates to unlock the next level. Gates count even if you run out of hearts later.",
+      "topicLabel": "Topic · {mode}",
+      "hideTopics": "Hide topics",
+      "switchTopic": "Switch topic",
+      "suggested": "Suggested",
+      "campaignCompleteAria": "Campaign complete",
+      "modeStars": "{stars} practice stars · L{level}",
+      "bossCleared": " · Boss ✓",
+      "levelsTitle": "{mode} levels",
+      "unlockedThrough": "Unlocked through {level}",
+      "starsTotal": "{stars} stars",
+      "gatesToUnlock": "{current}/{needed} gates to unlock next",
+      "finalChallenge": "Final challenge",
+      "locked": "Locked",
+      "reason": {
+        "openUnit": "Matched to your open unit · {mode}",
+        "subjectUnit": "Based on your {subject} unit · {mode}",
+        "default": "Default {mode} — practice while you wait for assignments"
+      }
+    },
+    "game": {
+      "hubButton": "Arcade hub",
+      "trackPct": "{pct}% track",
+      "gates": "Gates {current}/{needed}",
+      "canvasAria": "{mode} {level} side-scrolling subject dash",
+      "unlocked": "{level} unlocked!",
+      "bossGate": "Boss gate",
+      "challengeGate": "Challenge gate",
+      "gateHeader": "{gate} · {topic}",
+      "bossGateCleared": "Boss gate cleared! {tip}",
+      "gateCorrect": "Nice! {tip}",
+      "gateWrong": "Not quite — {tip}",
+      "campaignCleared": "Campaign cleared!",
+      "bossDefeated": "Boss defeated!",
+      "levelCleared": "Level cleared!",
+      "outOfHearts": "Out of hearts",
+      "runSummary": "Score {score} · {gates} gates solved",
+      "gateProgressSaved": "Gate progress saved: {current}/{needed} toward next unlock",
+      "practiceOnlyNote": "Practice stars only — lesson XP stays on your TaskBoard.",
+      "playAgain": "Play again",
+      "backToHub": "Back to hub",
+      "jumpHintBefore": "Jump:",
+      "keySpace": "Space",
+      "jumpHintAfter": "/ tap · Clear track or {gates} gates unlocks next",
+      "jump": "Jump",
+      "bossRunOverlay": "BOSS RUN",
+      "canvasLabel": "{mode} · {level}"
+    }
+  },
+  "howto": {
+    "player": {
+      "eyebrow": "How-to short",
+      "closeAria": "Close tip",
+      "skipAllTips": "Skip all tips",
+      "skipTour": "Skip tour",
+      "hideAllTips": "Hide all tips",
+      "back": "Back",
+      "next": "Next",
+      "gotIt": "Got it"
+    },
+    "menu": {
+      "openHelp": "Help",
+      "openShorts": "How-to shorts",
+      "parentTips": "Parent tips",
+      "studentTips": "Student tips",
+      "closeAria": "Close help menu",
+      "tipsHiddenNote": "Tips are hidden. Replay any short below, or turn tips back on.",
+      "showTips": "Show tips",
+      "hideAllTips": "Hide all tips",
+      "replayTour": "Replay welcome tour",
+      "resetTips": "Reset all tips"
+    },
+    "shorts": {
+      "student-welcome": {
+        "title": "Welcome to your Quest",
+        "scenes": {
+          "1": {
+            "caption": "This is your Student Portal — your home base for learning.",
+            "emphasis": "Student Portal"
+          },
+          "2": {
+            "caption": "Earn XP and levels when you finish lessons and book reports.",
+            "emphasis": "XP & levels"
+          },
+          "3": {
+            "caption": "Practice a little each day to grow your streak.",
+            "emphasis": "Daily streak"
+          },
+          "4": {
+            "caption": "Use How-to shorts anytime from Help if you get stuck.",
+            "emphasis": "Help button"
+          }
+        }
+      },
+      "student-link-code": {
+        "title": "Share your parent link code",
+        "scenes": {
+          "1": {
+            "caption": "Your link code lets a parent connect to your progress.",
+            "emphasis": "Link code"
+          },
+          "2": {
+            "caption": "Tap Copy, then send the code to your parent or guardian.",
+            "emphasis": "Copy"
+          },
+          "3": {
+            "caption": "They paste it in Parent Portal → Link student.",
+            "emphasis": "Parent connects"
+          },
+          "4": {
+            "caption": "Once linked, they can assign lessons and see your wins.",
+            "emphasis": "You're connected"
+          }
+        }
+      },
+      "student-subjects": {
+        "title": "Subjects and lessons",
+        "scenes": {
+          "1": {
+            "caption": "Pick a subject tab: Math, ELA, Science, Social Studies, or Reading.",
+            "emphasis": "Subject tabs"
+          },
+          "2": {
+            "caption": "Open a lesson card to learn, quiz, and practice.",
+            "emphasis": "Lesson cards"
+          },
+          "3": {
+            "caption": "If a subject is empty, wait for a parent to assign something — or try another tab.",
+            "emphasis": "Empty boards"
+          },
+          "4": {
+            "caption": "Assigned Reading is for books your parent uploaded.",
+            "emphasis": "Reading tab"
+          }
+        }
+      },
+      "student-lesson": {
+        "title": "How a lesson works",
+        "scenes": {
+          "1": {
+            "caption": "First: teach notes and video — learn the idea.",
+            "emphasis": "Teach"
+          },
+          "2": {
+            "caption": "Next: practice questions. You need about 70% to continue.",
+            "emphasis": "Quiz"
+          },
+          "3": {
+            "caption": "Some lessons have a worksheet — write or draw your own answers.",
+            "emphasis": "Worksheet"
+          },
+          "4": {
+            "caption": "Ask AI Coach for hints — it helps you think, not fill answers for you.",
+            "emphasis": "AI Coach"
+          },
+          "5": {
+            "caption": "Pass the lesson to earn XP and mastery.",
+            "emphasis": "Mastery"
+          }
+        }
+      },
+      "student-books": {
+        "title": "Assigned reading & book reports",
+        "scenes": {
+          "1": {
+            "caption": "Open a book your parent assigned and read in the app.",
+            "emphasis": "Read"
+          },
+          "2": {
+            "caption": "Write a RACECE response: Restate, Answer, Cite, Explain (twice).",
+            "emphasis": "RACECE"
+          },
+          "3": {
+            "caption": "Submit to AI Teacher for a score, strengths, and next steps.",
+            "emphasis": "AI grade"
+          },
+          "4": {
+            "caption": "Strong reports earn XP — keep revising with the feedback.",
+            "emphasis": "Improve"
+          }
+        }
+      },
+      "student-leaderboard": {
+        "title": "Today's Quest Challenge",
+        "scenes": {
+          "1": {
+            "caption": "The daily leaderboard ranks practice time and quiz scores today.",
+            "emphasis": "Today only"
+          },
+          "2": {
+            "caption": "It resets at midnight Eastern — fresh chance every day.",
+            "emphasis": "Resets nightly"
+          },
+          "3": {
+            "caption": "Open a lesson and practice to appear on the board.",
+            "emphasis": "Practice counts"
+          },
+          "4": {
+            "caption": "Cheer for classmates — learning together is the win.",
+            "emphasis": "Team spirit"
+          }
+        }
+      },
+      "parent-welcome": {
+        "title": "Welcome to Parent Portal",
+        "scenes": {
+          "1": {
+            "caption": "Parent Portal is for assigning work and reviewing progress.",
+            "emphasis": "Parent Portal"
+          },
+          "2": {
+            "caption": "Use Switch to Parent Portal from the top of the dashboard.",
+            "emphasis": "Toggle"
+          },
+          "3": {
+            "caption": "First step: link your student with their shareable code.",
+            "emphasis": "Link first"
+          },
+          "4": {
+            "caption": "Replay any tip from How-to shorts in Help.",
+            "emphasis": "Help"
+          }
+        }
+      },
+      "parent-link-student": {
+        "title": "Link your student",
+        "scenes": {
+          "1": {
+            "caption": "Ask your student for their Parent link code (on their dashboard).",
+            "emphasis": "Get the code"
+          },
+          "2": {
+            "caption": "Paste it under Link a student and confirm.",
+            "emphasis": "Paste & link"
+          },
+          "3": {
+            "caption": "You can link more than one student if needed.",
+            "emphasis": "Multiple kids"
+          },
+          "4": {
+            "caption": "Linked students show mastery, reports, and assignments here.",
+            "emphasis": "Connected"
+          }
+        }
+      },
+      "parent-worksheet": {
+        "title": "Upload a worksheet PDF",
+        "scenes": {
+          "1": {
+            "caption": "Upload a text-based PDF worksheet you are allowed to use.",
+            "emphasis": "Upload PDF"
+          },
+          "2": {
+            "caption": "AI drafts a lesson: quiz, fillable fields, and a matching video when possible.",
+            "emphasis": "AI draft"
+          },
+          "3": {
+            "caption": "Review the draft — students never see it until you Publish.",
+            "emphasis": "Review"
+          },
+          "4": {
+            "caption": "Publish to assign it. Discard if you want to try again.",
+            "emphasis": "Publish"
+          }
+        }
+      },
+      "parent-tasks-books": {
+        "title": "Tasks and assigned books",
+        "scenes": {
+          "1": {
+            "caption": "Optional advanced tool: assign a built-in Grade 5 unit by tag. Prefer AI PDF drafts for custom worksheets.",
+            "emphasis": "Built-in units"
+          },
+          "2": {
+            "caption": "Upload a PDF book and writing prompt for Assigned Reading.",
+            "emphasis": "Books"
+          },
+          "3": {
+            "caption": "Linked students see new work on their Student Portal.",
+            "emphasis": "They see it"
+          },
+          "4": {
+            "caption": "Keep prompts clear — RACECE works best with a focused question.",
+            "emphasis": "Clear prompts"
+          }
+        }
+      },
+      "parent-progress": {
+        "title": "Review progress",
+        "scenes": {
+          "1": {
+            "caption": "Open a linked student to see mastery bars and completed work.",
+            "emphasis": "Mastery"
+          },
+          "2": {
+            "caption": "Read AI-graded book reports and checklist feedback.",
+            "emphasis": "Reports"
+          },
+          "3": {
+            "caption": "Celebrate effort — XP and streaks show daily practice habits.",
+            "emphasis": "Habits"
+          },
+          "4": {
+            "caption": "Assign the next lesson or book when they are ready for more.",
+            "emphasis": "Next step"
+          }
+        }
+      }
+    }
+  },
+  "admin": {
+    "analytics": {
+      "loading": "Loading analytics…",
+      "loadErrorBefore": "Could not load analytics. Confirm your profile role is",
+      "backToDashboard": "Back to dashboard",
+      "eyebrow": "Admin · first-party analytics",
+      "title": "Site traffic",
+      "subtitle": "Last {days} days · signed in as {name}",
+      "defaultAdminName": "admin",
+      "dashboard": "Dashboard",
+      "kpi": {
+        "pageViews": "Page views",
+        "uniqueVisitors": "Unique visitors",
+        "loginsSignups": "Logins / signups",
+        "shares": "Shares & copies"
+      },
+      "trafficTitle": "Traffic over time",
+      "trafficNote": "Human visitors and page views (UTC days). Bot sessions shown separately.",
+      "series": {
+        "pageViews": "Page views",
+        "visitors": "Visitors",
+        "botSessions": "Bot sessions"
+      },
+      "topPages": "Top pages",
+      "noPageViews": "No page views yet.",
+      "referrers": "Referrers",
+      "noSessions": "No sessions yet.",
+      "botsVsHumans": "Bots vs humans",
+      "humanSessions": "Human sessions",
+      "botSessions": "Bot sessions",
+      "noCrawlers": "No known crawlers yet.",
+      "recentEvents": "Recent events",
+      "waitingForTraffic": "Waiting for traffic…",
+      "eventBotTag": " · bot:{name}",
+      "eventBotUnnamed": "yes",
+      "privacyNote": "Purpose-limited first-party telemetry only: page paths, referrers, UTM params, coarse screen size, language, timezone offset, UA classification, and hashed IP when the server beacon runs. No passwords, no full emails in events, no cross-site fingerprinting."
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: July 31, 2026",
+    "intro": "Shia's 5th Grade Quest (\"the App\") helps students prepare for 5th grade at P.S./I.S. 187 and lets parents monitor progress. This page explains what information we collect and how we use it.",
+    "collectTitle": "Information we collect",
+    "collect": {
+      "account": "Account details (email, name if provided by your sign-in provider)",
+      "role": "Role (student or parent) and age verification for parent accounts",
+      "activity": "Learning activity (tasks, XP, streaks, book reports, and related progress)",
+      "files": "Files parents upload (for example assigned reading PDFs)"
+    },
+    "useTitle": "How we use information",
+    "useBody": "We use this information to run accounts, save progress, grade writing with AI where enabled, and let linked parents review student work. We do not sell personal information.",
+    "googleTitle": "Sign-in with Google",
+    "googleBody": "If you choose Google sign-in, Google shares basic profile information (such as email) with our authentication provider so we can create or open your account. Authentication is handled by Supabase Auth.",
+    "contactTitle": "Contact",
+    "contactBody": "Questions about this policy: use the contact email configured on the Google OAuth consent screen for this app, or reach the parent/guardian who manages the App.",
+    "backHome": "← Back home"
+  },
+  "serverErrors": {
+    "could_not_download_the_uploaded_pdf_try_uploading_again": "Could not download the uploaded PDF. Try uploading again.",
+    "could_not_load_lessons_to_update_videos": "Could not load lessons to update videos.",
+    "could_not_load_profile": "Could not load profile.",
+    "could_not_publish_this_lesson_please_try_again": "Could not publish this lesson. Please try again.",
+    "could_not_save_the_lesson_draft_please_try_again": "Could not save the lesson draft. Please try again.",
+    "could_not_save_your_report_please_try_again": "Could not save your report. Please try again.",
+    "could_not_save_your_worksheet_please_try_again": "Could not save your worksheet. Please try again.",
+    "draft_not_found": "Draft not found.",
+    "lesson_not_found": "Lesson not found.",
+    "link_code_does_not_match_your_profile": "Link code does not match your profile.",
+    "only_parents_or_admins_can_manage_lesson_drafts": "Only parents or admins can manage lesson drafts.",
+    "only_unpublished_drafts_can_be_discarded_here_use_remove_for_published_lessons": "Only unpublished drafts can be discarded here. Use Remove for published lessons.",
+    "pdf_path_must_be_under_your_own_uploads_folder": "PDF path must be under your own uploads folder.",
+    "parent_accounts_do_not_share_a_student_link_code": "Parent accounts do not share a student link code.",
+    "please_wait_a_minute_before_sending_another_link_code_email": "Please wait a minute before sending another link-code email.",
+    "profile_not_found": "Profile not found",
+    "the_ai_draft_was_incomplete_please_try_generating_again": "The AI draft was incomplete. Please try generating again.",
+    "the_ai_returned_an_unreadable_answer_please_try_again": "The AI returned an unreadable answer. Please try again.",
+    "this_draft_has_no_lesson_content_to_publish": "This draft has no lesson content to publish.",
+    "this_lesson_has_no_fillable_worksheet_to_grade": "This lesson has no fillable worksheet to grade.",
+    "this_lesson_is_already_published": "This lesson is already published.",
+    "this_lesson_is_not_published_yet": "This lesson is not published yet.",
+    "welcome_email_is_only_for_parent_accounts": "Welcome email is only for parent accounts.",
+    "welcome_email_must_go_to_your_own_account_email": "Welcome email must go to your own account email.",
+    "worksheet_practice_is_for_students": "Worksheet practice is for students.",
+    "you_can_only_publish_your_own_drafts": "You can only publish your own drafts."
+  }
+}

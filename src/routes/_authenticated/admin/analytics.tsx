@@ -19,6 +19,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
@@ -94,6 +95,7 @@ async function rpcJson<T>(fn: string, args: Record<string, unknown>): Promise<T>
 function AdminAnalyticsPage() {
   const navigate = useNavigate();
   const { adminProfile } = Route.useRouteContext();
+  const { t, formatNumber, formatDateTime } = useTranslation();
 
   const overview = useQuery({
     queryKey: ["admin-analytics", "overview", DAYS],
@@ -129,7 +131,7 @@ function AdminAnalyticsPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center gap-2 text-muted-foreground">
-        <Loader2 className="size-5 animate-spin" /> Loading analytics…
+        <Loader2 className="size-5 animate-spin" /> {t("admin.analytics.loading")}
       </div>
     );
   }
@@ -138,15 +140,14 @@ function AdminAnalyticsPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         <p className="text-sm text-destructive">
-          Could not load analytics. Confirm your profile role is{" "}
-          <code className="text-xs">admin</code>.
+          {t("admin.analytics.loadErrorBefore")} <code className="text-xs">admin</code>.
         </p>
         <button
           type="button"
           className="mt-4 text-sm text-primary underline"
           onClick={() => navigate({ to: "/dashboard" })}
         >
-          Back to dashboard
+          {t("admin.analytics.backToDashboard")}
         </button>
       </main>
     );
@@ -165,11 +166,14 @@ function AdminAnalyticsPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            Admin · first-party analytics
+            {t("admin.analytics.eyebrow")}
           </p>
-          <h1 className="mt-1 text-2xl font-bold">Site traffic</h1>
+          <h1 className="mt-1 text-2xl font-bold">{t("admin.analytics.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Last {DAYS} days · signed in as {adminProfile.display_name ?? "admin"}
+            {t("admin.analytics.subtitle", {
+              days: formatNumber(DAYS),
+              name: adminProfile.display_name ?? t("admin.analytics.defaultAdminName"),
+            })}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -177,34 +181,38 @@ function AdminAnalyticsPage() {
             to="/dashboard"
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold transition hover:bg-secondary"
           >
-            <ArrowLeft className="size-3.5" /> Dashboard
+            <ArrowLeft className="size-3.5" /> {t("admin.analytics.dashboard")}
           </Link>
         </div>
       </div>
 
       <section className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={<Eye className="size-4 text-primary" />} label="Page views" value={o.page_views} />
+        <Kpi
+          icon={<Eye className="size-4 text-primary" />}
+          label={t("admin.analytics.kpi.pageViews")}
+          value={formatNumber(o.page_views)}
+        />
         <Kpi
           icon={<Users className="size-4 text-xp" />}
-          label="Unique visitors"
-          value={o.unique_visitors}
+          label={t("admin.analytics.kpi.uniqueVisitors")}
+          value={formatNumber(o.unique_visitors)}
         />
         <Kpi
           icon={<LogIn className="size-4 text-success" />}
-          label="Logins / signups"
-          value={`${o.logins} / ${o.signups}`}
+          label={t("admin.analytics.kpi.loginsSignups")}
+          value={`${formatNumber(o.logins)} / ${formatNumber(o.signups)}`}
         />
         <Kpi
           icon={<Share2 className="size-4 text-reading" />}
-          label="Shares & copies"
-          value={o.shares}
+          label={t("admin.analytics.kpi.shares")}
+          value={formatNumber(o.shares)}
         />
       </section>
 
       <section className="surface-card mb-6 p-4 sm:p-5">
-        <h2 className="text-sm font-bold">Traffic over time</h2>
+        <h2 className="text-sm font-bold">{t("admin.analytics.trafficTitle")}</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Human visitors and page views (UTC days). Bot sessions shown separately.
+          {t("admin.analytics.trafficNote")}
         </p>
         <div className="mt-4 h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -229,7 +237,7 @@ function AdminAnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="page_views"
-                name="Page views"
+                name={t("admin.analytics.series.pageViews")}
                 stroke="oklch(0.78 0.16 225)"
                 fill="url(#pvFill)"
                 strokeWidth={2}
@@ -237,7 +245,7 @@ function AdminAnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="visitors"
-                name="Visitors"
+                name={t("admin.analytics.series.visitors")}
                 stroke="oklch(0.82 0.14 85)"
                 fill="transparent"
                 strokeWidth={2}
@@ -245,7 +253,7 @@ function AdminAnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="bot_sessions"
-                name="Bot sessions"
+                name={t("admin.analytics.series.botSessions")}
                 stroke="oklch(0.7 0.12 25)"
                 fill="transparent"
                 strokeWidth={1.5}
@@ -258,16 +266,16 @@ function AdminAnalyticsPage() {
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <section className="surface-card p-4 sm:p-5">
-          <h2 className="text-sm font-bold">Top pages</h2>
+          <h2 className="text-sm font-bold">{t("admin.analytics.topPages")}</h2>
           <ul className="mt-3 space-y-2">
             {(pages.data ?? []).length === 0 && (
-              <li className="text-xs text-muted-foreground">No page views yet.</li>
+              <li className="text-xs text-muted-foreground">{t("admin.analytics.noPageViews")}</li>
             )}
             {(pages.data ?? []).map((row) => (
               <li key={row.path} className="text-xs">
                 <div className="mb-1 flex justify-between gap-2">
                   <span className="truncate font-medium">{row.path}</span>
-                  <span className="shrink-0 text-muted-foreground">{row.views}</span>
+                  <span className="shrink-0 text-muted-foreground">{formatNumber(row.views)}</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
                   <div
@@ -281,16 +289,18 @@ function AdminAnalyticsPage() {
         </section>
 
         <section className="surface-card p-4 sm:p-5">
-          <h2 className="text-sm font-bold">Referrers</h2>
+          <h2 className="text-sm font-bold">{t("admin.analytics.referrers")}</h2>
           <ul className="mt-3 space-y-2">
             {(referrers.data ?? []).length === 0 && (
-              <li className="text-xs text-muted-foreground">No sessions yet.</li>
+              <li className="text-xs text-muted-foreground">{t("admin.analytics.noSessions")}</li>
             )}
             {(referrers.data ?? []).map((row) => (
               <li key={row.referrer} className="text-xs">
                 <div className="mb-1 flex justify-between gap-2">
                   <span className="truncate font-medium">{row.referrer}</span>
-                  <span className="shrink-0 text-muted-foreground">{row.sessions}</span>
+                  <span className="shrink-0 text-muted-foreground">
+                    {formatNumber(row.sessions)}
+                  </span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
                   <div
@@ -307,16 +317,24 @@ function AdminAnalyticsPage() {
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
         <section className="surface-card p-4 sm:p-5">
           <h2 className="flex items-center gap-2 text-sm font-bold">
-            <Bot className="size-4 text-muted-foreground" /> Bots vs humans
+            <Bot className="size-4 text-muted-foreground" /> {t("admin.analytics.botsVsHumans")}
           </h2>
           <div className="mt-3 grid grid-cols-2 gap-3 text-center">
             <div className="rounded-xl border border-border bg-background/50 p-3">
-              <p className="text-2xl font-bold">{bots.data?.human_sessions ?? o.human_sessions}</p>
-              <p className="text-[11px] text-muted-foreground">Human sessions</p>
+              <p className="text-2xl font-bold">
+                {formatNumber(bots.data?.human_sessions ?? o.human_sessions)}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {t("admin.analytics.humanSessions")}
+              </p>
             </div>
             <div className="rounded-xl border border-border bg-background/50 p-3">
-              <p className="text-2xl font-bold">{bots.data?.bot_sessions ?? o.bot_sessions}</p>
-              <p className="text-[11px] text-muted-foreground">Bot sessions</p>
+              <p className="text-2xl font-bold">
+                {formatNumber(bots.data?.bot_sessions ?? o.bot_sessions)}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                {t("admin.analytics.botSessions")}
+              </p>
             </div>
           </div>
           <ul className="mt-3 space-y-1.5">
@@ -326,22 +344,22 @@ function AdminAnalyticsPage() {
                 className="flex justify-between text-xs text-muted-foreground"
               >
                 <span>{b.bot_name}</span>
-                <span>{b.sessions}</span>
+                <span>{formatNumber(b.sessions)}</span>
               </li>
             ))}
             {(bots.data?.by_name ?? []).length === 0 && (
-              <li className="text-xs text-muted-foreground">No known crawlers yet.</li>
+              <li className="text-xs text-muted-foreground">{t("admin.analytics.noCrawlers")}</li>
             )}
           </ul>
         </section>
 
         <section className="surface-card p-4 sm:p-5">
           <h2 className="flex items-center gap-2 text-sm font-bold">
-            <Activity className="size-4 text-primary" /> Recent events
+            <Activity className="size-4 text-primary" /> {t("admin.analytics.recentEvents")}
           </h2>
-          <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pr-1">
+          <div className="mt-3 max-h-72 space-y-2 overflow-y-auto pe-1">
             {(recent.data ?? []).length === 0 && (
-              <p className="text-xs text-muted-foreground">Waiting for traffic…</p>
+              <p className="text-xs text-muted-foreground">{t("admin.analytics.waitingForTraffic")}</p>
             )}
             {(recent.data ?? []).map((ev) => (
               <div
@@ -351,12 +369,16 @@ function AdminAnalyticsPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-semibold text-foreground">{ev.event_name}</span>
                   <span className="text-muted-foreground">
-                    {new Date(ev.created_at).toLocaleString()}
+                    {formatDateTime(ev.created_at)}
                   </span>
                 </div>
                 <p className="mt-0.5 truncate text-muted-foreground">
-                  {ev.path ?? "—"}
-                  {ev.is_bot ? ` · bot:${ev.bot_name ?? "yes"}` : ""}
+                  {ev.path ?? t("common.none")}
+                  {ev.is_bot
+                    ? t("admin.analytics.eventBotTag", {
+                        name: ev.bot_name ?? t("admin.analytics.eventBotUnnamed"),
+                      })
+                    : ""}
                 </p>
               </div>
             ))}
@@ -365,9 +387,7 @@ function AdminAnalyticsPage() {
       </div>
 
       <p className="text-[11px] leading-relaxed text-muted-foreground">
-        Purpose-limited first-party telemetry only: page paths, referrers, UTM params, coarse
-        screen size, language, timezone offset, UA classification, and hashed IP when the server
-        beacon runs. No passwords, no full emails in events, no cross-site fingerprinting.
+        {t("admin.analytics.privacyNote")}
       </p>
     </main>
   );

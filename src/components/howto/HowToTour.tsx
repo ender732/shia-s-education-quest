@@ -15,6 +15,7 @@ import {
   releaseHowToSlot,
 } from "@/lib/howto-lock";
 import { getHowToShort, tourIdsForRole } from "@/lib/howto-shorts";
+import { useTranslation } from "@/i18n";
 
 const TOUR_OWNER = "tour";
 
@@ -34,6 +35,7 @@ export function HowToTour({
   onForceHandled,
   onTourActiveChange,
 }: HowToTourProps) {
+  const { t } = useTranslation();
   const playlist = useMemo(() => tourIdsForRole(role), [role]);
   const [step, setStep] = useState(0);
   const [active, setActive] = useState(false);
@@ -121,7 +123,7 @@ export function HowToTour({
       open
       onClose={onClose}
       onSkipAll={onSkipAll}
-      skipAllLabel="Skip tour"
+      skipAllLabel={t("howto.player.skipTour")}
       onHideAll={onHideAll}
     />
   );

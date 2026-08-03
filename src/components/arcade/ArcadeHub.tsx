@@ -11,6 +11,7 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import { DashGame } from "@/components/arcade/DashGame";
 import { useTaskProgress, type Task } from "@/components/TaskBoard";
+import { useTranslation, type TranslateFn } from "@/i18n";
 import {
   modeById,
   pickRecommendedMode,
@@ -28,7 +29,6 @@ import {
   gatesProgressOnLevel,
   getModeProgress,
   isLevelUnlocked,
-  unlockRuleCopy,
   type ModeCampaignProgress,
 } from "@/lib/arcade/progress";
 import { ARCADE_XP_TODO } from "@/lib/arcade/questions";
@@ -44,7 +44,17 @@ type Playing = {
   levelId: ArcadeLevelId;
 };
 
+/** Localized mode/level names — data files keep English as the fallback. */
+function modeTitle(t: TranslateFn, modeId: string): string {
+  return t(`arcade.mode.${modeId}.title`);
+}
+
+function levelLabel(t: TranslateFn, levelId: ArcadeLevelId): string {
+  return t(`arcade.levels.${levelId}.label`);
+}
+
 export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
+  const { t, formatNumber } = useTranslation();
   const { data: progress } = useTaskProgress(userId);
   const [playing, setPlaying] = useState<Playing | null>(null);
   const [hubModeId, setHubModeId] = useState<string | null>(null);
@@ -93,6 +103,8 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
         <DashGame
           mode={playingMode}
           level={playingLevel}
+          modeTitle={modeTitle(t, playingMode.id)}
+          levelLabel={levelLabel(t, playingLevel.id)}
           gatesBanked={gatesBanked}
           getQuestions={(hardness) => subject.questionsForMode(playingMode.id, hardness)}
           onGateCorrect={() => {
@@ -104,7 +116,7 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
             return {
               unlockedNext: result.unlockedNext,
               newlyUnlockedLabel: result.newlyUnlockedId
-                ? levelById(result.newlyUnlockedId).label
+                ? levelLabel(t, result.newlyUnlockedId)
                 : null,
             };
           }}
@@ -119,7 +131,7 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
             return {
               unlockedNext: result.unlockedNext,
               newlyUnlockedLabel: result.newlyUnlockedId
-                ? levelById(result.newlyUnlockedId).label
+                ? levelLabel(t, result.newlyUnlockedId)
                 : null,
               campaignComplete: result.campaignComplete,
             };
@@ -154,18 +166,18 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
               className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider"
               style={{ color: accent.uiAccent }}
             >
-              <Gamepad2 className="size-3.5" /> {subject.hubTitle}
+              <Gamepad2 className="size-3.5" /> {t(`arcade.subject.${subject.key}.hubTitle`)}
             </p>
             <h2 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
-              {subject.campaignTitle}
+              {t(`arcade.subject.${subject.key}.campaignTitle`)}
             </h2>
             <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              {subject.description}
+              {t(`arcade.subject.${subject.key}.description`)}
             </p>
           </div>
           {modeProgress.bossCleared ? (
             <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs font-bold text-amber-200">
-              <Trophy className="size-3.5" /> Campaign complete
+              <Trophy className="size-3.5" /> {t("arcade.hub.campaignComplete")}
             </span>
           ) : (
             <button
@@ -178,14 +190,17 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
               style={{ backgroundColor: accent.uiAccent }}
             >
               <Sparkles className="size-4" />
-              Continue {activeHubMode.title}
+              {t("arcade.hub.continueMode", { mode: modeTitle(t, activeHubMode.id) })}
             </button>
           )}
         </div>
 
         <p className="mt-3 inline-flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <Star className="size-3.5 text-xp" />
-          {recommended.reason}
+          {t(`arcade.hub.reason.${recommended.reasonKey}`, {
+            mode: modeTitle(t, recommended.mode.id),
+            subject: t(`arcade.subject.${subject.key}.shortName`),
+          })}
           {recommended.unitTag ? (
             <span className="rounded-md bg-secondary px-2 py-0.5 font-semibold text-secondary-foreground">
               {recommended.unitTag}
@@ -194,7 +209,7 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
         </p>
 
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-          {unlockRuleCopy()}
+          {t("arcade.hub.unlockRule", { gates: formatNumber(ARCADE_GATES_TO_UNLOCK) })}
         </p>
 
         <TopicPicker
@@ -212,7 +227,7 @@ export function ArcadeHub({ subject, tasks, userId }: ArcadeHubProps) {
         />
 
         <LevelLadder
-          modeTitle={activeHubMode.title}
+          modeTitle={modeTitle(t, activeHubMode.id)}
           progress={modeProgress}
           accent={accent.uiAccent}
           accentSoft={accent.uiAccentSoft}
@@ -252,17 +267,20 @@ function TopicPicker({
   expanded: boolean;
   onToggleExpand: () => void;
 }) {
+  const { t, formatNumber } = useTranslation();
   const activeMode = modeById(subject, activeId);
   return (
     <div className="mt-4">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-xs font-semibold text-foreground">Topic · {activeMode.title}</p>
+        <p className="text-xs font-semibold text-foreground">
+          {t("arcade.hub.topicLabel", { mode: modeTitle(t, activeMode.id) })}
+        </p>
         <button
           type="button"
           onClick={onToggleExpand}
           className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
         >
-          {expanded ? "Hide topics" : "Switch topic"}
+          {expanded ? t("arcade.hub.hideTopics") : t("arcade.hub.switchTopic")}
         </button>
       </div>
 
@@ -285,7 +303,7 @@ function TopicPicker({
                   <button
                     type="button"
                     onClick={() => onPick(mode.id)}
-                    className="w-full rounded-xl border p-3 text-left transition hover:bg-secondary/60"
+                    className="w-full rounded-xl border p-3 text-start transition hover:bg-secondary/60"
                     style={
                       isActive
                         ? {
@@ -307,11 +325,14 @@ function TopicPicker({
                           style={{ backgroundColor: mode.theme.uiAccent }}
                           aria-hidden
                         />
-                        {mode.title}
+                        {modeTitle(t, mode.id)}
                       </span>
                       <span className="flex items-center gap-1.5">
                         {mp.bossCleared && (
-                          <Trophy className="size-3.5 text-amber-300" aria-label="Campaign complete" />
+                          <Trophy
+                            className="size-3.5 text-amber-300"
+                            aria-label={t("arcade.hub.campaignCompleteAria")}
+                          />
                         )}
                         {isRec && (
                           <span
@@ -321,18 +342,21 @@ function TopicPicker({
                               color: mode.theme.uiAccent,
                             }}
                           >
-                            Suggested
+                            {t("arcade.hub.suggested")}
                           </span>
                         )}
                       </span>
                     </div>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      {mode.blurb}
+                      {t(`arcade.mode.${mode.id}.blurb`)}
                     </p>
                     <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-xp">
-                      <Zap className="size-3" /> {stars} practice stars · L
-                      {mp.unlockedIndex + 1}
-                      {mp.bossCleared ? " · Boss ✓" : ""}
+                      <Zap className="size-3" />{" "}
+                      {t("arcade.hub.modeStars", {
+                        stars: formatNumber(stars),
+                        level: formatNumber(mp.unlockedIndex + 1),
+                      })}
+                      {mp.bossCleared ? t("arcade.hub.bossCleared") : ""}
                     </span>
                   </button>
                 </li>
@@ -358,18 +382,22 @@ function LevelLadder({
   accentSoft: string;
   onPlay: (levelId: ArcadeLevelId) => void;
 }) {
+  const { t, formatNumber } = useTranslation();
+  const furthest = ARCADE_LEVELS[progress.unlockedIndex] ?? ARCADE_LEVELS[0]!;
   return (
     <div className="mt-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h3 className="font-display text-sm font-bold">{modeTitle} levels</h3>
+          <h3 className="font-display text-sm font-bold">
+            {t("arcade.hub.levelsTitle", { mode: modeTitle })}
+          </h3>
           <p className="text-[11px] text-muted-foreground">
-            Unlocked through {ARCADE_LEVELS[progress.unlockedIndex]?.label ?? "Level 1"}
+            {t("arcade.hub.unlockedThrough", { level: levelLabel(t, furthest.id) })}
           </p>
         </div>
         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-xp">
           <Star className="size-3 fill-xp" />
-          {campaignStarsTotal(progress)} stars
+          {t("arcade.hub.starsTotal", { stars: formatNumber(campaignStarsTotal(progress)) })}
         </span>
       </div>
 
@@ -391,7 +419,7 @@ function LevelLadder({
                 type="button"
                 disabled={!unlocked}
                 onClick={() => onPlay(level.id)}
-                className={`flex h-full w-full flex-col rounded-xl border p-3 text-left transition ${
+                className={`flex h-full w-full flex-col rounded-xl border p-3 text-start transition ${
                   !unlocked
                     ? "cursor-not-allowed border-border/60 bg-background/20 opacity-60"
                     : level.isBoss
@@ -421,7 +449,7 @@ function LevelLadder({
                     {level.isBoss ? (
                       <Crown className="size-3.5" style={{ color: accent }} />
                     ) : null}
-                    {level.label}
+                    {levelLabel(t, level.id)}
                   </span>
                   {!unlocked ? (
                     <Lock className="size-3.5 text-muted-foreground" />
@@ -430,7 +458,7 @@ function LevelLadder({
                   ) : null}
                 </div>
                 <p className="mt-1 flex-1 text-[10px] leading-snug text-muted-foreground">
-                  {level.blurb}
+                  {t(`arcade.levels.${level.id}.blurb`)}
                 </p>
                 {unlocked && stars > 0 && (
                   <span className="mt-2 inline-flex gap-0.5 text-xp">
@@ -444,17 +472,20 @@ function LevelLadder({
                 )}
                 {showGateMeter && (
                   <span className="mt-2 text-[10px] font-semibold" style={{ color: accent }}>
-                    {gates.current}/{ARCADE_GATES_TO_UNLOCK} gates to unlock next
+                    {t("arcade.hub.gatesToUnlock", {
+                      current: formatNumber(gates.current),
+                      needed: formatNumber(ARCADE_GATES_TO_UNLOCK),
+                    })}
                   </span>
                 )}
                 {unlocked && !cleared && level.isBoss && (
                   <span className="mt-2 text-[10px] font-semibold" style={{ color: accent }}>
-                    Final challenge
+                    {t("arcade.hub.finalChallenge")}
                   </span>
                 )}
                 {!unlocked && (
                   <span className="mt-2 text-[10px] font-semibold text-muted-foreground">
-                    Locked
+                    {t("arcade.hub.locked")}
                   </span>
                 )}
               </button>

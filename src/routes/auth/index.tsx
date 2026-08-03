@@ -9,6 +9,8 @@ import { trackEvent } from "@/lib/analytics";
 import { ageFromDob, isAdultDob } from "@/lib/parent-access";
 import { useSession } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/i18n";
 
 export const Route = createFileRoute("/auth/")({
   head: () => ({
@@ -32,6 +34,7 @@ export const Route = createFileRoute("/auth/")({
 function AuthPage() {
   const navigate = useNavigate();
   const { session } = useSession();
+  const { t, tError } = useTranslation();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [path, setPath] = useState<"student" | "parent">("student");
   const [displayName, setDisplayName] = useState("");
@@ -52,12 +55,12 @@ function AuthPage() {
       try {
         const result = await ensureProfileRole(session.user);
         if (result.forcedStudentReason === "under_18") {
-          toast.message("Parents must be 18+. Your account was set up as a student.");
+          toast.message(t("auth.toast.forcedStudent"));
         }
         if (result.emailStatus === "sent") {
-          toast.success("We emailed your parent/guardian the link code.");
+          toast.success(t("auth.toast.linkCodeEmailed"));
         } else if (result.emailStatus === "not_configured" && result.parentContactEmail) {
-          toast.message("Email not configured — copy your link code from the dashboard to share.");
+          toast.message(t("auth.toast.emailNotConfiguredShare"));
         }
       } catch (err) {
         console.error(err);
@@ -65,7 +68,7 @@ function AuthPage() {
         navigate({ to: "/dashboard", replace: true });
       }
     })();
-  }, [session, navigate]);
+  }, [session, navigate, t]);
 
   function buildIntent(): AuthSignupIntent {
     return {
@@ -80,22 +83,20 @@ function AuthPage() {
     };
   }
 
+  /** Returns a message-catalog key for the first problem found, else null. */
   function validateSignup(): string | null {
     if (path === "student") {
-      if (!parentContactEmail.trim())
-        return "Parent/guardian email is required for student accounts.";
+      if (!parentContactEmail.trim()) return "auth.validation.parentEmailRequired";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentContactEmail.trim())) {
-        return "Enter a valid parent/guardian email.";
+        return "auth.validation.parentEmailInvalid";
       }
       return null;
     }
-    if (!dateOfBirth) return "Date of birth is required for parent accounts.";
+    if (!dateOfBirth) return "auth.validation.dobRequired";
     const age = ageFromDob(dateOfBirth);
-    if (age === null) return "Enter a valid date of birth.";
-    if (!isAdultDob(dateOfBirth)) {
-      return "Parents must be 18 or older. Choose the student path if you are under 18.";
-    }
-    if (!confirmAdult) return "Confirm that you are a parent/guardian 18+.";
+    if (age === null) return "auth.validation.dobInvalid";
+    if (!isAdultDob(dateOfBirth)) return "auth.validation.mustBeAdult";
+    if (!confirmAdult) return "auth.validation.confirmAdult";
     return null;
   }
 
@@ -104,9 +105,9 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const validationError = validateSignup();
-        if (validationError) {
-          toast.error(validationError);
+        const validationErrorKey = validateSignup();
+        if (validationErrorKey) {
+          toast.error(t(validationErrorKey));
           return;
         }
 
@@ -135,17 +136,17 @@ function AuthPage() {
 
         if (!data.session) {
           setCheckEmail(true);
-          toast.message("Confirm your email, then sign in to finish setup.");
+          toast.message(t("auth.toast.confirmThenSignIn"));
         } else if (data.user) {
           roleApplied.current = true;
           const result = await ensureProfileRole(data.user, intent);
           if (result.forcedStudentReason === "under_18") {
-            toast.message("Parents must be 18+. Your account was set up as a student.");
+            toast.message(t("auth.toast.forcedStudent"));
           }
           if (result.emailStatus === "sent") {
-            toast.success("We emailed your parent/guardian the link code.");
+            toast.success(t("auth.toast.linkCodeEmailed"));
           } else if (result.emailStatus === "not_configured") {
-            toast.message("Email not configured — copy your link code from the dashboard.");
+            toast.message(t("auth.toast.emailNotConfiguredDashboard"));
           }
           navigate({ to: "/dashboard", replace: true });
         }
@@ -156,7 +157,7 @@ function AuthPage() {
         void trackEvent("login", { method: "password" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+      toast.error(tError(err, "common.somethingWentWrong"));
     } finally {
       setBusy(false);
     }
@@ -164,9 +165,9 @@ function AuthPage() {
 
   async function handleGoogle() {
     if (mode === "signup") {
-      const validationError = validateSignup();
-      if (validationError) {
-        toast.error(validationError);
+      const validationErrorKey = validateSignup();
+      if (validationErrorKey) {
+        toast.error(t(validationErrorKey));
         return;
       }
       // Persist role + DOB before leaving for Google so /auth/confirm can apply them.
@@ -184,28 +185,27 @@ function AuthPage() {
     });
     if (error) {
       setBusy(false);
-      toast.error("Google sign-in failed. Please try again.");
+      toast.error(t("auth.toast.googleFailed"));
     }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <div className="surface-card w-full max-w-md p-6 sm:p-8">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          <Sparkles className="size-3.5" /> Shia's 5th Grade Quest
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+            <Sparkles className="size-3.5" /> {t("app.name")}
+          </p>
+          <LanguageSwitcher />
+        </div>
         <h1 className="mt-2 text-2xl font-bold">
-          {mode === "signin" ? "Welcome back" : "Create your account"}
+          {mode === "signin" ? t("auth.signInTitle") : t("auth.signUpTitle")}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          P.S./I.S. 187 5th-grade prep for students and parents.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("app.tagline")}</p>
 
         {checkEmail ? (
           <div className="mt-6 rounded-xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
-            Check your email and tap the confirmation link. You&apos;ll land back here on a
-            &ldquo;Email confirmed&rdquo; page, then you can sign in. If you signed up as a student,
-            we&apos;ll finish sending your parent the link code after you confirm.
+            {t("auth.checkEmailNotice")}
           </div>
         ) : (
           <>
@@ -214,7 +214,7 @@ function AuthPage() {
                 <>
                   <input
                     className="input-base"
-                    placeholder="Display name"
+                    placeholder={t("auth.displayNamePlaceholder")}
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                   />
@@ -232,7 +232,7 @@ function AuthPage() {
                           : "border-border text-muted-foreground"
                       }`}
                     >
-                      Student
+                      {t("auth.pathStudent")}
                     </button>
                     <button
                       type="button"
@@ -243,7 +243,7 @@ function AuthPage() {
                           : "border-border text-muted-foreground"
                       }`}
                     >
-                      I am a parent/guardian
+                      {t("auth.pathParent")}
                     </button>
                   </div>
 
@@ -252,20 +252,19 @@ function AuthPage() {
                       <input
                         className="input-base"
                         type="email"
-                        placeholder="Parent/guardian email"
+                        placeholder={t("auth.parentEmailPlaceholder")}
                         value={parentContactEmail}
                         onChange={(e) => setParentContactEmail(e.target.value)}
                         required
                       />
                       <p className="text-[11px] leading-relaxed text-muted-foreground">
-                        We&apos;ll email them your parent link code so they can connect in Parent
-                        Portal. Under-13 learners should use a parent-managed setup when possible.
+                        {t("auth.studentPathNote")}
                       </p>
                     </>
                   ) : (
                     <>
                       <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Date of birth
+                        {t("auth.dateOfBirthLabel")}
                         <input
                           className="input-base mt-1"
                           type="date"
@@ -282,11 +281,10 @@ function AuthPage() {
                           checked={confirmAdult}
                           onChange={(e) => setConfirmAdult(e.target.checked)}
                         />
-                        <span>I confirm I am a parent/guardian 18 years of age or older.</span>
+                        <span>{t("auth.confirmAdultLabel")}</span>
                       </label>
                       <p className="text-[11px] leading-relaxed text-muted-foreground">
-                        Parent accounts require adult verification. You&apos;ll link a child with
-                        their shareable link code after signup.
+                        {t("auth.parentPathNote")}
                       </p>
                     </>
                   )}
@@ -295,7 +293,7 @@ function AuthPage() {
               <input
                 className="input-base"
                 type="email"
-                placeholder="Email"
+                placeholder={t("auth.emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -303,7 +301,7 @@ function AuthPage() {
               <input
                 className="input-base"
                 type="password"
-                placeholder="Password"
+                placeholder={t("auth.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={6}
@@ -315,12 +313,12 @@ function AuthPage() {
                 className="glow-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
               >
                 {busy && <Loader2 className="size-4 animate-spin" />}
-                {mode === "signin" ? "Sign in" : "Create account"}
+                {mode === "signin" ? t("auth.submitSignIn") : t("auth.submitSignUp")}
               </button>
             </form>
 
             <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-              <span className="h-px flex-1 bg-border" /> or{" "}
+              <span className="h-px flex-1 bg-border" /> {t("common.or")}{" "}
               <span className="h-px flex-1 bg-border" />
             </div>
 
@@ -332,20 +330,18 @@ function AuthPage() {
             >
               {mode === "signup"
                 ? path === "parent"
-                  ? "Continue with Google as parent"
-                  : "Continue with Google as student"
-                : "Sign in with Google"}
+                  ? t("auth.googleSignUpParent")
+                  : t("auth.googleSignUpStudent")
+                : t("auth.googleSignIn")}
             </button>
             {mode === "signup" && path === "parent" && (
               <p className="mt-2 text-center text-[11px] leading-relaxed text-muted-foreground">
-                Adult verification (date of birth + confirmation above) is required before Google
-                continues — same as email signup.
+                {t("auth.googleParentNote")}
               </p>
             )}
             {mode === "signin" && (
               <p className="mt-2 text-center text-[11px] leading-relaxed text-muted-foreground">
-                Need a parent account? Choose &ldquo;Create an account&rdquo; and select
-                parent/guardian so we can verify you&apos;re 18+ (works with Google too).
+                {t("auth.needParentAccountNote")}
               </p>
             )}
 
@@ -357,9 +353,7 @@ function AuthPage() {
               }}
               className="mt-5 w-full text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
             >
-              {mode === "signin"
-                ? "New here? Create an account"
-                : "Already have an account? Sign in"}
+              {mode === "signin" ? t("auth.toggleToSignUp") : t("auth.toggleToSignIn")}
             </button>
           </>
         )}

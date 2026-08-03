@@ -20,6 +20,7 @@ import { HowToContextual } from "@/components/howto/HowToContextual";
 import { ScribblePad, type ScribblePadHandle } from "@/components/ScribblePad";
 import { resolveTaskLesson, type Task } from "@/components/TaskBoard";
 import { useDailyActivityTracker } from "@/hooks/useDailyActivityTracker";
+import { I18nError, useTranslation } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import { celebrate } from "@/lib/confetti";
@@ -71,6 +72,7 @@ export function LessonPractice({
   const needsWorksheet = hasFillableWorksheet(payload);
   const queryClient = useQueryClient();
   const gradeWorksheetFn = useServerFn(gradeWorksheet);
+  const { t, tDb, tError, formatNumber } = useTranslation();
 
   const [phase, setPhase] = useState<Phase>("teach");
   const [index, setIndex] = useState(0);
@@ -200,24 +202,24 @@ export function LessonPractice({
       }
       if (result.awarded > 0) {
         void celebrate();
-        toast.success(`Lesson mastered! +${result.awarded} XP`);
+        toast.success(t("lesson.toast.masteredXp", { xp: formatNumber(result.awarded) }));
         const up = detectLevelUp(result.previousXp, result.awarded);
         if (up) setLevelUp(up);
       } else if (result.improved && result.bestScore >= 100) {
-        toast.success("Perfect score — 100%! Great persistence.");
+        toast.success(t("lesson.toast.perfect"));
       } else if (result.improved) {
-        toast.success(`New best score: ${result.bestScore}%`);
+        toast.success(t("lesson.toast.newBest", { score: formatNumber(result.bestScore) }));
       }
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Could not save your progress.");
+      toast.error(tError(err, "lesson.toast.saveFailed"));
     },
   });
 
   const submitWorksheet = useMutation({
     mutationFn: async () => {
       if (quizScore == null || quizScore < (lesson?.passPercent ?? 70)) {
-        throw new Error("Pass the practice quiz first, then submit the worksheet.");
+        throw new I18nError("lesson.worksheet.quizFirst");
       }
 
       const fields = payload?.worksheet?.fields ?? [];
@@ -231,7 +233,19 @@ export function LessonPractice({
           scribble: scribble ?? undefined,
         };
         if (!fieldAnswerHasContent(answer, field.type === "multipart")) {
-          throw new Error(`Please write or draw an answer for: ${field.prompt}`);
+          throw new I18nError("lesson.worksheet.answerRequired", { prompt: field.prompt });
+        }
+        // The grader requires every blank of a typed multipart answer, so catch it
+        // here where the message can be localized instead of on the server.
+        if (field.type === "multipart" && !answer.scribble) {
+          for (const part of field.parts ?? []) {
+            if (!String(answer.parts?.[part.id] ?? "").trim()) {
+              throw new I18nError("lesson.worksheet.partRequired", {
+                prompt: field.prompt,
+                part: part.prompt,
+              });
+            }
+          }
         }
         answers[field.id] = answer;
       }
@@ -259,7 +273,7 @@ export function LessonPractice({
       queryClient.invalidateQueries({ queryKey: [DAILY_LEADERBOARD_QUERY_KEY] });
       if (result.passed && result.xpAwarded > 0) {
         void celebrate();
-        toast.success(`Worksheet mastered! +${result.xpAwarded} XP`);
+        toast.success(t("lesson.toast.worksheetMasteredXp", { xp: formatNumber(result.xpAwarded) }));
         if (typeof result.newXp === "number") {
           const previousXp = result.newXp - result.xpAwarded;
           const up = detectLevelUp(previousXp, result.xpAwarded);
@@ -267,17 +281,19 @@ export function LessonPractice({
         }
       } else if (result.passed && result.alreadyMastered) {
         if (result.isPerfect) {
-          toast.success("Perfect score — 100%! Great persistence.");
+          toast.success(t("lesson.toast.perfect"));
         } else if (
           typeof result.bestScore === "number" &&
           result.bestScore > (bestScore ?? 0)
         ) {
-          toast.success(`New best score: ${result.bestScore}% — keep going for 100%.`);
+          toast.success(
+            t("lesson.toast.newBestKeepGoing", { score: formatNumber(result.bestScore) }),
+          );
         } else {
-          toast.success("Nice review — XP was already earned earlier.");
+          toast.success(t("lesson.toast.reviewNoXp"));
         }
       } else if (!result.passed) {
-        toast.message("Keep practicing — score at least 70% on the worksheet to master this lesson.");
+        toast.message(t("lesson.toast.worksheetKeepPracticing"));
       }
       if (typeof result.attemptCount === "number") {
         setAttemptCount(result.attemptCount);
@@ -287,7 +303,7 @@ export function LessonPractice({
       }
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Could not grade your worksheet.");
+      toast.error(tError(err, "lesson.toast.worksheetGradeFailed"));
     },
   });
 
@@ -321,11 +337,11 @@ export function LessonPractice({
     const response =
       question.type === "choice" ? String(selected ?? "") : shortValue;
     if (question.type === "choice" && selected === null) {
-      toast.error("Pick an answer first.");
+      toast.error(t("lesson.pickAnswerFirst"));
       return;
     }
     if (question.type === "short" && !shortValue.trim()) {
-      toast.error("Type your answer first.");
+      toast.error(t("lesson.typeAnswerFirst"));
       return;
     }
 
@@ -429,30 +445,22 @@ export function LessonPractice({
           onClick={onClose}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="size-3.5" /> Back to lessons
+          <ArrowLeft className="size-3.5" /> {t("lesson.backToLessons")}
         </button>
-        <h2 className="text-lg font-bold">{task.title}</h2>
+        <h2 className="text-lg font-bold">{tDb("tasks.title", task.title)}</h2>
         <p className="text-sm text-muted-foreground">
-          Practice questions for this assignment are not ready yet. Ask a parent to
-          tag it with a known unit code (like <code>187_MATH_FRACTIONS</code>) or upload a worksheet PDF.
+          {t("lesson.notReadyBody", { example: "187_MATH_FRACTIONS" })}
         </p>
         {task.description && (
           <p className="rounded-lg border border-border bg-background/50 p-3 text-sm">
-            {task.description}
+            {tDb("tasks.description", task.description)}
           </p>
         )}
       </div>
     );
   }
 
-  const phaseLabel =
-    phase === "teach"
-      ? "Learn"
-      : phase === "quiz"
-        ? "Practice"
-        : phase === "worksheet"
-          ? "Worksheet"
-          : "Results";
+  const phaseLabel = t(`lesson.phase.${phase}`);
 
   return (
     <div className="space-y-4">
@@ -467,7 +475,7 @@ export function LessonPractice({
           onClick={onClose}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="size-3.5" /> Back to lessons
+          <ArrowLeft className="size-3.5" /> {t("lesson.backToLessons")}
         </button>
         <span
           className="rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider"
@@ -486,7 +494,7 @@ export function LessonPractice({
             {phaseLabel}
           </p>
           <h2 className="mt-1 font-display text-xl font-extrabold">{lesson.title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{task.title}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{tDb("tasks.title", task.title)}</p>
           {(payload?.sourceCredit || task.source_credit) && (
             <p className="mt-1 text-[11px] text-muted-foreground">
               {payload?.sourceCredit || task.source_credit}
@@ -522,7 +530,9 @@ export function LessonPractice({
                 />
                 {lesson.transcript && !lesson.youtubeVideoId && (
                   <details className="rounded-xl border border-border bg-background/40 p-3 text-sm">
-                    <summary className="cursor-pointer font-semibold">Reading text</summary>
+                    <summary className="cursor-pointer font-semibold">
+                      {t("lesson.readingText")}
+                    </summary>
                     <p className="mt-2 whitespace-pre-wrap leading-relaxed text-muted-foreground">
                       {lesson.transcript}
                     </p>
@@ -531,7 +541,7 @@ export function LessonPractice({
                 <div className="flex items-start gap-2 rounded-xl border border-xp/30 bg-xp/10 p-3 text-sm">
                   <Lightbulb className="mt-0.5 size-4 shrink-0 text-xp" />
                   <p>
-                    <span className="font-bold text-xp">Coach tip: </span>
+                    <span className="font-bold text-xp">{t("lesson.coachTipPrefix")}</span>
                     {lesson.tip}
                   </p>
                 </div>
@@ -539,41 +549,40 @@ export function LessonPractice({
                   onClick={() => setPhase("quiz")}
                   className="glow-ring inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
                 >
-                  Start practice questions <ArrowRight className="size-4" />
+                  {t("lesson.startQuiz")} <ArrowRight className="size-4" />
                 </button>
                 {needsWorksheet && (
                   <p className="text-center text-xs text-muted-foreground">
-                    After the quiz, you&apos;ll write on the worksheet (finger or Pencil) and get AI
-                    feedback. You need {lesson.passPercent}%+ on both to earn XP.
+                    {t("lesson.worksheetHeadsUp", { pass: formatNumber(lesson.passPercent) })}
                   </p>
                 )}
                 {(attemptCount > 0 || bestScore != null) && (
                   <p className="text-center text-xs text-muted-foreground">
                     {attemptCount > 0
-                      ? `${attemptCount} attempt${attemptCount === 1 ? "" : "s"}`
-                      : "No attempts yet"}
-                    {bestScore != null ? ` · best score ${bestScore}%` : ""}
+                      ? t("common.attempts", { count: attemptCount })
+                      : t("lesson.noAttemptsYet")}
+                    {bestScore != null
+                      ? t("lesson.bestScoreSuffix", { score: formatNumber(bestScore) })
+                      : ""}
                     {bestScore != null && bestScore >= 100
-                      ? " · perfect!"
+                      ? t("lesson.perfectSuffix")
                       : bestScore != null && bestScore >= (lesson.passPercent ?? 70)
-                        ? " · retry anytime for 100%"
+                        ? t("lesson.retrySuffix")
                         : ""}
                   </p>
                 )}
                 {alreadyCompleted && bestScore != null && bestScore < 100 && (
                   <p className="text-center text-xs font-semibold text-xp">
-                    Mastered at {bestScore}% — retake the quiz to push for a perfect 100%.
+                    {t("lesson.masteredRetryFor100", { score: formatNumber(bestScore) })}
                   </p>
                 )}
                 {alreadyCompleted && bestScore != null && bestScore >= 100 && (
                   <p className="text-center text-xs text-success">
-                    Perfect score unlocked. You can still practice again anytime.
+                    {t("lesson.perfectUnlocked")}
                   </p>
                 )}
                 {alreadyCompleted && bestScore == null && (
-                  <p className="text-center text-xs text-success">
-                    You already mastered this lesson. You can still practice again.
-                  </p>
+                  <p className="text-center text-xs text-success">{t("lesson.alreadyMastered")}</p>
                 )}
               </motion.div>
             )}
@@ -588,9 +597,16 @@ export function LessonPractice({
               >
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>
-                    Question {index + 1} of {total}
+                    {t("lesson.questionCounter", {
+                      index: formatNumber(index + 1),
+                      total: formatNumber(total),
+                    })}
                   </span>
-                  <span>Need {lesson.passPercent}% to {needsWorksheet ? "continue" : "earn XP"}</span>
+                  <span>
+                    {needsWorksheet
+                      ? t("lesson.needToContinue", { pass: formatNumber(lesson.passPercent) })
+                      : t("lesson.needToEarnXp", { pass: formatNumber(lesson.passPercent) })}
+                  </span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-secondary">
                   <div
@@ -609,6 +625,7 @@ export function LessonPractice({
                   revealed={revealed}
                   onSelect={setSelected}
                   onShortChange={setShortValue}
+                  fallbackPlaceholder={t("lesson.answerPlaceholder")}
                 />
 
                 {revealed && (
@@ -622,11 +639,11 @@ export function LessonPractice({
                     <p className="flex items-center gap-2 font-bold">
                       {records.find((r) => r.questionId === question.id)?.correct ? (
                         <>
-                          <CheckCircle2 className="size-4" /> Correct
+                          <CheckCircle2 className="size-4" /> {t("lesson.correct")}
                         </>
                       ) : (
                         <>
-                          <XCircle className="size-4" /> Not yet
+                          <XCircle className="size-4" /> {t("lesson.notYet")}
                         </>
                       )}
                     </p>
@@ -640,7 +657,7 @@ export function LessonPractice({
                       onClick={submitCurrent}
                       className="inline-flex flex-1 items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
                     >
-                      Check answer
+                      {t("lesson.checkAnswer")}
                     </button>
                   ) : (
                     <button
@@ -653,9 +670,9 @@ export function LessonPractice({
                             (records.filter((r) => r.correct).length / lesson.questions.length) *
                               100,
                           ) >= lesson.passPercent
-                          ? "Continue to worksheet"
-                          : "See results"
-                        : "Next question"}
+                          ? t("lesson.continueToWorksheet")
+                          : t("lesson.seeResults")
+                        : t("lesson.nextQuestion")}
                       <ArrowRight className="size-4" />
                     </button>
                   )}
@@ -671,9 +688,9 @@ export function LessonPractice({
                 exit={{ opacity: 0, y: -8 }}
                 className="space-y-5"
               >
-                <header className="space-y-2 text-left">
+                <header className="space-y-2 text-start">
                   <h3 className="font-display text-lg font-extrabold leading-snug sm:text-xl">
-                    {payload.worksheet.title ?? "Worksheet"}
+                    {payload.worksheet.title ?? t("lesson.worksheet.defaultTitle")}
                   </h3>
                   {payload.worksheet.instructions && (
                     <p className="text-sm leading-relaxed text-muted-foreground">
@@ -681,8 +698,10 @@ export function LessonPractice({
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Quiz {quizScore}% · Write with finger or Pencil · Need{" "}
-                    {lesson.passPercent}%+ for mastery
+                    {t("lesson.worksheet.statusLine", {
+                      quiz: formatNumber(quizScore ?? 0),
+                      pass: formatNumber(lesson.passPercent),
+                    })}
                   </p>
                 </header>
 
@@ -719,17 +738,19 @@ export function LessonPractice({
                   >
                     {submitWorksheet.isPending ? (
                       <>
-                        <Loader2 className="size-4 animate-spin" /> AI Teacher is grading…
+                        <Loader2 className="size-4 animate-spin" /> {t("lesson.worksheet.grading")}
                       </>
                     ) : (
                       <>
-                        <Sparkles className="size-4" /> Submit worksheet to AI Teacher
+                        <Sparkles className="size-4" /> {t("lesson.worksheet.submit")}
                       </>
                     )}
                   </button>
                   <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                    {Object.values(worksheetInk).filter(Boolean).length} of{" "}
-                    {worksheetFields.length} fields have drawing
+                    {t("lesson.worksheet.inkProgress", {
+                      filled: formatNumber(Object.values(worksheetInk).filter(Boolean).length),
+                      total: formatNumber(worksheetFields.length),
+                    })}
                   </p>
                 </div>
               </motion.div>
@@ -744,18 +765,28 @@ export function LessonPractice({
               >
                 {(saveQuizProgress.isPending || submitWorksheet.isPending) && (
                   <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin" /> Saving progress…
+                    <Loader2 className="size-4 animate-spin" /> {t("lesson.savingProgress")}
                   </p>
                 )}
                 <p className="font-display text-4xl font-black text-xp">
-                  {needsWorksheet && worksheetScore != null
-                    ? `${Math.round((effectiveQuizScore + worksheetScore) / 2)}%`
-                    : `${effectiveQuizScore}%`}
+                  {t("common.percent", {
+                    value: formatNumber(
+                      needsWorksheet && worksheetScore != null
+                        ? Math.round((effectiveQuizScore + worksheetScore) / 2)
+                        : effectiveQuizScore,
+                    ),
+                  })}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {needsWorksheet && worksheetScore != null
-                    ? `Quiz ${effectiveQuizScore}% · Worksheet ${worksheetScore}%`
-                    : `${correctCount} of ${total} correct`}
+                    ? t("lesson.quizAndWorksheetScore", {
+                        quiz: formatNumber(effectiveQuizScore),
+                        worksheet: formatNumber(worksheetScore),
+                      })
+                    : t("lesson.correctOfTotal", {
+                        correct: formatNumber(correctCount),
+                        total: formatNumber(total),
+                      })}
                 </p>
 
                 {needsWorksheet && worksheetFeedback && (
@@ -769,36 +800,48 @@ export function LessonPractice({
                       (needsWorksheet &&
                         worksheetScore != null &&
                         Math.round((effectiveQuizScore + worksheetScore) / 2) >= 100)
-                        ? "Perfect score!"
-                        : "Lesson mastered"}
+                        ? t("lesson.perfectScore")
+                        : t("lesson.mastered")}
                     </p>
                     <p className="mt-1 text-muted-foreground">
                       {alreadyCompleted ||
                       (needsWorksheet && masteryXp === 0 && worksheetScore != null)
                         ? bestScore != null && bestScore < 100
-                          ? `Nice work — best so far ${bestScore}%. Retry to reach 100%.`
-                          : "Nice review — XP was already earned earlier."
-                        : `You earned +${needsWorksheet ? masteryXp || task.xp_reward : task.xp_reward} XP for learning this skill.`}
+                          ? t("lesson.masteredReviewBest", { score: formatNumber(bestScore) })
+                          : t("lesson.masteredReviewAlready")
+                        : t("lesson.masteredEarned", {
+                            xp: formatNumber(
+                              needsWorksheet ? masteryXp || task.xp_reward : task.xp_reward,
+                            ),
+                          })}
                     </p>
                     {attemptCount > 0 && (
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Attempts: {attemptCount}
-                        {bestScore != null ? ` · Best: ${bestScore}%` : ""}
+                        {t("lesson.attemptsLine", { count: attemptCount })}
+                        {bestScore != null
+                          ? t("lesson.attemptsBestSuffix", { score: formatNumber(bestScore) })
+                          : ""}
                       </p>
                     )}
                   </div>
                 ) : (
                   <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
-                    <p className="font-bold text-destructive">Keep practicing</p>
+                    <p className="font-bold text-destructive">{t("lesson.keepPracticing")}</p>
                     <p className="mt-1 text-muted-foreground">
                       {needsWorksheet && passedQuiz && !passedWorksheet
-                        ? `You need at least ${lesson.passPercent}% on the worksheet. Review the AI feedback and try again — the lesson stays available.`
-                        : `You need at least ${lesson.passPercent}% to complete this lesson and earn XP. Review the teaching notes and try again.`}
+                        ? t("lesson.keepPracticingWorksheet", {
+                            pass: formatNumber(lesson.passPercent),
+                          })
+                        : t("lesson.keepPracticingQuiz", {
+                            pass: formatNumber(lesson.passPercent),
+                          })}
                     </p>
                     {attemptCount > 0 && (
                       <p className="mt-2 text-xs text-muted-foreground">
-                        Attempts: {attemptCount}
-                        {bestScore != null ? ` · Best: ${bestScore}%` : ""}
+                        {t("lesson.attemptsLine", { count: attemptCount })}
+                        {bestScore != null
+                          ? t("lesson.attemptsBestSuffix", { score: formatNumber(bestScore) })
+                          : ""}
                       </p>
                     )}
                   </div>
@@ -809,7 +852,7 @@ export function LessonPractice({
                       onClick={resetWorksheetOnly}
                       className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
                     >
-                      <RotateCcw className="size-4" /> Retry worksheet
+                      <RotateCcw className="size-4" /> {t("lesson.retryWorksheet")}
                     </button>
                   ) : (
                     <button
@@ -818,21 +861,21 @@ export function LessonPractice({
                     >
                       <RotateCcw className="size-4" />{" "}
                       {passed && bestScore != null && bestScore < 100
-                        ? "Retry for 100%"
-                        : "Try again"}
+                        ? t("lesson.retryFor100")
+                        : t("lesson.tryAgain")}
                     </button>
                   )}
                   <button
                     onClick={() => setPhase("teach")}
                     className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold"
                   >
-                    <BookOpen className="size-4" /> Review lesson
+                    <BookOpen className="size-4" /> {t("lesson.reviewLesson")}
                   </button>
                   <button
                     onClick={onClose}
                     className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"
                   >
-                    Back to board
+                    {t("lesson.backToBoard")}
                   </button>
                 </div>
               </motion.div>
@@ -860,6 +903,7 @@ function QuestionPrompt({
   revealed,
   onSelect,
   onShortChange,
+  fallbackPlaceholder,
 }: {
   question: Question;
   selected: number | null;
@@ -867,9 +911,10 @@ function QuestionPrompt({
   revealed: boolean;
   onSelect: (i: number) => void;
   onShortChange: (v: string) => void;
+  fallbackPlaceholder: string;
 }) {
   return (
-    <div className="space-y-3 text-left">
+    <div className="space-y-3 text-start">
       <h3 className="text-base font-bold leading-snug">{question.prompt}</h3>
       {question.type === "choice" ? (
         <div className="grid gap-2">
@@ -883,7 +928,7 @@ function QuestionPrompt({
                 type="button"
                 disabled={revealed}
                 onClick={() => onSelect(i)}
-                className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
+                className={`rounded-xl border px-3 py-3 text-start text-sm transition ${
                   showCorrect
                     ? "border-success bg-success/15"
                     : showWrong
@@ -893,7 +938,7 @@ function QuestionPrompt({
                         : "border-border bg-background/60 hover:bg-secondary"
                 }`}
               >
-                <span className="mr-2 font-bold text-muted-foreground">
+                <span className="me-2 font-bold text-muted-foreground">
                   {String.fromCharCode(65 + i)}.
                 </span>
                 {choice}
@@ -907,7 +952,7 @@ function QuestionPrompt({
           value={shortValue}
           disabled={revealed}
           onChange={(e) => onShortChange(e.target.value)}
-          placeholder={question.placeholder ?? "Type your answer"}
+          placeholder={question.placeholder ?? fallbackPlaceholder}
         />
       )}
     </div>
@@ -931,10 +976,11 @@ function WorksheetFieldInput({
   scribbleRef: (handle: ScribblePadHandle | null) => void;
   onInkChange: (hasInk: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const answer = normalizeFieldAnswer(value);
 
   return (
-    <section className="space-y-3 text-left">
+    <section className="space-y-3 text-start">
       <div className="flex items-start gap-3">
         <span
           className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold"
@@ -954,13 +1000,13 @@ function WorksheetFieldInput({
         disabled={disabled}
         heightPx={field.type === "numeric" ? 160 : 220}
         onInkChange={onInkChange}
-        label="Write your work here"
+        label={t("lesson.worksheet.writeHere")}
       />
 
       {field.type === "multipart" ? (
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground">
-            Optional typed blanks (or draw everything above)
+            {t("lesson.worksheet.optionalTypedBlanks")}
           </p>
           {(field.parts ?? []).map((part) => (
             <label key={part.id} className="block">
@@ -969,7 +1015,7 @@ function WorksheetFieldInput({
                 className="input-base mt-1 min-h-11 text-base"
                 disabled={disabled}
                 value={answer.parts?.[part.id] ?? ""}
-                placeholder={part.placeholder ?? "Type if you want"}
+                placeholder={part.placeholder ?? t("lesson.worksheet.typeIfYouWant")}
                 onChange={(e) =>
                   onChange({
                     ...answer,
@@ -983,7 +1029,7 @@ function WorksheetFieldInput({
       ) : (
         <label className="block space-y-1">
           <span className="text-xs font-semibold text-muted-foreground">
-            Optional typed notes
+            {t("lesson.worksheet.optionalTypedNotes")}
           </span>
           {field.type === "numeric" ? (
             <input
@@ -991,7 +1037,7 @@ function WorksheetFieldInput({
               inputMode="decimal"
               disabled={disabled}
               value={answer.text ?? ""}
-              placeholder={field.placeholder ?? "Or type the number"}
+              placeholder={field.placeholder ?? t("lesson.worksheet.typeNumber")}
               onChange={(e) => onChange({ ...answer, text: e.target.value })}
             />
           ) : (
@@ -999,7 +1045,7 @@ function WorksheetFieldInput({
               className="input-base min-h-14 text-base"
               disabled={disabled}
               value={answer.text ?? ""}
-              placeholder={field.placeholder ?? "Or type your answer"}
+              placeholder={field.placeholder ?? t("lesson.worksheet.typeAnswer")}
               onChange={(e) => onChange({ ...answer, text: e.target.value })}
             />
           )}
@@ -1010,22 +1056,29 @@ function WorksheetFieldInput({
 }
 
 function WorksheetFeedbackCard({ feedback }: { feedback: WorksheetAiFeedback }) {
+  const { t, formatNumber } = useTranslation();
   const notes = Object.entries(feedback.field_notes ?? {});
   return (
-    <div className="overflow-hidden rounded-xl border border-border text-left">
+    <div className="overflow-hidden rounded-xl border border-border text-start">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary/40 px-4 py-3">
         <div className="flex items-center gap-2 text-sm font-bold">
-          <Sparkles className="size-4 text-primary" /> AI Teacher feedback
+          <Sparkles className="size-4 text-primary" /> {t("lesson.worksheet.feedbackTitle")}
         </div>
-        <div className="text-xl font-black text-xp">{feedback.score}/100</div>
+        <div className="text-xl font-black text-xp">
+          {t("lesson.worksheet.score", { score: formatNumber(feedback.score) })}
+        </div>
       </div>
       <div className="grid gap-3 p-4 sm:grid-cols-2">
         <div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-success">Strengths</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-success">
+            {t("lesson.worksheet.strengths")}
+          </h4>
           <p className="mt-1 text-sm text-muted-foreground">{feedback.strengths}</p>
         </div>
         <div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-ela">Improvements</h4>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-ela">
+            {t("lesson.worksheet.improvements")}
+          </h4>
           <p className="mt-1 text-sm text-muted-foreground">{feedback.improvements}</p>
         </div>
         {feedback.teacher_note && (
@@ -1034,7 +1087,7 @@ function WorksheetFeedbackCard({ feedback }: { feedback: WorksheetAiFeedback }) 
         {notes.length > 0 && (
           <div className="sm:col-span-2 space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Per-question notes
+              {t("lesson.worksheet.perQuestionNotes")}
             </h4>
             {notes.map(([id, note]) => (
               <p key={id} className="rounded-lg border border-border bg-background/50 px-3 py-2 text-xs text-muted-foreground">
